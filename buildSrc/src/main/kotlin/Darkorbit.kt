@@ -15,26 +15,25 @@ class Darkorbit : Plugin<Project> {
         val generateInterfaces = project.tasks.register("DarkorbitApi") {
             outputs.dir(sourcesDir)
             doLast {
+                fun parseType(type: String): String {
+                    if (type.startsWith("Enum:")) return "Int"
+                    val pattern = Regex("(?:^|:)([A-z0-9]+)(?:$|/)")
+                    var typeVal = pattern.find(type)?.groupValues?.get(1) ?: type
+                    typeVal = when (typeVal) { "i8" -> "Byte"; "i16" -> "Short"; "i32" -> "Int"; "i64" -> "Long"; else -> typeVal }
+                    return if (type.startsWith("List")) "MutableList<$typeVal>" else typeVal
+                }
+
                 val packageDir = sourcesDir.get().asFile.resolve("com/darkorbit").apply { mkdirs() }
                 val protocol = resourcesDir.get().asFile.apply { mkdirs() }.resolve("darkorbit-protocol.json")
                 if (protocol.exists()) return@doLast
                 protocol.writeText(GitHubAPI.getLatestProtocol("m9w/darkorbit-protocol"))
-
-                packageDir.resolve("Definition.kt").writeText("""
-                    package com.darkorbit
-                    
-                    @Target(AnnotationTarget.PROPERTY)
-                    @Retention(AnnotationRetention.RUNTIME)
-                    annotation class Definition(val order: Int, val type: String)
-                    """.trimIndent()
-                )
                 gson.fromJson<Map<String, MutableMap<String, String>>>(protocol.readText(), Map::class.java).forEach { className, fields ->
                     val superclass = fields.remove("super")?.let { ": $it " } ?: ""
-                    val classNameParts = className.split("#")
-                    val builder = StringBuilder("package com.darkorbit\n\ninterface ${classNameParts[0]} $superclass{\n")
-                    fields.forEach { fieldName, fieldType -> builder.append("\tvar $fieldName: ${parseType(fieldType)} //$fieldType\n") }
+                    val name = className.split("#")[0]
+                    val builder = StringBuilder("package com.darkorbit\n\ninterface $name $superclass{\n")
+                    fields.entries.sortedBy { it.key }.forEach { (name, type) -> builder.append("\tvar $name: ${parseType(type)}\n") }
                     builder.append("}\n")
-                    packageDir.resolve("${classNameParts[0]}.kt").writeText(builder.toString())
+                    packageDir.resolve("$name.kt").writeText(builder.toString())
                 }
             }
         }
@@ -51,14 +50,6 @@ class Darkorbit : Plugin<Project> {
                 dependsOn(generateInterfaces)
             }
         }
-    }
-
-    fun parseType(type: String): String {
-        if (type.startsWith("Enum:")) return "Short"
-        val pattern = Regex("(?:^|:)([A-z0-9]+)(?:$|/)")
-        var typeVal = pattern.find(type)?.groupValues?.get(1) ?: type
-        typeVal = when (typeVal) { "i8" -> "Byte"; "i16" -> "Short"; "i32" -> "Int"; "i64" -> "Long"; else -> typeVal }
-        return if (type.startsWith("List")) "MutableList<$typeVal>" else typeVal
     }
 
     open class GenerateInterfacesExtension

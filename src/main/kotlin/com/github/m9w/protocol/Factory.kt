@@ -7,9 +7,8 @@ import kotlin.reflect.cast
 
 object Factory {
     private val classLoader = Factory::class.java.classLoader
-    private val struct = ProtocolStruct()
 
-    fun <T : Any> build(type: KClass<T>, data: Map<String, Any?> = HashMap(), changes: T.() -> Unit): T {
+    fun <T : Any> build(type: KClass<T>, data: Map<String, Any?> = HashMap(), changes: T.() -> Unit = {}): T {
         val map = HashMap<String, Any?>(data)
         return type.cast(Proxy.newProxyInstance(classLoader, arrayOf(type.java, Extractor::class.java)) { proxy, method, args ->
             val methodName = method.name
@@ -49,7 +48,7 @@ object Factory {
     }
 
     fun getData(proxy: Any): Map<String, Any> = if (proxy is Extractor) proxy.map() else emptyMap()
-    fun getClass(proxy: Any) = if (proxy is Extractor) struct.getClass(proxy.cls()) else null
+    fun getClass(proxy: Any) = if (proxy is Extractor) ProtocolParser.getClass(proxy.cls()) else null
 
     private interface Extractor {
         fun map(): Map<String, Any>

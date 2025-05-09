@@ -1,11 +1,15 @@
 package com.github.m9w.protocol
 
+import com.google.gson.Gson
 import io.netty.buffer.ByteBuf
+import java.net.URI
 import java.nio.ByteBuffer
 import java.util.LinkedList
 
 object ProtocolParser {
     private val struct: ProtocolStruct = ProtocolStruct()
+
+    fun reload() = struct.load(GitHubAPI.getLatestProtocol("m9w/darkorbit-protocol"))
 
     fun getClass(name: String) = struct.getClass(name)
 
@@ -86,5 +90,18 @@ object ProtocolParser {
         val buf = ByteBuffer.wrap(result)
         action.invoke(buf)
         return result
+    }
+
+    private object GitHubAPI {
+        fun readURL(url: String) = String(URI(url).toURL().openStream().readAllBytes())
+
+        fun getLatestProtocol(path: String): String {
+            val gson = Gson()
+            val release = gson.fromJson(readURL("https://api.github.com/repos/$path/releases/latest"), Release::class.java)
+            return readURL(release.assets.find { it.name == "darkorbit-protocol.json" } ?.browser_download_url ?: throw RuntimeException("`darkorbit-protocol.json` not found"))
+        }
+
+        private data class Release(val assets: List<Asset>)
+        private data class Asset(val name: String, val browser_download_url: String)
     }
 }

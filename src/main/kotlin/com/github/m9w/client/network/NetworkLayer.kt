@@ -16,6 +16,7 @@ class NetworkLayer(addr: InetSocketAddress, private val handler: NetworkLayer.(A
     private val client = AsynchronousSocketChannel.open()
     private val pool = PooledByteBufAllocator(true)
     private val lengthBuf: ByteBuf = pool.buffer(3)
+    var debug = false
 
     init {
         if (addr.port != 0) {
@@ -27,7 +28,9 @@ class NetworkLayer(addr: InetSocketAddress, private val handler: NetworkLayer.(A
 
     private var isFirst = true
     fun <T : Any> send(type: KClass<T>, changes: T.() -> Unit) {
-        val raw = ProtocolParser.serialize(Factory.build(type, changes = changes))
+        val data = Factory.build(type, changes = changes)
+        if (debug) println("<<$data")
+        val raw = ProtocolParser.serialize(data)
         val buffer = if (!isFirst) pool.buffer(raw.size + 3)
         else { isFirst = false; pool.buffer(raw.size + 4).also { it.writeByte(0) } }
         try {
@@ -76,6 +79,7 @@ class NetworkLayer(addr: InetSocketAddress, private val handler: NetworkLayer.(A
 
                 try {
                     val parsed = ProtocolParser.deserialize(buf) ?: throw RuntimeException("Parsed object is null")
+                    if (debug) println(">>$parsed")
                     handler(this@NetworkLayer, parsed)
                 } finally {
                     buf.release()

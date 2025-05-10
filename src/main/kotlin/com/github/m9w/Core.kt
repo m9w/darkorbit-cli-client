@@ -1,6 +1,5 @@
 package com.github.m9w
 
-
 import com.github.m9w.client.GameEngine
 import com.github.m9w.client.auth.AuthenticationProvider
 import com.github.m9w.client.network.NetworkLayer
@@ -11,6 +10,7 @@ import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.jvm.jvmErasure
 
+
 class Core(auth: AuthenticationProvider, vararg action: Any) : Runnable {
     val packetController: PacketController<NetworkLayer> = PacketController()
     val timerController: TimerController<NetworkLayer> = TimerController()
@@ -18,6 +18,8 @@ class Core(auth: AuthenticationProvider, vararg action: Any) : Runnable {
     var isRun = true
 
     init {
+        packetController.timer = timerController
+        timerController.packet = packetController
         val x = action.flatMap { instance ->
             instance::class.memberFunctions.mapNotNull { method ->
                 if (method.hasAnnotation<OnPackage>()) {
@@ -31,31 +33,22 @@ class Core(auth: AuthenticationProvider, vararg action: Any) : Runnable {
             }
         }
 
-        val y = x.filterIsInstance<TimerController<NetworkLayer>.Repeatable>()
-        y.forEach { it.schedule() }
-        x.filterIsInstance<PacketController<NetworkLayer>.Handler>().forEach { handler ->
-            packetController.handlers[handler.packetType] = handler
-        }
+        x.filterIsInstance<TimerController<NetworkLayer>.Repeatable>().forEach { it.schedule() }
+        x.filterIsInstance<PacketController<NetworkLayer>.Handler>().forEach { it.schedule() }
 
         Thread(this, "Instance ${auth.getUserId()}").start()
         //engine.start()
     }
 
     override fun run() {
-        val x = System.currentTimeMillis()
-        try {
-            while (isRun) {
-                //println("Tick: ${System.currentTimeMillis()-x}")
-                packetController.perform(engine.network, timerController)
-                try {
-                    Thread.sleep(100)
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-                timerController.perform(engine.network, packetController)
+        while (isRun) {
+            try {
+                packetController.perform(engine.network)
+                Thread.sleep(100)
+                timerController.perform(engine.network)
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
         }
     }
 }

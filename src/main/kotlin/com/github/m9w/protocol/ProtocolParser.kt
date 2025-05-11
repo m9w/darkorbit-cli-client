@@ -21,7 +21,7 @@ object ProtocolParser {
                     List(len) { parseField(field.getSubType(it)) }
                 }
                 field.isBoolean -> buffer.readByte() != 0.toByte()
-                field.isEnum -> buffer.readUnsignedShort()
+                field.isEnum -> field.getEnum(buffer.readUnsignedShort())
                 field.isFloat -> buffer.readFloat()
                 field.isDouble -> buffer.readDouble()
                 field.isString -> {
@@ -79,7 +79,7 @@ object ProtocolParser {
             byteBuffer(bytes.size + 2) { putShort(bytes.size.toShort()).put(bytes) }
         }
         else if (field.isBoolean) { ByteArray(1).also { it[0] = if (value == true) 1 else 0 } }
-        else if (field.isEnum) byteBuffer(2) { putShort(((value as Int?) ?: 0).toShort()) }
+        else if (field.isEnum) byteBuffer(2) { putShort(((value as Enum<*>?)?.ordinal ?: 0).toShort()) }
         else if (field.isFloat) byteBuffer(4) { putFloat(((value as Float?) ?: 0F)) }
         else if (field.isDouble) byteBuffer(8) { putDouble(((value as Double?) ?: 0.0)) }
         else serialize(value)

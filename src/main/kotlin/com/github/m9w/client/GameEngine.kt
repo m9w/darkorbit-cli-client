@@ -5,7 +5,6 @@ import com.github.m9w.client.auth.AuthenticationProvider
 import com.github.m9w.client.network.NetworkLayer
 import com.github.m9w.protocol.ProtocolParser
 import com.github.m9w.util.timePrefix
-import com.google.gson.Gson
 import java.net.InetSocketAddress
 import java.net.URI
 import java.util.concurrent.Executors
@@ -19,7 +18,7 @@ class GameEngine(private val authentication: AuthenticationProvider, private val
     private var pingList = ArrayList<Long>()
     private var networkLayer: NetworkLayer = NetworkLayer(InetSocketAddress(0)) {}
     private var lastPackage: Long = 0
-    private var builtInVersion = "e0978404ac77a5751f514f0e07650fa9"
+    private var builtInVersion = ""
     private var init: Boolean = false
     val network get() = networkLayer
 
@@ -48,11 +47,11 @@ class GameEngine(private val authentication: AuthenticationProvider, private val
                 }
                 is LegacyModule -> if (it.message.startsWith("0|i|")) mapId = it.message.removePrefix("0|i|").toInt()
                 is LoginResponse -> {
-                    if (it.status == 0) {
-                        send<ReadyRequest> { readyType = 1 }
-                        send<ReadyRequest> { readyType = 2 }
+                    if (it.status == LoginResponseStatus.Success) {
+                        send<ReadyRequest> { readyType = ReadyMessage.MAP_LOADED_2D }
+                        send<ReadyRequest> { readyType = ReadyMessage.UI_READY }
                         init = true
-                    } else if (it.status == 5) {
+                    } else if (it.status == LoginResponseStatus.WrongServer) {
                         println("Change server, next map $mapId")
                         start()
                     } else println(it)
@@ -77,12 +76,12 @@ class GameEngine(private val authentication: AuthenticationProvider, private val
     fun setPetActive(isActive: Boolean) {
         if (!init) return
         println("setPetActive($isActive)")
-        networkLayer.send<PetRequest> { this.petRequestType = if (isActive) 0 else 1 }
+        networkLayer.send<PetRequest> { this.petRequestType = if (isActive) PetRequestType.LAUNCH else PetRequestType.DEACTIVATE }
     }
 
     fun buyPetFuel() {
         if (!init) return
-        networkLayer.send<PetRequest> { this.petRequestType = 6 }
+        networkLayer.send<PetRequest> { this.petRequestType = PetRequestType.HOTKEY_BUY_FUEL }
     }
 
     private fun watchdog() {

@@ -1,7 +1,10 @@
 package com.github.m9w.protocol
 
+import com.darkorbit.eCaptchaType
 import com.google.gson.Gson
 import java.util.Collections
+import kotlin.arrayOf
+import kotlin.enums.EnumEntries
 
 class ProtocolStruct() {
     private val gson: Gson = Gson()
@@ -43,6 +46,7 @@ class ProtocolStruct() {
             private val typeVal = pattern.find(type)?.groupValues?.get(1) ?: type
             val isList: Boolean = type.startsWith("List")
             val isEnum: Boolean = type.startsWith("Enum:")
+            val enumConstants: Array<Enum<*>> = (if(isEnum) Class.forName("com.darkorbit.$typeVal").enumConstants else arrayOf()) as Array<Enum<*>>
             val listLengthSize: Int = if (isList) if (type.startsWith("List2:")) 2 else 1 else 0
             val intLength: Int = when (typeVal) { "i8" -> 8; "i16" -> 16; "i32" -> 32; "i64" -> 64; else -> 0 }
             val isInt: Boolean = intLength != 0
@@ -58,6 +62,8 @@ class ProtocolStruct() {
             }
 
             fun getClass() = this@ProtocolStruct.getClass(type)
+
+            fun getEnum(i: Int): Enum<*> = enumConstants[i]
 
             override fun toString(): String = "[${this@ProtocolClass.type}.$name: $type]"
         }

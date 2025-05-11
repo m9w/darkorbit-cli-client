@@ -16,7 +16,7 @@ class Darkorbit : Plugin<Project> {
             outputs.dir(sourcesDir)
             doLast {
                 fun parseType(type: String): String {
-                    if (type.startsWith("Enum:")) return "Int"
+                    if (type.startsWith("Enum:")) return type.removePrefix("Enum:")
                     val pattern = Regex("(?:^|:)([A-z0-9]+)(?:$|/)")
                     var typeVal = pattern.find(type)?.groupValues?.get(1) ?: type
                     typeVal = when (typeVal) { "i8" -> "Byte"; "i16" -> "Short"; "i32" -> "Int"; "i64" -> "Long"; else -> typeVal }
@@ -25,15 +25,32 @@ class Darkorbit : Plugin<Project> {
 
                 val packageDir = sourcesDir.get().asFile.resolve("com/darkorbit").apply { mkdirs() }
                 val protocol = resourcesDir.get().asFile.apply { mkdirs() }.resolve("darkorbit-protocol.json")
-                if (protocol.exists()) return@doLast
-                protocol.writeText(GitHubAPI.getLatestProtocol("m9w/darkorbit-protocol"))
-                gson.fromJson<Map<String, MutableMap<String, String>>>(protocol.readText(), Map::class.java).forEach { className, fields ->
-                    val superclass = fields.remove("super")?.let { ": $it " } ?: ""
-                    val name = className.split("#")[0]
-                    val builder = StringBuilder("package com.darkorbit\n\ninterface $name $superclass{\n")
-                    fields.entries.sortedBy { it.key }.forEach { (name, type) -> builder.append("\tvar $name: ${parseType(type)}\n") }
-                    builder.append("}\n")
-                    packageDir.resolve("$name.kt").writeText(builder.toString())
+                //if (protocol.exists()) return@doLast
+                //protocol.writeText(GitHubAPI.getLatestProtocol("m9w/darkorbit-protocol"))
+                packageDir.resolve("$name.kt").writeText("package com.darkorbit\n\ninterface ProtocolPacket")
+                gson.fromJson<Map<String, Any>>(protocol.readText(), Map::class.java).forEach { className, fields ->
+                    when (className) {
+                        "hash" -> null
+                        "Enums#0" -> {
+                            val f = fields as MutableMap<String, List<String>>
+                            f.forEach { k, v ->
+                                val constants = v as List<String>
+                                val builder = StringBuilder("package com.darkorbit\n\nenum class $k {\n")
+                                constants.forEachIndexed { i, name -> builder.append("\t/* $i */ $name,\n") }
+                                builder.append("}\n")
+                                packageDir.resolve("$k.kt").writeText(builder.toString())
+                            }
+                        }
+                        else -> {
+                            val f = fields as MutableMap<String,String>
+                            val superclass = f.remove("super") ?: "ProtocolPacket"
+                            val name = className.split("#")[0]
+                            val builder = StringBuilder("package com.darkorbit\n\ninterface $name : $superclass {\n")
+                            f.entries.sortedBy { it.key }.forEach { (name, type) -> builder.append("\tvar $name: ${parseType(type)}\n") }
+                            builder.append("}\n")
+                            packageDir.resolve("$name.kt").writeText(builder.toString())
+                        }
+                    }
                 }
             }
         }

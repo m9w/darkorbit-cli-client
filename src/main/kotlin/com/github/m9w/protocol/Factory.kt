@@ -33,6 +33,7 @@ object Factory {
     }
 
     private fun default(returnType: Class<*>): Any? {
+        if (returnType.isEnum) return returnType.enumConstants[0]
         return when (returnType) {
             Boolean::class.java -> false
             Byte::class.java -> 0.toByte()

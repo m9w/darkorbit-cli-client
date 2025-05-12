@@ -12,9 +12,9 @@ import kotlin.reflect.jvm.jvmErasure
 
 
 class Core(auth: AuthenticationProvider, vararg action: Any) : Runnable {
-    val packetController: PacketController<NetworkLayer> = PacketController()
-    val timerController: TimerController<NetworkLayer> = TimerController()
-    val engine = GameEngine(auth, packetController::process)
+    val packetController: PacketController = PacketController()
+    val timerController: TimerController = TimerController()
+    val engine = GameEngine(auth) { packetController.process(it) }
     var isRun = true
 
     init {
@@ -23,18 +23,18 @@ class Core(auth: AuthenticationProvider, vararg action: Any) : Runnable {
         val x = action.flatMap { instance ->
             instance::class.memberFunctions.mapNotNull { method ->
                 if (method.hasAnnotation<OnPackage>()) {
-                    if (method.parameters.size != 3) throw IllegalArgumentException("Unexpected argument count in $method")
+                    if (method.parameters.size != 2) throw IllegalArgumentException("Unexpected argument count in $method")
                     val packetType = method.parameters[1].type.jvmErasure
                     packetController.Handler(packetType, method, instance)
                 } else if (method.hasAnnotation<Repeat>()) {
-                    if (method.parameters.size != 2) throw IllegalArgumentException("Unexpected argument count in $method")
+                    if (method.parameters.size != 1) throw IllegalArgumentException("Unexpected argument count in $method")
                     method.findAnnotation<Repeat>()?.let { timerController.Repeatable(it.ms, method, instance) }
                 } else null
             }
         }
 
-        x.filterIsInstance<TimerController<NetworkLayer>.Repeatable>().forEach { it.schedule() }
-        x.filterIsInstance<PacketController<NetworkLayer>.Handler>().forEach { it.schedule() }
+        x.filterIsInstance<TimerController.Repeatable>().forEach { it.schedule() }
+        x.filterIsInstance<PacketController.Handler>().forEach { it.schedule() }
 
         Thread(this, "Instance ${auth.getUserId()}").start()
         //engine.start()
@@ -43,9 +43,9 @@ class Core(auth: AuthenticationProvider, vararg action: Any) : Runnable {
     override fun run() {
         while (isRun) {
             try {
-                packetController.perform(engine.network)
+                packetController.perform()
                 Thread.sleep(100)
-                timerController.perform(engine.network)
+                timerController.perform()
             } catch (e: Exception) {
                 e.printStackTrace()
             }

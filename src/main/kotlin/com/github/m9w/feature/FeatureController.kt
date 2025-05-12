@@ -14,7 +14,7 @@ import kotlin.reflect.KClass
 
 
 object FeatureController {
-    fun <T> runCoroutine(timer: TimerController<*>, packet: PacketController<*>, block: suspend () -> T): Future<T> = FutureImpl(timer, packet, block)
+    fun <T> runCoroutine(timer: TimerController, packet: PacketController, block: suspend () -> T): Future<T> = FutureImpl(timer, packet, block)
 
     suspend fun waitMs(ms: Long) = suspendWithInterrupt<Unit> {
         object : SuspendFlow {
@@ -42,7 +42,7 @@ object FeatureController {
 
     private fun <T> Continuation<T>.getFuture(): FutureImpl<T> = (this.context[FutureContext]?.future ?: error("No future in context")) as FutureImpl<T>
 
-    private class FutureImpl<T>(val timer: TimerController<*>, val packet: PacketController<*>, block: suspend () -> T) : Future<T> {
+    private class FutureImpl<T>(val timer: TimerController, val packet: PacketController, block: suspend () -> T) : Future<T> {
         override val isDone: Boolean get() = result != null
         override val hasError: Boolean get() = result?.isFailure == true
         private var continuation: Continuation<T>? = null

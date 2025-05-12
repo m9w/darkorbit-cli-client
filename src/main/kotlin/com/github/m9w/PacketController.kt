@@ -1,14 +1,12 @@
 package com.github.m9w
 
 import com.github.m9w.feature.Future
-import com.github.m9w.util.ThreadLocal
-import java.util.function.Consumer
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 
-class PacketController<T> {
+class PacketController {
     private val packetQueue = mutableListOf<Any>()
-    lateinit var timer: TimerController<*>
+    lateinit var timer: TimerController
 
     data class PendingFuture(
         val future: Future<*>,
@@ -16,15 +14,13 @@ class PacketController<T> {
         val timeout: Long
     )
 
-    fun process(l: T, packet: Any) {
-        ThreadLocal["networkLayer"] = l as Any
-        ThreadLocal["currentPacket"] = packet
+    fun process(packet: Any) {
         synchronized(packetQueue) {
             packetQueue.add(packet)
         }
     }
 
-    fun perform(arg: T) {
+    fun perform() {
 
     }
 
@@ -32,8 +28,8 @@ class PacketController<T> {
 
     }
 
-    inner class Handler(val packetType: KClass<*>, val method: KFunction<*>, val instance: Any) : Consumer<T> {
-        override fun accept(arg: T) {
+    inner class Handler(val packetType: KClass<*>, val method: KFunction<*>, val instance: Any) : Runnable {
+        override fun run() {
 
         }
 

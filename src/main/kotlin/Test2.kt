@@ -1,5 +1,5 @@
 import com.darkorbit.*
-import com.github.m9w.Core
+import com.github.m9w.Bootstrap
 import com.github.m9w.client.GameEngine
 import com.github.m9w.client.auth.AuthenticationProvider
 import com.github.m9w.feature.Inject
@@ -72,5 +72,5 @@ object C {
 }
 
 fun main() {
-    Core(AuthenticationProvider.static(0,"",""), C)
+    Bootstrap(AuthenticationProvider.static(0,"",""), C)
 }

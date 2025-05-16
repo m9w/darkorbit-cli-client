@@ -1,8 +1,7 @@
 package com.github.m9w.feature
 
 import com.darkorbit.ProtocolPacket
-import com.github.m9w.PacketController
-import com.github.m9w.TimerController
+import com.github.m9w.Scheduler
 import com.github.m9w.feature.suspend.SuspendFlow
 import java.io.InterruptedIOException
 import kotlin.coroutines.AbstractCoroutineContextElement
@@ -15,12 +14,12 @@ import kotlin.reflect.KClass
 
 
 object FeatureController {
-    fun <T> runCoroutine(timer: TimerController, packet: PacketController, block: suspend () -> T): Future<T> = FutureImpl(timer, packet, block)
+    fun <T> runCoroutine(scheduler: Scheduler, block: suspend () -> T): Future<T> = FutureImpl(scheduler, block)
 
     suspend fun waitMs(ms: Long) = suspendWithInterrupt<Unit> {
         object : SuspendFlow {
             override fun <T> getFuture(): Future<T> = it as Future<T>
-            override fun <T> schedule(future: Future<T>) = it.timer.resumeIn(future, ms)
+            override fun <T> schedule(future: Future<T>) = it.scheduler.resumeIn(future, ms)
             override fun toString() = "Wait $ms ms"
         }
     }
@@ -30,9 +29,9 @@ object FeatureController {
             object : SuspendFlow {
                 override fun <T> getFuture(): Future<T> = it as FutureImpl<T>
                 override fun <T> schedule(future: Future<T>) {
-                    val pending = it.packet.addPendingFuture(it, waitFor, exceptBy)
-                    if (timeout > 0) it.timer.interruptIn(future, timeout) {
-                        it.packet.remove(pending)
+                    val pending = it.scheduler.addPendingFuture(it, waitFor, exceptBy)
+                    if (timeout > 0) it.scheduler.interruptIn(future, timeout) {
+                        it.scheduler.remove(pending)
                         InterruptedIOException("Timeout waiting $timeout ms")
                     }
                     postExecute()
@@ -47,7 +46,7 @@ object FeatureController {
 
     private fun <T> Continuation<T>.getFuture(): FutureImpl<T> = (this.context[FutureContext]?.future ?: error("No future in context")) as FutureImpl<T>
 
-    private class FutureImpl<T>(val timer: TimerController, val packet: PacketController, block: suspend () -> T) : Future<T> {
+    private class FutureImpl<T>(val scheduler: Scheduler, block: suspend () -> T) : Future<T> {
         private var result: Result<T>? = null
         override val isDone: Boolean get() = result != null
         override val hasError: Boolean get() = result?.isFailure == true

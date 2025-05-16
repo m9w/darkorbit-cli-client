@@ -1,10 +1,10 @@
 package com.github.m9w.protocol
 
-import com.darkorbit.eCaptchaType
+import com.darkorbit.ProtocolPacket
 import com.google.gson.Gson
 import java.util.Collections
 import kotlin.arrayOf
-import kotlin.enums.EnumEntries
+import kotlin.reflect.KClass
 
 class ProtocolStruct() {
     private val gson: Gson = Gson()
@@ -37,7 +37,7 @@ class ProtocolStruct() {
             data.map { (k, v) -> ProtocolField(k, v) }.forEach { list.add(it) }
         }
 
-        fun getClass() = Class.forName("com.darkorbit.$name").kotlin
+        fun <T : ProtocolPacket> getClass() : KClass<T> = Class.forName("com.darkorbit.$name").kotlin as KClass<T>
 
         operator fun get(name: String) = this.find { it.name == name }
 

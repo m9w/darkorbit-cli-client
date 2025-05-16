@@ -2,6 +2,8 @@ package com.github.m9w
 
 import com.github.m9w.feature.FeatureController
 import com.github.m9w.feature.Future
+import java.io.PrintWriter
+import java.io.StringWriter
 import java.util.*
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.callSuspend
@@ -12,8 +14,7 @@ class TimerController {
 
     fun perform() {
         System.currentTimeMillis().let { currentTime ->
-            queue.headMap(currentTime, true).values.flatten().forEach { it() }
-            queue.headMap(currentTime, true).clear()
+            if (queue.firstKey() <= currentTime) queue.pollFirstEntry().value.forEach { it() }
         }
     }
 
@@ -26,12 +27,22 @@ class TimerController {
     fun interruptIn(future: Future<*>, ms: Long, block: () -> Exception) = ms.schedule { future.interrupt(block) }
 
     inner class Repeatable(val ms: Long, val method: KFunction<*>, val instance: Any) : Runnable {
+        var status: String = ""
         override fun run() {
             if (method.isSuspend)
-                FeatureController.runCoroutine(this@TimerController, packet) { method.callSuspend(instance); schedule()}
+                FeatureController.runCoroutine(this@TimerController, packet) {
+                    status = try {
+                        method.callSuspend(instance)?.toString() ?: ""
+                    } catch (e: Exception) {
+                        StringWriter().let { e.printStackTrace(PrintWriter(it)) }.toString()
+                    } finally { schedule() }
+                }
             else {
-                method.call( instance)
-                schedule()
+                status = try {
+                    method.call( instance)?.toString() ?: ""
+                } catch (e: Exception) {
+                    StringWriter().let { e.printStackTrace(PrintWriter(it)) }.toString()
+                } finally { schedule() }
             }
         }
 

@@ -1,5 +1,6 @@
 package com.github.m9w.client.network
 
+import com.darkorbit.ProtocolPacket
 import com.github.m9w.protocol.Factory
 import com.github.m9w.protocol.ProtocolParser
 import com.github.m9w.util.timePrefix
@@ -12,7 +13,7 @@ import java.nio.channels.CompletionHandler
 import java.util.concurrent.TimeUnit
 import kotlin.reflect.KClass
 
-class NetworkLayer(addr: InetSocketAddress, private val handler: NetworkLayer.(Any) -> Unit) : Closeable {
+class NetworkLayer(addr: InetSocketAddress, private val handler: (ProtocolPacket) -> Unit) : Closeable {
     private val client = AsynchronousSocketChannel.open()
     private val pool = PooledByteBufAllocator(true)
     private val lengthBuf: ByteBuf = pool.buffer(3)
@@ -27,8 +28,8 @@ class NetworkLayer(addr: InetSocketAddress, private val handler: NetworkLayer.(A
     }
 
     private var isFirst = true
-    fun <T : Any> send(type: KClass<T>, changes: T.() -> Unit) {
-        val data = Factory.build(type, changes = changes)
+    fun <T : ProtocolPacket> send(type: KClass<T>, changes: T.() -> Unit) {
+        val data = Factory.build(type).also { changes.invoke(it) }
         if (debug) println("<<$data")
         val raw = ProtocolParser.serialize(data)
         val buffer = if (!isFirst) pool.buffer(raw.size + 3)
@@ -39,8 +40,6 @@ class NetworkLayer(addr: InetSocketAddress, private val handler: NetworkLayer.(A
             buffer.release()
         }
     }
-
-    inline fun <reified T : Any> send(noinline changes: T.() -> Unit) = send(T::class, changes)
 
     private fun onRead() {
         lengthBuf.clear()
@@ -80,7 +79,7 @@ class NetworkLayer(addr: InetSocketAddress, private val handler: NetworkLayer.(A
                 try {
                     val parsed = ProtocolParser.deserialize(buf) ?: throw RuntimeException("Parsed object is null")
                     if (debug) println(">>$parsed")
-                    handler(this@NetworkLayer, parsed)
+                    handler(parsed)
                 } finally {
                     buf.release()
                 }

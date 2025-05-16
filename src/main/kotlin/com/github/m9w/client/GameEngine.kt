@@ -11,17 +11,16 @@ import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
-class GameEngine(private val authentication: AuthenticationProvider, private val handler: NetworkLayer.(Any) -> Unit) {
+class GameEngine(private val authentication: AuthenticationProvider, private val handler: (ProtocolPacket)->Unit) {
     private var executorService: ScheduledExecutorService? = null
     private var mapId: Int = 1
     private var sentKeepAliveTime = System.currentTimeMillis()
     private var pingList = ArrayList<Long>()
-    private var networkLayer: NetworkLayer = NetworkLayer(InetSocketAddress(0)) {}
+    var networkLayer: NetworkLayer = NetworkLayer(InetSocketAddress(0)) {}
+        private set
     private var lastPackage: Long = 0
     private var builtInVersion = ""
     private var init: Boolean = false
-    val network get() = networkLayer
-
 
     fun start() {
         init = false
@@ -38,7 +37,7 @@ class GameEngine(private val authentication: AuthenticationProvider, private val
                         isMiniClient = true
                     } else {
                         println("close")
-                        network.close()
+                        networkLayer.close()
                         ProtocolParser.reload()
                         builtInVersion = it.version
                         println("Protocol updated to latest version $builtInVersion")
@@ -59,9 +58,9 @@ class GameEngine(private val authentication: AuthenticationProvider, private val
 
                 is StayinAlive -> pingList.add(System.currentTimeMillis() - sentKeepAliveTime)
             }
-            handler.invoke(this, it)
+            handler.invoke(it)
         }
-        networkLayer.send<VersionRequest> { version = builtInVersion }
+        send<VersionRequest> { version = builtInVersion }
         executorService?.shutdown()
         executorService = Executors.newSingleThreadScheduledExecutor().apply {
             scheduleWithFixedDelay(this@GameEngine::watchdog, 0, 60, TimeUnit.SECONDS)
@@ -69,36 +68,33 @@ class GameEngine(private val authentication: AuthenticationProvider, private val
         }
     }
 
-    inline fun <reified T : Any> send(noinline changes: T.() -> Unit) {
-        network.send(T::class, changes)
+    inline fun <reified T : ProtocolPacket> send(noinline changes: T.() -> Unit) {
+        networkLayer.send(T::class, changes)
     }
 
     fun setPetActive(isActive: Boolean) {
         if (!init) return
         println("setPetActive($isActive)")
-        networkLayer.send<PetRequest> { this.petRequestType = if (isActive) PetRequestType.LAUNCH else PetRequestType.DEACTIVATE }
+        send<PetRequest> { this.petRequestType = if (isActive) PetRequestType.LAUNCH else PetRequestType.DEACTIVATE }
     }
 
     fun buyPetFuel() {
         if (!init) return
-        networkLayer.send<PetRequest> { this.petRequestType = PetRequestType.HOTKEY_BUY_FUEL }
+        send<PetRequest> { this.petRequestType = PetRequestType.HOTKEY_BUY_FUEL }
     }
 
     private fun watchdog() {
         println(String.format("[$timePrefix] Ping: %.3f ms", pingList.average()))
         pingList.clear()
-        if (lastPackage < System.currentTimeMillis()-15000) {
-            println("[$timePrefix] Watchdog restart - timeout")
-            start()
-        } else if (!networkLayer.isAlive()) {
-            println("[$timePrefix] Watchdog restart - connection")
-            start()
-        }
+        if (lastPackage < System.currentTimeMillis()-15000) println("[$timePrefix] Watchdog restart - timeout")
+        else if (!networkLayer.isAlive()) println("[$timePrefix] Watchdog restart - connection")
+        else return
+        start()
     }
 
     private fun sendKeepAlive() {
         if (!init) return
-        networkLayer.send(KeepAlive::class) { MouseClick = Math.random() < 0.7 }
+        send<KeepAlive> { MouseClick = Math.random() < 0.7 }
         sentKeepAliveTime = System.currentTimeMillis()
     }
 

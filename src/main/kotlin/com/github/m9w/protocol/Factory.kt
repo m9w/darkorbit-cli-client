@@ -1,5 +1,6 @@
 package com.github.m9w.protocol
 
+import com.darkorbit.ProtocolPacket
 import java.lang.reflect.Proxy
 import kotlin.collections.emptyList
 import kotlin.reflect.KClass
@@ -8,7 +9,7 @@ import kotlin.reflect.cast
 object Factory {
     private val classLoader = Factory::class.java.classLoader
 
-    fun <T : Any> build(type: KClass<T>, data: Map<String, Any?> = HashMap(), changes: T.() -> Unit = {}): T {
+    fun <T : ProtocolPacket> build(type: KClass<T>, data: Map<String, Any?> = HashMap()): T {
         val map = HashMap<String, Any?>(data)
         return type.cast(Proxy.newProxyInstance(classLoader, arrayOf(type.java, Extractor::class.java)) { proxy, method, args ->
             val methodName = method.name
@@ -29,7 +30,7 @@ object Factory {
                 methodName == "toString" -> type.simpleName + map.toString()
                 else -> null
             }
-        }).also { changes.invoke(it) }
+        })
     }
 
     private fun default(returnType: Class<*>): Any? {

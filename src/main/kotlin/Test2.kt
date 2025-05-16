@@ -1,7 +1,7 @@
 import com.darkorbit.*
 import com.github.m9w.Core
+import com.github.m9w.client.GameEngine
 import com.github.m9w.client.auth.AuthenticationProvider
-import com.github.m9w.client.network.NetworkLayer
 import com.github.m9w.feature.Inject
 import com.github.m9w.feature.OnPackage
 import com.github.m9w.feature.Repeat
@@ -10,13 +10,15 @@ import com.github.m9w.util.waitOnPackage
 
 
 object C {
-    @Inject
-    private lateinit var n: NetworkLayer
+    @Inject(true)
+    private lateinit var game: GameEngine
 
     @OnPackage
     suspend fun a(t: AddBoxCommand): String {
         println("A event $t")
-        val x = waitOnPackage<AddOreCommand>(setOf(AddOreCommand::class), timeout = 3000)
+        val x = waitOnPackage<AddOreCommand>(setOf(AddOreCommand::class), timeout = 3000) {
+            println("A event")
+        }
         println("X event $x")
         waitMs(1500)
         println("T event")
@@ -25,7 +27,7 @@ object C {
 
     @Repeat(1000)
     suspend fun b(): Int {
-        println("5000: "+System.currentTimeMillis())
+        println("5000: $game"+System.currentTimeMillis())
         val x = waitOnPackage<AddOreCommand>(setOf(AddOreCommand::class), timeout = 3000)
 
         println("5000: "+System.currentTimeMillis())
@@ -59,6 +61,13 @@ object C {
     @OnPackage
     fun d(t: AddBoxCommand) {
         //some logic
+    }
+
+
+    @Repeat(2000)
+    fun e(): Int {
+        println("Simple")
+        return -1;
     }
 }
 

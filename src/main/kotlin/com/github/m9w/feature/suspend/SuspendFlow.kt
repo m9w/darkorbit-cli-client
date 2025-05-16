@@ -4,5 +4,5 @@ import com.github.m9w.feature.Future
 
 interface SuspendFlow {
     fun <T> getFuture(): Future<T>
-    fun schedule(future: Future<*>)
+    fun <T> schedule(future: Future<T>)
 }

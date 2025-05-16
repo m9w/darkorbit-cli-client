@@ -1,5 +1,6 @@
 package com.github.m9w.protocol
 
+import com.darkorbit.ProtocolPacket
 import com.google.gson.Gson
 import io.netty.buffer.ByteBuf
 import java.net.URI
@@ -13,7 +14,7 @@ object ProtocolParser {
 
     fun getClass(name: String) = struct.getClass(name)
 
-    fun deserialize(buffer: ByteBuf): Any? {
+    fun deserialize(buffer: ByteBuf): ProtocolPacket? {
         fun parseField(field: ProtocolStruct.ProtocolClass.ProtocolField): Any? {
             return when {
                 field.isList -> {

@@ -5,6 +5,6 @@ interface Future<T> {
     val isDone: Boolean
     val hasError: Boolean
     fun getResult(): T
-    fun resume()
+    fun resume(result: Any = Unit)
     fun interrupt(block: ()->Exception)
 }

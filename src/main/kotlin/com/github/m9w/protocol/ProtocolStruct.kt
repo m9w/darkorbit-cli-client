@@ -10,6 +10,7 @@ class ProtocolStruct() {
     private val gson: Gson = Gson()
     private val struct: MutableMap<Int, ProtocolClass> = HashMap()
     private val nameStruct: MutableMap<String, Int> = HashMap()
+    var hash: String = ""; private set
 
     init {
         load(String(ProtocolStruct::class.java.classLoader.resources("darkorbit-protocol.json").findFirst().get().openStream().readAllBytes()))
@@ -18,7 +19,10 @@ class ProtocolStruct() {
     fun load(structJson: String) {
         struct.clear()
         nameStruct.clear()
-        gson.fromJson<Map<String, Map<String, String>>>(structJson, Map::class.java).forEach(::ProtocolClass)
+        val map = gson.fromJson<Map<String, Any>>(structJson, Map::class.java)
+        hash = map["hash"].toString()
+        val mapClasses = map.filter { it.key.contains('#') && it.key.split("#")[1].toInt() > 0 } as Map<String, Map<String, String>>
+        mapClasses.forEach(::ProtocolClass)
         nameStruct.putAll(struct.entries.associate { it.value.name to it.key })
     }
 
@@ -46,7 +50,7 @@ class ProtocolStruct() {
             private val typeVal = pattern.find(type)?.groupValues?.get(1) ?: type
             val isList: Boolean = type.startsWith("List")
             val isEnum: Boolean = type.startsWith("Enum:")
-            val enumConstants: Array<Enum<*>> = (if(isEnum) Class.forName("com.darkorbit.$typeVal").enumConstants else arrayOf()) as Array<Enum<*>>
+            val enumConstants: Array<*> = (if(isEnum) Class.forName("com.darkorbit.$typeVal").enumConstants else arrayOf<Any>())
             val listLengthSize: Int = if (isList) if (type.startsWith("List2:")) 2 else 1 else 0
             val intLength: Int = when (typeVal) { "i8" -> 8; "i16" -> 16; "i32" -> 32; "i64" -> 64; else -> 0 }
             val isInt: Boolean = intLength != 0
@@ -63,7 +67,7 @@ class ProtocolStruct() {
 
             fun getClass() = this@ProtocolStruct.getClass(type)
 
-            fun getEnum(i: Int): Enum<*> = enumConstants[i]
+            fun getEnum(i: Int): Enum<*> = enumConstants[i] as Enum<*>
 
             override fun toString(): String = "[${this@ProtocolClass.type}.$name: $type]"
         }

@@ -1,16 +1,9 @@
 package com.github.m9w.feature
 
-import com.darkorbit.ProtocolPacket
 import com.github.m9w.Scheduler
 import com.github.m9w.feature.suspend.SuspendFlow
 import java.io.InterruptedIOException
-import kotlin.coroutines.AbstractCoroutineContextElement
-import kotlin.coroutines.Continuation
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.resume
-import kotlin.coroutines.startCoroutine
-import kotlin.coroutines.suspendCoroutine
-import kotlin.reflect.KClass
+import kotlin.coroutines.*
 
 
 object FeatureController {
@@ -24,7 +17,7 @@ object FeatureController {
         }
     }
 
-    suspend fun <T> waitOnPackage(waitFor: Set<KClass<out ProtocolPacket>>, exceptBy: Set<KClass<out ProtocolPacket>> = emptySet(), timeout: Long = -1, postExecute: () -> Unit = {}) : T {
+    suspend fun <T> waitOnPackage(waitFor: Set<String>, exceptBy: Set<String> = emptySet(), timeout: Long = -1, postExecute: () -> Unit = {}) : T {
         return suspendWithInterrupt {
             object : SuspendFlow {
                 override fun <T> getFuture(): Future<T> = it as FutureImpl<T>

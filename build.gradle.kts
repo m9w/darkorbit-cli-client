@@ -2,11 +2,13 @@ group = "com.github.m9w"
 
 plugins {
     kotlin("jvm") version "2.1.20"
+    id("org.gradle.application")
 }
-version = "1.0-SNAPSHOT"
+version = "1.0.0-Beta"
 
-repositories {
-    mavenCentral()
+application {
+    applicationName = "darkorbit-cli-client"
+    mainClass.set("com.github.m9w.MainKt")
 }
 
 repositories {
@@ -16,9 +18,9 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
-    api("com.google.code.gson", "gson","2.12.1")
-    api("org.jetbrains.kotlin", "kotlin-reflect", "2.1.20")
-    api("io.netty", "netty-buffer", "4.2.0.Final")
+    implementation("com.google.code.gson", "gson","2.12.1")
+    implementation("org.jetbrains.kotlin", "kotlin-reflect", "2.1.20")
+    implementation("io.netty", "netty-buffer", "4.2.0.Final")
     api("com.github.m9w", "darkorbit-protocol", "1.1.45")
 }
 
@@ -28,4 +30,20 @@ tasks.test {
 
 kotlin {
     jvmToolchain(17)
+}
+
+tasks.jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    val cfg by configurations.creating {
+        isCanBeResolved = true
+        isCanBeConsumed = false
+        extendsFrom(configurations["api"])
+    }
+
+    from(cfg.map { if (it.isDirectory) it else zipTree(it) })
+
+    manifest {
+        attributes["Main-Class"] = application.mainClass
+    }
 }

@@ -6,21 +6,23 @@ import java.io.StringWriter
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.callSuspend
 
-abstract class SchedulerEntity(private val scheduler: Scheduler, private val method: KFunction<*>, private val instance: Any) : Runnable {
+abstract class SchedulerEntity(private val scheduler: Scheduler, private val isSuspend: Boolean) {
     var status: String = ""
-    override fun run() {
-        if (method.isSuspend)
+    fun run(suspendAction: suspend () -> Any?, plainAction: () -> Any?) {
+        if (isSuspend)
             FeatureController.runCoroutine(scheduler) {
                 status = try {
-                    method.callSuspend(instance)?.toString() ?: ""
+                    suspendAction.invoke()?.toString() ?: ""
                 } catch (e: Exception) {
+                    e.printStackTrace()
                     StringWriter().let { e.printStackTrace(PrintWriter(it)) }.toString()
                 } finally { postAction() }
             }
         else {
             status = try {
-                method.call( instance)?.toString() ?: ""
+                plainAction.invoke()?.toString() ?: ""
             } catch (e: Exception) {
+                e.printStackTrace()
                 StringWriter().let { e.printStackTrace(PrintWriter(it)) }.toString()
             } finally { postAction() }
         }

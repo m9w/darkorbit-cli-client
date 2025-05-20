@@ -11,6 +11,11 @@ suspend fun <T : ProtocolPacket> waitOnPackage(waitFor: Set<KClass<out ProtocolP
                                                exceptBy: Set<KClass<out ProtocolPacket>> = emptySet(),
                                                timeout: Long = -1,
                                                postExecute: () -> Unit = {})
-= FeatureController.waitOnPackage<T>(waitFor, exceptBy, timeout, postExecute)
+= FeatureController.waitOnPackage<T>(waitFor.map { it.simpleName!! }.toSet(), exceptBy.map { it.simpleName!! }.toSet(), timeout, postExecute)
+
+suspend inline fun <reified T : ProtocolPacket> waitOnPackage(exceptBy: Set<KClass<out ProtocolPacket>> = emptySet(),
+                                                              timeout: Long = -1,
+                                                              noinline postExecute: () -> Unit = {}): T
+= waitOnPackage(setOf(T::class), exceptBy, timeout, postExecute)
 
 suspend fun waitMs(ms: Long) = FeatureController.waitMs(ms)

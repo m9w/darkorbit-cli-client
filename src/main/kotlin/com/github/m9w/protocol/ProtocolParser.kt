@@ -10,6 +10,9 @@ import java.util.LinkedList
 object ProtocolParser {
     private val struct: ProtocolStruct = ProtocolStruct()
 
+    fun getVersion() = struct.hash
+
+    @Synchronized
     fun reload() = struct.load(GitHubAPI.getLatestProtocol("m9w/darkorbit-protocol"))
 
     fun getClass(name: String) = struct.getClass(name)

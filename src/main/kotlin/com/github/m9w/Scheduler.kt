@@ -4,30 +4,40 @@ import com.darkorbit.ProtocolPacket
 import com.github.m9w.feature.Future
 import com.github.m9w.feature.SchedulerEntity
 import com.github.m9w.feature.suspend.ExceptPacketException
+import com.github.m9w.protocol.Factory
 import java.util.*
-import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
+import kotlin.reflect.full.callSuspend
+import kotlin.reflect.jvm.isAccessible
 
 class Scheduler : Runnable {
-    private val eventQueue = LinkedList<ProtocolPacket>()
-    private val eventHandlers: MutableMap<KClass<out ProtocolPacket>, MutableSet<PendingFuture>> = HashMap()
-    private val onRemove: MutableSet<PendingFuture> = HashSet()
+    private val eventPacketQueue = LinkedList<ProtocolPacket>()
+    private val eventQueue = LinkedList<Pair<String, String>>()
+    private val eventHandlers: MutableMap<String, MutableSet<PendingFuture>> = HashMap()
     private val timerQueue = TreeMap<Long, MutableList<() -> Unit>>()
     private val lock = Object()
+    private val hasEvents get() = !eventPacketQueue.isEmpty() || !eventQueue.isEmpty()
+    private lateinit var thread: Thread
     @Volatile private var isRun = true
-    @Volatile private var eventPending = false
 
     fun performTimer() {
+        if (timerQueue.isEmpty()) return
         System.currentTimeMillis().let { currentTime ->
             if (timerQueue.firstKey() <= currentTime) timerQueue.pollFirstEntry().value.forEach { it() }
         }
     }
 
     fun performHandler() {
-        if (eventQueue.isEmpty()) return
-        val packet = synchronized(eventQueue) { eventQueue.removeFirst() }
-        eventHandlers[packet::class]?.forEach { if(!it.persist) onRemove.add(it); it.perform(packet) }
-        onRemove.forEach(this::remove)
+        while (hasEvents) {
+            synchronized(eventPacketQueue) { eventPacketQueue.toList().also { eventPacketQueue.clear() } }.forEach { packet ->
+                eventHandlers[Factory.getClassName(packet)]?.iterator()?.apply {
+                    while (hasNext()) next().apply { if(!persist) remove() }.perform(packet)
+                }
+            }
+            synchronized(eventQueue) { eventQueue.toList().also { eventQueue.clear() } }.forEach { (event, body) ->
+                eventHandlers["@$event"]?.forEach { it.perform(body) }
+            }
+        }
     }
 
     fun resumeIn(future: Future<*>, ms: Long) = ms.schedule { future.resume() }
@@ -35,20 +45,24 @@ class Scheduler : Runnable {
     fun interruptIn(future: Future<*>, ms: Long, block: () -> Exception) = ms.schedule { future.interrupt(block) }
 
     fun handleEvent(packet: ProtocolPacket) {
-        synchronized(eventQueue) {
-            eventQueue.addLast(packet)
+        synchronized(eventPacketQueue) {
+            eventPacketQueue.addLast(packet)
         }
-        synchronized(lock) {
-            eventPending = true
-            lock.notifyAll()
+        synchronized(lock) { lock.notifyAll() }
+    }
+
+    fun handleEvent(event: String, body: String = "") {
+        if (thread == Thread.currentThread()) {
+            eventHandlers["@$event"]?.forEach { it.perform(body) }
+        } else {
+            eventQueue.add(event to body)
+            synchronized(lock) { lock.notifyAll() }
         }
     }
 
-    fun addPendingFuture(future: Future<*>, waitFor: Set<KClass<out ProtocolPacket>>, exceptOn: Set<KClass<out ProtocolPacket>> = emptySet()) : PendingFuture {
-        val pendingFuture = PendingFuture( { waitFor.contains(it) },
-            { future.resume(it) },
-            { future.interrupt { ExceptPacketException(it) } }
-        )
+    fun addPendingFuture(future: Future<*>, waitFor: Set<String>, exceptOn: Set<String> = emptySet()) : PendingFuture {
+        val pendingFuture = PendingFuture( waitFor::contains, future::resume,
+            { future.interrupt { ExceptPacketException(it) } })
         (waitFor + exceptOn).forEach { eventHandlers.getOrPut(it) { mutableSetOf() }.add(pendingFuture) }
         return pendingFuture
     }
@@ -58,23 +72,16 @@ class Scheduler : Runnable {
     }
 
     override fun run() {
+        val delay = 500
         var last = System.currentTimeMillis()
-        fun handleEvents() = synchronized(lock) {
-            if (eventPending) {
-                eventPending = false
-                performHandler()
-            }
-        }
+        var delta = 0L
         while (isRun) {
             try {
-                handleEvents()
-                var delta = 100 - (System.currentTimeMillis() - last)
-                while (delta > 0) {
+                while (hasEvents || (delay - (System.currentTimeMillis() - last)).also { delta = it } > 0) {
+                    performHandler()
                     synchronized(lock) {
-                        lock.wait(delta)
-                        handleEvents()
+                        if(!hasEvents && delta > 0) lock.wait(delta)
                     }
-                    delta = 100 - (System.currentTimeMillis() - last)
                 }
                 performTimer()
                 last = System.currentTimeMillis()
@@ -88,24 +95,39 @@ class Scheduler : Runnable {
         timerQueue.getOrPut(System.currentTimeMillis() + this) { mutableListOf() } += callback
     }
 
-    data class PendingFuture(private val isSuccess: (KClass<out ProtocolPacket>) -> Boolean,
-                             private val onSuccess: (ProtocolPacket) -> Unit,
-                             private val onException: (ProtocolPacket) -> Unit = {},
+    fun start() {
+        thread = Thread(this, "Scheduler instance")
+        thread.start()
+    }
+
+    data class PendingFuture(private val isSuccess: (String) -> Boolean = { true },
+                             private val onSuccess: (Any) -> Unit,
+                             private val onException: (Any) -> Unit = {},
                              val persist: Boolean = false) {
-        fun perform(packet: ProtocolPacket) {
-            if (isSuccess(packet::class)) onSuccess(packet) else onException(packet)
+        fun perform(packet: Any) {
+            if (isSuccess(Factory.getClassName(packet))) onSuccess(packet)
+            else onException(packet)
         }
     }
 
-    inner class Repeatable(private val ms: Long, method: KFunction<*>, instance: Any) : SchedulerEntity(this, method, instance) {
+    inner class Repeatable(private val ms: Long, private val method: KFunction<*>, private val instance: Any, private var noInitDelay: Boolean = false) : SchedulerEntity(this, method.isSuspend) {
+        init { method.isAccessible = true }
         override fun postAction() = schedule()
-        override fun schedule() = ms.schedule(this::run)
+        override fun schedule(){
+            (if (noInitDelay) 0 else ms).schedule {
+                run({ method.callSuspend(instance) }, { method.call(instance) })
+            }
+            noInitDelay = false
+        }
     }
 
-    inner class Handler(private val packetType: KClass<out ProtocolPacket>, method: KFunction<*>, instance: Any) : SchedulerEntity(this, method, instance) {
+    inner class Handler(private val packetType: String, private val method: KFunction<*>, private val instance: Any) : SchedulerEntity(this, method.isSuspend) {
+        init { method.isAccessible = true }
         override fun schedule() {
-            eventHandlers.getOrPut(packetType) { mutableSetOf() }
-                .add(PendingFuture({ true }, { run() }, persist = true))
+            val pf = PendingFuture(onSuccess = {
+                run({ method.callSuspend(instance, it) }, { method.call(instance, it) })
+            }, persist = true)
+            eventHandlers.getOrPut(packetType) { mutableSetOf() }.add(pf)
         }
     }
 }

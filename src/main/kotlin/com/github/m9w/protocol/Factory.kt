@@ -11,7 +11,7 @@ object Factory {
 
     fun <T : ProtocolPacket> build(type: KClass<T>, data: Map<String, Any?> = HashMap()): T {
         val map = HashMap<String, Any?>(data)
-        return type.cast(Proxy.newProxyInstance(classLoader, arrayOf(type.java, Extractor::class.java)) { proxy, method, args ->
+        return type.cast(Proxy.newProxyInstance(classLoader, arrayOf(type.java, Metadata::class.java)) { proxy, method, args ->
             val methodName = method.name
             when {
                 methodName.startsWith("get") && args.isNullOrEmpty() -> {
@@ -49,10 +49,13 @@ object Factory {
         }
     }
 
-    fun getData(proxy: Any): Map<String, Any> = if (proxy is Extractor) proxy.map() else emptyMap()
-    fun getClass(proxy: Any) = if (proxy is Extractor) ProtocolParser.getClass(proxy.cls()) else null
+    fun getData(proxy: Any): Map<String, Any> = if (proxy is Metadata) proxy.map() else emptyMap()
 
-    private interface Extractor {
+    fun getClassName(proxy: Any) = if (proxy is Metadata) proxy.cls() else ""
+
+    fun getClass(proxy: Any) = if (proxy is Metadata) ProtocolParser.getClass(getClassName(proxy)) else null
+
+    private interface Metadata {
         fun map(): Map<String, Any>
         fun cls(): String
     }

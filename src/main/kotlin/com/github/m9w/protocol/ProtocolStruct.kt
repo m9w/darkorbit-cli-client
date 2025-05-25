@@ -50,7 +50,7 @@ class ProtocolStruct() {
             private val typeVal = pattern.find(type)?.groupValues?.get(1) ?: type
             val isList: Boolean = type.startsWith("List")
             val isEnum: Boolean = type.startsWith("Enum:")
-            val enumConstants: Array<*> = (if(isEnum) Class.forName("com.darkorbit.$typeVal").enumConstants else arrayOf<Any>())
+            val enumConstants: Array<*> = (if(isEnum) try { Class.forName("com.darkorbit.$typeVal").enumConstants } catch (_: Exception) {arrayOf<Any>()} else arrayOf<Any>())
             val listLengthSize: Int = if (isList) if (type.startsWith("List2:")) 2 else 1 else 0
             val intLength: Int = when (typeVal) { "i8" -> 8; "i16" -> 16; "i32" -> 32; "i64" -> 64; else -> 0 }
             val isInt: Boolean = intLength != 0
@@ -67,11 +67,13 @@ class ProtocolStruct() {
 
             fun getClass() = this@ProtocolStruct.getClass(type)
 
-            fun getEnum(i: Int): Enum<*> = enumConstants[i] as Enum<*>
+            fun getEnum(i: Int): Enum<*> = if (i < enumConstants.size) enumConstants[i] as Enum<*> else DummyEnum.DUMMY
 
             override fun toString(): String = "[${this@ProtocolClass.type}.$name: $type]"
         }
 
         override fun toString(): String = type
     }
+
+    enum class DummyEnum { DUMMY }
 }

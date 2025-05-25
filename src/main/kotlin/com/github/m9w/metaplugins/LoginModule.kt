@@ -14,10 +14,13 @@ import com.github.m9w.feature.annotations.OnEvent
 import com.github.m9w.feature.annotations.Inject
 import com.github.m9w.feature.annotations.OnPackage
 import com.github.m9w.feature.annotations.SystemEvents
+import com.github.m9w.feature.waitMs
 import com.github.m9w.protocol.ProtocolParser
 import com.github.m9w.feature.waitOnPackage
 
 object LoginModule {
+    private var unsuccessfulLoginCount = 0
+
     @Inject
     private lateinit var gameEngine: GameEngine
 
@@ -39,11 +42,13 @@ object LoginModule {
                     isMiniClient = true
                 }
             }
+            unsuccessfulLoginCount++
             when (loginResponse.status) {
                 LoginResponseStatus.Success -> {
                     gameEngine.send<ReadyRequest> { readyType = ReadyMessage.MAP_LOADED_2D }
                     gameEngine.send<ReadyRequest> { readyType = ReadyMessage.UI_READY }
                     gameEngine.state = GameEngine.State.NORMAL
+                    unsuccessfulLoginCount = 0
                 }
                 LoginResponseStatus.ShipIsDestroyed -> gameEngine.state = GameEngine.State.DESTROYED
                 LoginResponseStatus.Error,
@@ -55,6 +60,7 @@ object LoginModule {
                 LoginResponseStatus.WrongInstanceId,
                 LoginResponseStatus.IPRestricted -> gameEngine.disconnect()
             }
+            if (unsuccessfulLoginCount > 0) println("Connection error: ${loginResponse.status}")
         } else {
             gameEngine.disconnect()
             println("Close, server expected ${versionCommand.version}, client is ${ProtocolParser.getVersion()}")
@@ -62,6 +68,19 @@ object LoginModule {
             println("Protocol updated to latest version ${ProtocolParser.getVersion()}")
             gameEngine.connect()
         }
+    }
+
+    @OnEvent(SystemEvents.ON_DISCONNECT)
+    private suspend fun onDisconnect(body: String) {
+        if (gameEngine.state == GameEngine.State.STOPED) return
+        if (unsuccessfulLoginCount in 5..10) {
+            println("Unsuccessful attempts > 5, wait 10 sec to next connect")
+            waitMs(10000)
+        } else if (unsuccessfulLoginCount > 10) {
+            println("Unsuccessful attempts > 10, wait 60 sec to next connect")
+            waitMs(60000)
+        }
+        gameEngine.connect()
     }
 
     @OnPackage

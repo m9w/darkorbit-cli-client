@@ -27,11 +27,6 @@ object PingModule {
         pingList.add(System.currentTimeMillis() - sentKeepAliveTime)
     }
 
-    @OnEvent(SystemEvents.ON_DISCONNECT)
-    private fun onDisconnect(body: String) {
-        if (gameEngine.state != GameEngine.State.STOPED) gameEngine.connect()
-    }
-
     @Repeat(60_000)
     private fun watchdog() {
         ping = if (pingList.isEmpty()) -1.0 else pingList.average().apply { pingList.clear() }

@@ -33,9 +33,9 @@ object LoginModule {
         if (versionCommand.equal) {
             val loginResponse = waitOnPackage<LoginResponse> {
                 gameEngine.send<LoginRequest> {
-                    userID = authentication.getUserId()
-                    sessionID = authentication.getSid()
-                    instanceId = 68 // 68 - flash, 1396 - unity
+                    userID = authentication.userID
+                    sessionID = authentication.sessionID
+                    instanceId = authentication.instanceId
                     isMiniClient = true
                 }
             }

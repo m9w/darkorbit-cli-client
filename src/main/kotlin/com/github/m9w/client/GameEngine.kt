@@ -19,7 +19,7 @@ class GameEngine(val authentication: AuthenticationProvider, private val schedul
     fun connect() {
         state = State.NOT_CONNECTED
         network.close()
-        network = NetworkLayer(authentication.getServer())
+        network = NetworkLayer(authentication.address)
         network.onPackageHandler = scheduler::handleEvent
         network.onDisconnect = { handleEvent(SystemEvents.ON_DISCONNECT) }
         handleEvent(SystemEvents.ON_CONNECT)

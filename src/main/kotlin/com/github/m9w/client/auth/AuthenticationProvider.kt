@@ -4,20 +4,20 @@ import java.net.InetSocketAddress
 import java.net.URI
 
 interface AuthenticationProvider {
-    fun getUserId(): Int
-    fun getSid(): String
-    fun getServer(): InetSocketAddress
+    val userID: Int
+    val server: String
+    val sessionID: String
+    val address: InetSocketAddress
+    val instanceId: Int
     var mapId: Int
 
     companion object {
-        fun static(userId: Int, server: String, sid: String) = object : AuthenticationProvider {
-            override fun getUserId() = userId
-            override fun getServer() = getMapAddress(server, mapId)
-            override fun getSid() = sid
-            override var mapId: Int = 1
-        }
+        fun byServerSid(server: String, sessionID: String) = ServerSidAuthenticationProvider(server to sessionID)
+        fun byLoginPassword(login: String, password: String) = LoginPasswordAuthenticationProvider(login, password)
+        fun byStatic(userID: Int, server: String, sessionID: String, instanceId: Int, mapId: Int = 1) =
+            StaticAuthenticationProvider(userID, server, sessionID, instanceId, mapId)
 
-        private fun getMapAddress(server: String, mapId: Int): InetSocketAddress {
+        fun getMapAddress(server: String, mapId: Int): InetSocketAddress {
             val mapRegex = Regex("""<map\s+id="(\d+)">.*?<gameserverIP>([^<]+)</gameserverIP>.*?</map>""", RegexOption.DOT_MATCHES_ALL)
             val xml = String(URI("https://$server.darkorbit.com/spacemap/xml/maps.php").toURL().readBytes())
             for (match in mapRegex.findAll(xml)) {
@@ -26,6 +26,5 @@ interface AuthenticationProvider {
             }
             throw IllegalArgumentException("Map $mapId not found")
         }
-
     }
 }

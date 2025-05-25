@@ -22,6 +22,7 @@ class Http(private val baseUrl: String, val method: String = "GET", private val 
     private var userAgent = defaultUserAgent
     private var suppliers = ArrayList<() -> Unit>()
     private var headers = LinkedHashMap<String, String>()
+    private var doSid: String = ""
 
     /**
      * Adds action which will be executed at the end of the connection
@@ -52,7 +53,7 @@ class Http(private val baseUrl: String, val method: String = "GET", private val 
         return this
     }
 
-    fun setSid(sessionID: String) = setRawHeaders("Cookie" to "dosid=$sessionID")
+    fun setSid(sessionID: String) = this.apply { doSid = sessionID }
 
     /**
      * Sets or overrides parameter for POST as body or for GET as
@@ -142,7 +143,9 @@ class Http(private val baseUrl: String, val method: String = "GET", private val 
         }
         else requestBuilder.method(method.uppercase(Locale.ROOT), HttpRequest.BodyPublishers.noBody())
         suppliers.forEach { it.invoke() }
-        return client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofByteArray())
+        val request = requestBuilder.build()
+        if (doSid.isNotEmpty()) cookieManager.cookieStore.add(request.uri(), HttpCookie.parse("Set-Cookie: dosid=$doSid; path=/; samesite=none; secure; HttpOnly")[0])
+        return client.send(request, HttpResponse.BodyHandlers.ofByteArray())
     }
 
     val connect get() = getConnection()

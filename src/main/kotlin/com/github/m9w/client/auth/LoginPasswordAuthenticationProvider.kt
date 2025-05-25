@@ -4,7 +4,6 @@ import com.github.m9w.util.Http
 import com.github.m9w.util.Http.Companion.content
 
 class LoginPasswordAuthenticationProvider(login: String, password: String) : ServerSidAuthenticationProvider(login(login, password)) {
-    override val server: String = ""
     companion object {
         fun login(login: String, password: String): Pair<String, String> {
             val mainPage = Http("https://www.darkorbit.com").connect.content

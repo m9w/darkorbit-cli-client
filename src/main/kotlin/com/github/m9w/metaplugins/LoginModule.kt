@@ -45,14 +45,14 @@ object LoginModule {
                     gameEngine.send<ReadyRequest> { readyType = ReadyMessage.UI_READY }
                     gameEngine.state = GameEngine.State.NORMAL
                 }
-                LoginResponseStatus.Error -> gameEngine.connect()
-                LoginResponseStatus.ShuttingDown -> gameEngine.connect()
-                LoginResponseStatus.InvalidData -> gameEngine.disconnect()
-                LoginResponseStatus.WrongInstanceId -> gameEngine.disconnect()
-                LoginResponseStatus.WrongServer -> gameEngine.connect()
-                LoginResponseStatus.InvalidSessionId -> gameEngine.connect()
                 LoginResponseStatus.ShipIsDestroyed -> gameEngine.state = GameEngine.State.DESTROYED
-                LoginResponseStatus.PlayerIsLoggedOut -> gameEngine.connect()
+                LoginResponseStatus.Error,
+                LoginResponseStatus.ShuttingDown,
+                LoginResponseStatus.WrongServer,
+                LoginResponseStatus.PlayerIsLoggedOut,
+                LoginResponseStatus.InvalidSessionId -> gameEngine.disconnect(true)
+                LoginResponseStatus.InvalidData,
+                LoginResponseStatus.WrongInstanceId,
                 LoginResponseStatus.IPRestricted -> gameEngine.disconnect()
             }
         } else {

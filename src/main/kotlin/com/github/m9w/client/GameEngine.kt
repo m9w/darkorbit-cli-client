@@ -32,8 +32,8 @@ class GameEngine(val authentication: AuthenticationProvider, private val schedul
         network.send(data)
     }
 
-    fun disconnect() {
-        state = State.STOPED
+    fun disconnect(reconnect: Boolean = false) {
+        state = if(reconnect) State.NOT_CONNECTED else State.STOPED
         network.close()
     }
 }

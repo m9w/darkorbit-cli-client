@@ -9,12 +9,11 @@ import com.github.m9w.feature.annotations.Repeat
 import com.github.m9w.metaplugins.LoginModule
 import com.github.m9w.metaplugins.PingModule
 import com.github.m9w.feature.timePrefix
-import java.io.File
-import java.lang.management.ManagementFactory
+import com.github.m9w.util.ProcessIdentifier
 import kotlin.system.exitProcess
 
 fun main(args: Array<String>) {
-    File("pid").apply { deleteOnExit() }.writeText(ManagementFactory.getRuntimeMXBean().name.split("@").first())
+    ProcessIdentifier.check()
     if (args.isEmpty()) {
         println("Use `login <login> <password>` arguments to run demo code using login and password.")
         println("  Sample: gradlew run --args='login userName1 userPassword'")

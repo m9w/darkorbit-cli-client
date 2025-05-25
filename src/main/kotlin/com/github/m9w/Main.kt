@@ -8,7 +8,7 @@ import com.github.m9w.feature.annotations.OnPackage
 import com.github.m9w.feature.annotations.Repeat
 import com.github.m9w.metaplugins.LoginModule
 import com.github.m9w.metaplugins.PingModule
-import com.github.m9w.util.timePrefix
+import com.github.m9w.feature.timePrefix
 import java.io.File
 import java.lang.management.ManagementFactory
 import kotlin.system.exitProcess

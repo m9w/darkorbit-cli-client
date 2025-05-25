@@ -15,7 +15,7 @@ import com.github.m9w.feature.annotations.Inject
 import com.github.m9w.feature.annotations.OnPackage
 import com.github.m9w.feature.annotations.SystemEvents
 import com.github.m9w.protocol.ProtocolParser
-import com.github.m9w.util.waitOnPackage
+import com.github.m9w.feature.waitOnPackage
 
 object LoginModule {
     @Inject

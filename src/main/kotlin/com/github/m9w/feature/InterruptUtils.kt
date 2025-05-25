@@ -1,7 +1,6 @@
-package com.github.m9w.util
+package com.github.m9w.feature
 
 import com.darkorbit.ProtocolPacket
-import com.github.m9w.feature.FeatureController
 import java.util.*
 import kotlin.reflect.KClass
 

@@ -2,7 +2,7 @@ package com.github.m9w.client.network
 
 import com.darkorbit.ProtocolPacket
 import com.github.m9w.protocol.ProtocolParser
-import com.github.m9w.util.timePrefix
+import com.github.m9w.feature.timePrefix
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.PooledByteBufAllocator
 import io.netty.buffer.Unpooled

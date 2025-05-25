@@ -7,8 +7,8 @@ import com.github.m9w.feature.annotations.Inject
 import com.github.m9w.feature.annotations.OnEvent
 import com.github.m9w.feature.annotations.Repeat
 import com.github.m9w.feature.annotations.SystemEvents
-import com.github.m9w.util.timePrefix
-import com.github.m9w.util.waitOnPackage
+import com.github.m9w.feature.timePrefix
+import com.github.m9w.feature.waitOnPackage
 
 object PingModule {
     @Inject

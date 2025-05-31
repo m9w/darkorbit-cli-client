@@ -1,11 +1,13 @@
 package com.github.m9w.metaplugins
 
+import com.darkorbit.ChannelCloseRequest
 import com.darkorbit.LegacyModule
 import com.darkorbit.LoginRequest
 import com.darkorbit.LoginResponse
 import com.darkorbit.LoginResponseStatus
 import com.darkorbit.ReadyMessage
 import com.darkorbit.ReadyRequest
+import com.darkorbit.ReloginCommand
 import com.darkorbit.VersionCommand
 import com.darkorbit.VersionRequest
 import com.github.m9w.client.GameEngine
@@ -86,5 +88,13 @@ object LoginModule {
     @OnPackage
     fun mapUpdate(l: LegacyModule) {
         if (l.message.startsWith("0|i|")) authentication.mapId = l.message.removePrefix("0|i|").toInt()
+    }
+
+    @OnPackage
+    suspend fun onRelogin(l: ReloginCommand) {
+        authentication.mapId = l.mapID
+        if ( l.delayInMillis > 0 ) waitMs(l.delayInMillis.toLong())
+        gameEngine.send<ChannelCloseRequest> { close = true }
+        gameEngine.disconnect(true)
     }
 }

@@ -6,8 +6,7 @@ import com.github.m9w.client.auth.AuthenticationProvider
 import com.github.m9w.feature.annotations.Inject
 import com.github.m9w.feature.annotations.OnPackage
 import com.github.m9w.feature.annotations.Repeat
-import com.github.m9w.metaplugins.LoginModule
-import com.github.m9w.metaplugins.PingModule
+import com.github.m9w.metaplugins.*
 import com.github.m9w.feature.timePrefix
 import com.github.m9w.util.ProcessIdentifier
 import kotlin.system.exitProcess
@@ -30,6 +29,7 @@ fun main(args: Array<String>) {
 
     Bootstrap(auth,
         LoginModule,
+        BasicRepairModule,
         PingModule,
         Main)
 }

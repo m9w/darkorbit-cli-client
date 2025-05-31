@@ -45,7 +45,7 @@ object Factory {
             Double::class.java -> 0.0
             String::class.java -> ""
             MutableList::class.java -> emptyList<Any>()
-            else -> null
+            else -> build(returnType.kotlin as KClass<ProtocolPacket>)
         }
     }
 

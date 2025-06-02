@@ -31,6 +31,9 @@ fun main(args: Array<String>) {
         LoginModule,
         BasicRepairModule,
         PingModule,
+        EntitiesModule(),
+        EntitiesDebugUiModule(),
+        MapModule(),
         Main)
 }
 

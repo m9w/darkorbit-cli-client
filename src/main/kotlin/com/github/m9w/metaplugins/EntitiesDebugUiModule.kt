@@ -67,7 +67,7 @@ class EntitiesDebugUiModule : JPanel(), Runnable {
         val scale = 4
         preferredSize = Dimension(210*scale, 131*scale)
         SwingUtilities.invokeLater { JFrame("Entities canvas").apply {
-            defaultCloseOperation = JFrame.EXIT_ON_CLOSE; contentPane.add(this)
+            defaultCloseOperation = JFrame.EXIT_ON_CLOSE; contentPane.add(this@EntitiesDebugUiModule)
             pack(); setLocationRelativeTo(null); isVisible = true
         } }
 

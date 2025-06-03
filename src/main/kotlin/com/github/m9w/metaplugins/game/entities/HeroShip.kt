@@ -52,4 +52,7 @@ class HeroShip(root: EntitiesModule, ship: ShipInitializationCommand) : ShipImpl
         root.gameEngine.moveRequest(position, dest.position)
         moveTo(dest, speed)
     }
+
+    override fun toString() = super.toString() + "Credits $credits URI $uridium\n" +
+            "Cargo $cargo/$cargoSpaceMax\n"
 }

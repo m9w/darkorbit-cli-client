@@ -41,6 +41,9 @@ class EntitiesModule(private val entities: MutableMap<Long, EntityImpl> = HashMa
     private fun onJumpgateCreate(jumpgate: JumpgateCreateCommand) { this[jumpgate.gateId] = JumpgateImpl(this, jumpgate) }
 
     @OnPackage
+    private fun onJumpgateInitiation(jumpgate: JumpInitiatedCommand) { this[jumpgate.gateId]?.update(jumpgate) }
+
+    @OnPackage
     private fun onHeroInit(init: ShipInitializationCommand) { entities.clear(); this[init.userId] = HeroShip(this, init) }
 
     @OnPackage
@@ -48,6 +51,9 @@ class EntitiesModule(private val entities: MutableMap<Long, EntityImpl> = HashMa
 
     @OnPackage
     private fun onAssetActivation(assetActivation: MapAssetActionAvailableCommand) { this[assetActivation.mapAssetId]?.update(assetActivation) }
+
+    @OnPackage
+    private fun onQuestGiverActivation(questGiver: QuestGiversAvailableCommand) = this.values.filter {it is AssetImpl && it.type == AssetType.QUESTGIVER }.forEach { it.update(questGiver) }
 
     @OnPackage
     private fun onShipRemove(ship: ShipRemoveCommand) = remove(ship.userId)

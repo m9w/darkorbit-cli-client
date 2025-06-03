@@ -1,15 +1,6 @@
 package com.github.m9w.metaplugins
 
-import com.darkorbit.ChannelCloseRequest
-import com.darkorbit.LegacyModule
-import com.darkorbit.LoginRequest
-import com.darkorbit.LoginResponse
-import com.darkorbit.LoginResponseStatus
-import com.darkorbit.ReadyMessage
-import com.darkorbit.ReadyRequest
-import com.darkorbit.ReloginCommand
-import com.darkorbit.VersionCommand
-import com.darkorbit.VersionRequest
+import com.darkorbit.*
 import com.github.m9w.client.GameEngine
 import com.github.m9w.client.auth.AuthenticationProvider
 import com.github.m9w.feature.annotations.OnEvent
@@ -20,6 +11,7 @@ import com.github.m9w.feature.waitMs
 import com.github.m9w.protocol.ProtocolParser
 import com.github.m9w.feature.waitOnPackage
 
+@Suppress("unused")
 object LoginModule {
     private var unsuccessfulLoginCount = 0
 
@@ -46,12 +38,7 @@ object LoginModule {
             }
             unsuccessfulLoginCount++
             when (loginResponse.status) {
-                LoginResponseStatus.Success -> {
-                    gameEngine.send<ReadyRequest> { readyType = ReadyMessage.MAP_LOADED_2D }
-                    gameEngine.send<ReadyRequest> { readyType = ReadyMessage.UI_READY }
-                    gameEngine.state = GameEngine.State.NORMAL
-                    unsuccessfulLoginCount = 0
-                }
+                LoginResponseStatus.Success -> unsuccessfulLoginCount = 0
                 LoginResponseStatus.ShipIsDestroyed -> gameEngine.state = GameEngine.State.DESTROYED
                 LoginResponseStatus.Error,
                 LoginResponseStatus.ShuttingDown,
@@ -70,6 +57,13 @@ object LoginModule {
             println("Protocol updated to latest version ${ProtocolParser.getVersion()}")
             gameEngine.connect()
         }
+    }
+
+    @OnPackage
+    private fun onInit(init: ShipInitializationCommand){
+        gameEngine.send<ReadyRequest> { readyType = ReadyMessage.MAP_LOADED_2D }
+        gameEngine.send<ReadyRequest> { readyType = ReadyMessage.UI_READY }
+        gameEngine.state = GameEngine.State.NORMAL
     }
 
     @OnEvent(SystemEvents.ON_DISCONNECT)

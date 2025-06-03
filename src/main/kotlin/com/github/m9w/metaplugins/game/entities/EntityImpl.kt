@@ -18,6 +18,7 @@ abstract class EntityImpl(val root: EntitiesModule, val id: Long, val name: Stri
     open val clanTag: String = ""
     open val clanId: Int = -1
     open val modifiers: MutableList<VisualModifierCommand> = ArrayList()
+    open val isSafe get() = faction == root.hero?.faction || diplomacy == Type.ALLIED || diplomacy == Type.NON_AGGRESSION_PACT
 
     open fun canInvoke(): Boolean = false
     open fun invoke(): Boolean = false

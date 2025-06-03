@@ -30,7 +30,5 @@ class JumpgateImpl(root: EntitiesModule, jumpgate: JumpgateCreateCommand) : Enti
     }
 
     override fun toString() = super.toString() +
-            (if(activable) "Ready to use\n" else "") +
-            (if(initiated) "Initiated\n" else "")
-
+            (if(initiated) "Initiated\n" else if (activable) "Ready to use\n" else "")
 }

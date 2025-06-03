@@ -1,6 +1,7 @@
 package com.github.m9w.metaplugins.game.entities
 
 import com.darkorbit.*
+import com.github.m9w.collectRequest
 import com.github.m9w.metaplugins.EntitiesModule
 
 class BoxImpl(root: EntitiesModule, entity: AddMapEntityCommand): EntityImpl(root,entity.hash.toLong(36) + 100000000, entity.name,entity.x,entity.y) {
@@ -15,6 +16,16 @@ class BoxImpl(root: EntitiesModule, entity: AddMapEntityCommand): EntityImpl(roo
         is AddBeaconCommand -> Type.BEACON
         is AddFireworkBoxCommand -> Type.FIREWORK
         else -> throw IllegalArgumentException("Unknown class " + entity::class.simpleName)
+    }
+    val collectable = type == Type.ORE || type == Type.BOX
+
+    override fun canInvoke(): Boolean = collectable && (root.hero?.distanceTo(this) ?: 100.0) < 10.0
+
+    override fun invoke(): Boolean {
+        val result = canInvoke()
+        if (result) root.hero?.let { root.gameEngine.collectRequest(it, this) }
+        else root.hero?.moveTo(this)
+        return result
     }
 
     override fun toString(): String {

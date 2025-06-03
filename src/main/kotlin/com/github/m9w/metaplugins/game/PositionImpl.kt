@@ -43,7 +43,9 @@ open class PositionImpl(private var startX: Int, private var startY: Int) {
         }
     }
 
-    val isMoving: Boolean get() = position.run { timeToTarget == 0 }
+    val direction get() = PositionImpl(targetX, targetY)
+
+    val isMoving: Boolean get() = position.run { timeToTarget != 0 }
 
     fun distanceTo(other: PositionImpl): Double = distance(position, other.position)
 

@@ -10,5 +10,5 @@ class StaticAuthenticationProvider(
     override val instanceId: Int,
     override var mapId: Int = 1
 ) : AuthenticationProvider {
-    override val address: InetSocketAddress = getMapAddress(server, mapId)
+    override val address: InetSocketAddress get() = getMapAddress(server, mapId)
 }

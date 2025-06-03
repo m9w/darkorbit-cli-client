@@ -16,5 +16,5 @@ open class ServerSidAuthenticationProvider(serverSid: Pair<String, String>) : Au
     override val userID: Int = login["userID"]?.toInt() ?: throw RuntimeException("User is null")
     override val instanceId: Int = login["pid"]?.toInt() ?: throw RuntimeException("InstanceId is null")
     override var mapId: Int = login["mapID"]?.toInt() ?: 1
-    override val address: InetSocketAddress = getMapAddress(server, mapId)
+    override val address: InetSocketAddress get() = getMapAddress(server, mapId)
 }

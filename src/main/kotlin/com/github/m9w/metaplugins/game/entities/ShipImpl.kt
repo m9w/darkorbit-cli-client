@@ -27,9 +27,14 @@ open class ShipImpl(root: EntitiesModule, ship: ShipCreateCommand) : EntityImpl(
         super.update(packet)
         when (packet) {
             is VisualModifierCommand -> modifiers.removeIf { it.modifier == packet.modifier }.also { if (packet.activated) modifiers.add(packet) }
-            is AttackLaserRunCommand -> laserAttackTarget = root.get(packet.targetId)
+            is AttackLaserRunCommand -> laserAttackTarget = root[packet.targetId]
             is AttackAbortLaserCommand -> laserAttackTarget = null
             is DroneFormationChangeCommand -> formation = packet.selectedFormationId
         }
     }
+
+    override fun toString() = super.toString() + (if(isNpc) "NPC\n" else "") +
+            (if (typeId.isNotEmpty()) "Type $typeId\n" else "") +
+            (if (specialNpcType.isNotEmpty()) "Special type $specialNpcType\n" else "") +
+            (if (motherShip != null) "Mother ship ${motherShip?.name}\n" else "")
 }

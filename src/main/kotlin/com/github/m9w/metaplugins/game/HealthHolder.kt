@@ -10,6 +10,10 @@ class HealthHolder {
     var nano: Int = 0; private set
     var nanoMax: Int = 0; private set
 
+    override fun toString(): String =
+        if (health + healthMax + shield + shieldMax + nano + nanoMax == 0) ""
+        else "HP(${(health+nano)/1000}k/${healthMax/1000}k) SH(${shield/1000}k/${shieldMax/1000}k)\n"
+
     fun update(packet: ProtocolPacket) {
         when (packet) {
             is ShipInitializationCommand -> update(packet)

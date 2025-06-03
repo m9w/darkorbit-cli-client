@@ -29,7 +29,10 @@ class EntitiesDebugUiModule : JPanel(), Runnable {
 
         g.color = Color.gray
         g.drawString("Map ${map.map.name}", 5, 15)
-        g.drawString("${pointerEntity ?: " - "}", 5, 30)
+        if (pointerEntity != null)
+           pointerEntity.toString().split('\n').filter { it.isNotEmpty() }.forEachIndexed { i, s ->
+               g.drawString(s, 5, 30 + i * 15)
+           }
 
         entities.values.forEach {
             when (it) {

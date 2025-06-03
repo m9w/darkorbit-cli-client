@@ -8,7 +8,7 @@ class JumpgateImpl(root: EntitiesModule, jumpgate: JumpgateCreateCommand) : Enti
     override val designId: Int = jumpgate.designId
     override val faction = Faction.entries[jumpgate.factionId]
     var initiated: Boolean = false; private set
-    private var activable = false
+    private var activable: Boolean = false
 
     override fun update(packet: ProtocolPacket) {
         super.update(packet)
@@ -28,4 +28,9 @@ class JumpgateImpl(root: EntitiesModule, jumpgate: JumpgateCreateCommand) : Enti
             true
         } else false
     }
+
+    override fun toString() = super.toString() +
+            (if(activable) "Ready to use\n" else "") +
+            (if(initiated) "Initiated\n" else "")
+
 }

@@ -21,6 +21,8 @@ class HeroShip(root: EntitiesModule, ship: ShipInitializationCommand) : ShipImpl
     var jumpCupons: Int = 0; private set
     private var configVal: Int = 0
     var shipConfig get() = configVal; set(value) { if((value == 1 || value == 2) && value != configVal) root.gameEngine.changeConfig() }
+    var target: EntityImpl? = null; set(value) { field = value; lastTarget = value }
+    var lastTarget: EntityImpl? = null; private set
 
     init { update(ship) }
 
@@ -33,6 +35,7 @@ class HeroShip(root: EntitiesModule, ship: ShipInitializationCommand) : ShipImpl
             is AttributeLevelUpUpdateCommand -> level = packet.level
             is AttributeCreditsUpdateCommand -> { credits = packet.credits.toLong(); uridium = packet.uridium.toLong(); jackpot = packet.jackpot}
             is AttributeOreCountUpdateCommand -> { cargo = packet.oreCountList.filter { cargoOres.contains(it.oreType.typeValue) }.sumOf { it.count.toInt() } }
+            is ShipDeselectionCommand -> { target = null }
             is LegacyModule -> {
                 packet.check("0|A|C|") { credits = it[0].toLong(); uridium = it[1].toLong() }
                 packet.check("0|LM|ST|EP|") { experiencePoints = it[1].toLong() }

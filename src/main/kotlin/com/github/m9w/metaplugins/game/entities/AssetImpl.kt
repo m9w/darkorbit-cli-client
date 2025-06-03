@@ -1,7 +1,7 @@
 package com.github.m9w.metaplugins.game.entities
 
 import com.darkorbit.AssetCreateCommand
-import com.darkorbit.AssetTypeModule
+import com.darkorbit.AssetType
 import com.darkorbit.Faction
 import com.darkorbit.Type
 import com.darkorbit.VisualModifierCommand
@@ -13,5 +13,7 @@ class AssetImpl(root: EntitiesModule, asset: AssetCreateCommand) : EntityImpl(ro
     override val clanTag: String = asset.clanTag
     override val designId = asset.designId
     override val modifiers: MutableList<VisualModifierCommand> = asset.modifier
-    val type: AssetTypeModule = asset.type
+    val type: AssetType = asset.type.typeValue
+
+    override fun toString() = super.toString() + type.name + "\n"
 }

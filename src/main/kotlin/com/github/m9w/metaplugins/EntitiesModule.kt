@@ -26,6 +26,12 @@ class EntitiesModule(private val entities: MutableMap<Long, EntityImpl> = HashMa
     private fun onShipCreate(ship: ShipCreateCommand) { this[ship.userId] = ShipImpl(this, ship) }
 
     @OnPackage
+    private fun onPoiCreate(poi: MapAddPOICommand) { entities[poi.poiId.hashCode().toLong() - Int.MAX_VALUE.toLong()] = PoiImpl(this, poi) }
+
+    @OnPackage
+    private fun onPoiCreate(poi: MapAddControlPOIZoneCommand) { entities[poi.poiId.hashCode().toLong() - Int.MAX_VALUE.toLong()]  = PoiImpl(this, poi) }
+
+    @OnPackage
     private fun onMoveCommand(move: MoveCommand) = this[move.userId]?.update(move)
 
     @OnPackage
@@ -69,6 +75,9 @@ class EntitiesModule(private val entities: MutableMap<Long, EntityImpl> = HashMa
 
     @OnPackage
     private fun onCollectableRemove(remove: RemoveCollectableCommand) = remove(remove.hash)
+
+    @OnPackage
+    private fun onPoiRemove(poi: MapRemovePOICommand) { entities.remove(poi.poiId.hashCode().toLong() - Int.MAX_VALUE.toLong()) }
 
     operator fun get(id: Int) = entities[id.toLong()]
     fun <T : EntityImpl> getLong(id: Int): T? = entities[id.toLong()].let { it as? T }

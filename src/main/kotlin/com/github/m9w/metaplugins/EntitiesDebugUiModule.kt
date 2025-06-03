@@ -1,13 +1,9 @@
 package com.github.m9w.metaplugins
 
+import com.darkorbit.ShapeType
 import com.github.m9w.feature.annotations.Inject
 import com.github.m9w.metaplugins.game.PositionImpl
-import com.github.m9w.metaplugins.game.entities.AssetImpl
-import com.github.m9w.metaplugins.game.entities.BoxImpl
-import com.github.m9w.metaplugins.game.entities.EntityImpl
-import com.github.m9w.metaplugins.game.entities.HeroShip
-import com.github.m9w.metaplugins.game.entities.JumpgateImpl
-import com.github.m9w.metaplugins.game.entities.ShipImpl
+import com.github.m9w.metaplugins.game.entities.*
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Graphics
@@ -42,16 +38,11 @@ class EntitiesDebugUiModule : JPanel(), Runnable {
                .forEachIndexed { i, s -> g.drawString(s, 5, 30 + i * 15) }
 
         copy.addAll(entities.values)
+        copy.filter { it is PoiImpl }.map { it as PoiImpl }.forEach { g.drawPoi(it) }
         copy.filter { it is JumpgateImpl }.map { it as JumpgateImpl }.forEach { g.drawGate(it) }
         copy.filter { it is AssetImpl }.map { it as AssetImpl }.forEach { g.drawAsset(it) }
         copy.filter { it is ShipImpl }.map { it as ShipImpl }.forEach { g.drawShip(it) }
-        copy.filter { it is BoxImpl }.map { it as BoxImpl }.forEach {
-            when(it.type) {
-                BoxImpl.Type.BOX, BoxImpl.Type.ORE -> g.drawBox(it)
-                BoxImpl.Type.MINE -> g.drawMine(it)
-                else -> {}
-            }
-        }
+        copy.filter { it is BoxImpl }.map { it as BoxImpl }.forEach { g.drawBox(it) }
         copy.clear()
     }
 
@@ -97,10 +88,13 @@ class EntitiesDebugUiModule : JPanel(), Runnable {
     }
 
     fun Graphics.drawBox(asset: BoxImpl) {
-        color = Color.yellow
-        val (x, y) = asset.windowPosition
-        if (asset.canInvoke()) fillRect(x-2, y-2, 4, 4)
-        else drawRect(x-2, y-2, 4, 4)
+        if (asset.type == BoxImpl.Type.MINE) drawMine(asset)
+        else if (asset.type == BoxImpl.Type.BOX || asset.type == BoxImpl.Type.ORE) {
+            color = Color.yellow
+            val (x, y) = asset.windowPosition
+            if (asset.canInvoke()) fillRect(x - 2, y - 2, 4, 4)
+            else drawRect(x - 2, y - 2, 4, 4)
+        }
     }
 
     fun Graphics.drawMine(asset: BoxImpl) {
@@ -109,10 +103,23 @@ class EntitiesDebugUiModule : JPanel(), Runnable {
         fillRect(x-2, y-2, 4, 4)
     }
 
-    private val PositionImpl.windowPosition: Pair<Int, Int> get() {
-        val (x, y) = position
-        return (x.toDouble() / map.map.width * width).toInt() to (y.toDouble() / map.map.height * height).toInt()
+    fun Graphics.drawPoi(poi: PoiImpl) {
+        color = Color.magenta
+        when (poi.shapeType) {
+            ShapeType.CIRCLE -> poi.windowPosition.let { (x, y) ->
+                (poi.radius.xWindow to poi.radius.yWindow).let { (xr, yr) -> drawOval(x - xr/2, y - yr/2, xr, yr) }
+            }
+            ShapeType.RECTANGLE,
+            ShapeType.POLYGON -> poi.cords.map { it.windowPosition }.let { cords ->
+                drawPolygon(cords.map { it.first }.toIntArray(), cords.map { it.second }.toIntArray(), cords.size)
+            }
+        }
     }
+
+    private val Int.xWindow get() = (this.toDouble() / map.map.width * width).toInt()
+    private val Int.yWindow get() = (this.toDouble() / map.map.height * height).toInt()
+    private val Pair<Int, Int>.windowPosition: Pair<Int, Int> get() = first.xWindow to second.yWindow
+    private val PositionImpl.windowPosition: Pair<Int, Int> get() = position.windowPosition
 
     init {
         val scale = 4

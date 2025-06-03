@@ -4,11 +4,7 @@ import com.darkorbit.*
 import com.github.m9w.client.GameEngine
 import com.github.m9w.feature.annotations.Inject
 import com.github.m9w.feature.annotations.OnPackage
-import com.github.m9w.metaplugins.game.entities.AssetImpl
-import com.github.m9w.metaplugins.game.entities.EntityImpl
-import com.github.m9w.metaplugins.game.entities.HeroShip
-import com.github.m9w.metaplugins.game.entities.JumpgateImpl
-import com.github.m9w.metaplugins.game.entities.ShipImpl
+import com.github.m9w.metaplugins.game.entities.*
 
 @Suppress("unused")
 class EntitiesModule(private val entities: MutableMap<Long, EntityImpl> = HashMap()) : Map<Long, EntityImpl> by entities {
@@ -16,6 +12,15 @@ class EntitiesModule(private val entities: MutableMap<Long, EntityImpl> = HashMa
     @Inject lateinit var mapModule: MapModule
 
     val hero: HeroShip? get() = values.firstOrNull { it is HeroShip } as HeroShip?
+
+    @OnPackage
+    private fun onBoxCreate(box: AddBoxCommand) { BoxImpl(this, box).let { entities[it.id] = it } }
+
+    @OnPackage
+    private fun onOreCreate(ore: AddOreCommand) { BoxImpl(this, ore).let { entities[it.id] = it } }
+
+    @OnPackage
+    private fun onMineCreate(mine: AddMineCommand) { BoxImpl(this, mine).let { entities[it.id] = it } }
 
     @OnPackage
     private fun onShipCreate(ship: ShipCreateCommand) { this[ship.userId] = ShipImpl(this, ship) }
@@ -53,8 +58,15 @@ class EntitiesModule(private val entities: MutableMap<Long, EntityImpl> = HashMa
     @OnPackage
     private fun onAssetRemove(remove: AssetRemoveCommand) = remove(remove.uid)
 
+    @OnPackage
+    private fun onMineRemove(remove: RemoveMineCommand) = remove(remove.hash)
+
+    @OnPackage
+    private fun onCollectableRemove(remove: RemoveCollectableCommand) = remove(remove.hash)
+
     operator fun get(id: Int) = entities[id.toLong()]
     fun <T : EntityImpl> getLong(id: Int): T? = entities[id.toLong()].let { it as? T }
     private operator fun set(id: Int, entityImpl: EntityImpl) { entities[id.toLong()] = entityImpl }
+    private fun remove(hash: String) { entities.remove(hash.toLong(36)+100000000) }
     private fun remove(id: Int) { entities.remove(id.toLong()) }
 }

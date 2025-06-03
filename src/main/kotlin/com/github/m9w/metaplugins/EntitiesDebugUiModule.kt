@@ -3,6 +3,7 @@ import com.darkorbit.Type
 import com.github.m9w.feature.annotations.Inject
 import com.github.m9w.metaplugins.game.PositionImpl
 import com.github.m9w.metaplugins.game.entities.AssetImpl
+import com.github.m9w.metaplugins.game.entities.BoxImpl
 import com.github.m9w.metaplugins.game.entities.EntityImpl
 import com.github.m9w.metaplugins.game.entities.HeroShip
 import com.github.m9w.metaplugins.game.entities.JumpgateImpl
@@ -39,6 +40,11 @@ class EntitiesDebugUiModule : JPanel(), Runnable {
                 is ShipImpl -> g.drawShip(it)
                 is JumpgateImpl -> g.drawGate(it)
                 is AssetImpl -> g.drawAsset(it)
+                is BoxImpl -> when(it.type) {
+                    BoxImpl.Type.BOX, BoxImpl.Type.ORE -> g.drawBox(it)
+                    BoxImpl.Type.MINE -> g.drawMine(it)
+                    else -> {}
+                }
             }
         }
     }
@@ -59,6 +65,18 @@ class EntitiesDebugUiModule : JPanel(), Runnable {
         color = Color.green
         val (x, y) = asset.windowPosition
         fillOval(x-3, y-3, 6, 6)
+    }
+
+    fun Graphics.drawBox(asset: BoxImpl) {
+        color = Color.yellow
+        val (x, y) = asset.windowPosition
+        fillRect(x-2, y-2, 4, 4)
+    }
+
+    fun Graphics.drawMine(asset: BoxImpl) {
+        color = Color.orange
+        val (x, y) = asset.windowPosition
+        fillOval(x-2, y-2, 4, 4)
     }
 
     private val PositionImpl.windowPosition: Pair<Int, Int> get() {

@@ -2,6 +2,7 @@ package com.github.m9w.metaplugins
 
 import com.darkorbit.ShapeType
 import com.github.m9w.feature.annotations.Inject
+import com.github.m9w.metaplugins.game.PathTracerModule
 import com.github.m9w.metaplugins.game.PositionImpl
 import com.github.m9w.metaplugins.game.entities.*
 import java.awt.Color
@@ -15,10 +16,12 @@ import javax.swing.JPanel
 import javax.swing.SwingUtilities
 
 class EntitiesDebugUiModule : JPanel(), Runnable {
+    @Inject private lateinit var pathTracer: PathTracerModule
     @Inject private lateinit var entities: EntitiesModule
     @Inject private lateinit var map: MapModule
     private var pointerEntity: EntityImpl? = null
     private var copy = HashSet<EntityImpl>()
+    private var path = listOf<Pair<Int, Int>>()
 
     override fun paintComponent(g: Graphics) {
         super.paintComponent(g)
@@ -38,12 +41,18 @@ class EntitiesDebugUiModule : JPanel(), Runnable {
                .forEachIndexed { i, s -> g.drawString(s, 5, 30 + i * 15) }
 
         copy.addAll(entities.values)
-        copy.filter { it is PoiImpl }.map { it as PoiImpl }.forEach { g.drawPoi(it) }
+        copy.filter { it is PoiImpl }.map { it as PoiImpl}.forEach { g.drawPoi(it) }
         copy.filter { it is JumpgateImpl }.map { it as JumpgateImpl }.forEach { g.drawGate(it) }
         copy.filter { it is AssetImpl }.map { it as AssetImpl }.forEach { g.drawAsset(it) }
         copy.filter { it is ShipImpl }.map { it as ShipImpl }.forEach { g.drawShip(it) }
         copy.filter { it is BoxImpl }.map { it as BoxImpl }.forEach { g.drawBox(it) }
         copy.clear()
+        g.color = Color.yellow
+        val h = mutableListOf<Pair<Int, Int>>()
+        entities.hero?.let { h.add(it.position)}
+        (h + path).zipWithNext { a, b -> Pair(a.windowPosition, b.windowPosition) }.forEach { (a, b) ->
+            g.drawLine(a.first, a.second, b.first, b.second)
+        }
     }
 
     fun Graphics.drawShip(ship: ShipImpl) {
@@ -92,8 +101,8 @@ class EntitiesDebugUiModule : JPanel(), Runnable {
         else if (asset.type == BoxImpl.Type.BOX || asset.type == BoxImpl.Type.ORE) {
             color = Color.yellow
             val (x, y) = asset.windowPosition
-            if (asset.canInvoke()) fillRect(x - 2, y - 2, 4, 4)
-            else drawRect(x - 2, y - 2, 4, 4)
+            if (asset.canInvoke()) fillRect(x-2, y-2, 4, 4)
+            else drawRect(x-2, y-2, 4, 4)
         }
     }
 
@@ -107,7 +116,7 @@ class EntitiesDebugUiModule : JPanel(), Runnable {
         color = Color.magenta
         when (poi.shapeType) {
             ShapeType.CIRCLE -> poi.windowPosition.let { (x, y) ->
-                (poi.radius.xWindow to poi.radius.yWindow).let { (xr, yr) -> drawOval(x - xr/2, y - yr/2, xr, yr) }
+                (poi.radius.xWindow to poi.radius.yWindow).let { (xr, yr) -> drawOval(x - xr, y - yr, 2*xr, 2*yr) }
             }
             ShapeType.RECTANGLE,
             ShapeType.POLYGON -> poi.cords.map { it.windowPosition }.let { cords ->
@@ -135,6 +144,7 @@ class EntitiesDebugUiModule : JPanel(), Runnable {
                 val pointer = e.point.mapPosition
                 val entity= entities.values.minByOrNull { it.distanceTo(pointer) }
                 pointerEntity = if (entity != null && entity.distanceTo(pointer) < 250) entity else null
+                path = pathTracer.traceTo(pointer.position)
             }
         })
 

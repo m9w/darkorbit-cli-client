@@ -5,11 +5,13 @@ import com.github.m9w.client.GameEngine
 import com.github.m9w.feature.annotations.Inject
 import com.github.m9w.feature.annotations.OnPackage
 import com.github.m9w.metaplugins.game.entities.*
+import com.github.m9w.metaplugins.game.PathTracerModule
 
 @Suppress("unused")
 class EntitiesModule(private val entities: MutableMap<Long, EntityImpl> = HashMap()) : Map<Long, EntityImpl> by entities {
     @Inject lateinit var gameEngine: GameEngine
     @Inject lateinit var mapModule: MapModule
+    @Inject private lateinit var pathTracer: PathTracerModule
 
     val hero: HeroShip? get() = values.firstOrNull { it is HeroShip } as HeroShip?
 
@@ -26,7 +28,10 @@ class EntitiesModule(private val entities: MutableMap<Long, EntityImpl> = HashMa
     private fun onShipCreate(ship: ShipCreateCommand) { this[ship.userId] = ShipImpl(this, ship) }
 
     @OnPackage
-    private fun onPoiCreate(poi: MapAddPOICommand) { entities[poi.poiId.hashCode().toLong() - Int.MAX_VALUE.toLong()] = PoiImpl(this, poi) }
+    private fun onPoiCreate(poi: MapAddPOICommand) {
+        entities[poi.poiId.hashCode().toLong() - Int.MAX_VALUE.toLong()] = PoiImpl(this, poi)
+        if (poi.poiType.typeValue == POIType.NO_ACCESS) pathTracer.onChange()
+    }
 
     @OnPackage
     private fun onPoiCreate(poi: MapAddControlPOIZoneCommand) { entities[poi.poiId.hashCode().toLong() - Int.MAX_VALUE.toLong()]  = PoiImpl(this, poi) }

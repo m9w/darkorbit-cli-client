@@ -4,6 +4,7 @@ import com.darkorbit.AttributeShipSpeedUpdateCommand
 import com.darkorbit.MoveCommand
 import com.darkorbit.ProtocolPacket
 import kotlin.math.sqrt
+typealias Point = Pair<Int, Int>
 
 open class PositionImpl(private var startX: Int, private var startY: Int) {
     private var targetX: Int = startX
@@ -26,13 +27,13 @@ open class PositionImpl(private var startX: Int, private var startY: Int) {
     protected fun moveTo(pos: PositionImpl, speed: Int) {
         val from = position
         val dest = pos.position
-        startX = from.first; startY = from.second
+        startX = from.x; startY = from.y
         moveStart = System.currentTimeMillis()
         timeToTarget = (distance(from, dest) * 1000 / speed).toInt()
-        targetX = dest.first; targetY = dest.second
+        targetX = dest.x; targetY = dest.y
     }
 
-    val position: Pair<Int, Int> get() {
+    val position: Point get() {
         if (timeToTarget <= 0) return targetX to targetY
         val percent = (System.currentTimeMillis() - moveStart).toDouble() / timeToTarget
         return if (percent >= 1.0) {
@@ -49,10 +50,18 @@ open class PositionImpl(private var startX: Int, private var startY: Int) {
 
     fun distanceTo(other: PositionImpl): Double = distance(position, other.position)
 
-    fun distance(from: Pair<Int, Int>, dest: Pair<Int, Int>): Double {
-        val vector = from.first - dest.first to from.second - dest.second
-        return sqrt((vector.first * vector.first + vector.second * vector.second).toDouble())
-    }
+    fun distance(from: Point, dest: Point): Double = from.distanceTo(dest)
 
     override fun toString() = "Position$position"
+
+    companion object {
+        val Point.x get() = first
+        val Point.y get() = second
+
+        fun Point.distanceTo(loc: Point): Double {
+            val ox = loc.x - x
+            val oy = loc.y - y
+            return sqrt((ox * ox + oy * oy).toDouble())
+        }
+    }
 }

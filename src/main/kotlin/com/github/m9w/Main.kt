@@ -2,6 +2,7 @@ package com.github.m9w
 
 import com.github.m9w.client.auth.AuthenticationProvider
 import com.github.m9w.metaplugins.*
+import com.github.m9w.metaplugins.logic.BoxCollector
 import com.github.m9w.util.ProcessIdentifier
 import kotlin.system.exitProcess
 
@@ -27,6 +28,9 @@ fun main(args: Array<String>) {
         PingModule,
         EntitiesModule(),
         EntitiesDebugUiModule(),
-        MapModule()
+        MapModule(),
+        AutoMoverPlugin(),
+        CPU_Rep(),
+        BoxCollector()
     )
 }

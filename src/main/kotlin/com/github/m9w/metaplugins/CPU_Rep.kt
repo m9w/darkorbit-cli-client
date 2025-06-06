@@ -15,7 +15,6 @@ class CPU_Rep : Runnable {
 
     @Inject
     lateinit var gameEngine: GameEngine
-
     private var running = true
 
     fun stop() {

@@ -23,6 +23,7 @@ class AutoMoverPlugin {
         mapHeight: Int = 13000,
         intervalMillis: Long = 10000L
     ) {
+
         val hero = entitiesModule.hero ?: return
 
         moveTimer?.cancel()

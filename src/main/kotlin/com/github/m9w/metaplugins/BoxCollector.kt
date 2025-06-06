@@ -20,7 +20,6 @@ class BoxCollector {
     private var movedToBoxOnce = false
     private var targetBox: BoxImpl? = null
 
-
     @OnPackage
     private fun getbox_info(getbox: AddBoxCommand) {
         if (movedToBoxOnce) return

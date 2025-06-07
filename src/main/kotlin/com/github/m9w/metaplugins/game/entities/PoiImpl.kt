@@ -87,7 +87,8 @@ class PoiImpl(root: EntitiesModule, poi: MapAddPOICommand) : EntityImpl(root, 0,
         }
     }
 
-    fun containsPoint(x: Int, y: Int): Boolean {
+    fun containsPoint(point: Point): Boolean {
+        val (x, y) = point
         return if (shapeType == ShapeType.CIRCLE) {
             val (cx, cy) = position
             val x = x - cx

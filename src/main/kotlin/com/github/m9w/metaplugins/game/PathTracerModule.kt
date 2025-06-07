@@ -81,7 +81,7 @@ class PathTracerModule() {
             angle += 0.306
             distance += 5.0
 
-            if (!isOutOfMap(result) && (area == null || !area.containsPoint(result.x, result.y)) && (areaTo(result).also { area = it }) == null)
+            if (!isOutOfMap(result) && (area == null || !area.containsPoint(result.point)) && (areaTo(result).also { area = it }) == null)
                 return result
         }
 
@@ -109,9 +109,9 @@ class PathTracerModule() {
 
     private fun isOutOfMap(point: Location): Boolean = mapModule.map.isOutOfMap(point.x, point.y)
 
-    private fun canMove(point: Location): Boolean = areas.none { it.containsPoint(point.x, point.y) }
+    private fun canMove(point: Location): Boolean = areas.none { it.containsPoint(point.point) }
 
-    private fun areaTo(point: Location): PoiImpl? = areas.find { it.containsPoint(point.x, point.y) }
+    private fun areaTo(point: Location): PoiImpl? = areas.find { it.containsPoint(point.point) }
 
     private fun hasLineOfSight(point1: Location, point2: Location): Boolean = areas.none { it.intersectsLine(point1.point, point2.point) }
 

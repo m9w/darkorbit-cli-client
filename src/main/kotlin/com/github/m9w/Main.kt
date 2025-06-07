@@ -12,7 +12,7 @@ fun main(args: Array<String>) {
         println("Use `login <login> <password>` arguments to run demo code using login and password.")
         println("  Sample: gradlew run --args='login userName1 userPassword'")
         println("Use `sid <server> <sessionId>` arguments to run demo code using server and sid.")
-        println("  Sample: gradlew run --args='sid gbl1 a0cd1234d79f057c7745db24f3rt4sx3")
+        println("  Sample: gradlew run --args='sid gbl1 a0cd1234d79f057c7745db24f3rt4sx3'")
         exitProcess(0)
     }
 

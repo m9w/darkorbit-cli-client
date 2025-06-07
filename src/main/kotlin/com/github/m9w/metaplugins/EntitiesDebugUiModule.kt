@@ -1,5 +1,6 @@
 package com.github.m9w.metaplugins
 
+import com.darkorbit.POIType
 import com.darkorbit.ShapeType
 import com.github.m9w.feature.annotations.Inject
 import com.github.m9w.metaplugins.game.PathTracerModule
@@ -40,19 +41,18 @@ class EntitiesDebugUiModule : JPanel(), Runnable {
            pointerEntity.toString().split('\n').filter { it.isNotEmpty() }
                .forEachIndexed { i, s -> g.drawString(s, 5, 30 + i * 15) }
 
-        copy.addAll(entities.values)
-        copy.filter { it is PoiImpl }.map { it as PoiImpl}.forEach { g.drawPoi(it) }
+        try { copy.addAll(entities.values) } catch (_: ConcurrentModificationException) { return }
+        copy.filter { it is PoiImpl }.map { it as PoiImpl }.forEach { g.drawPoi(it) }
         copy.filter { it is JumpgateImpl }.map { it as JumpgateImpl }.forEach { g.drawGate(it) }
         copy.filter { it is AssetImpl }.map { it as AssetImpl }.forEach { g.drawAsset(it) }
         copy.filter { it is ShipImpl }.map { it as ShipImpl }.forEach { g.drawShip(it) }
         copy.filter { it is BoxImpl }.map { it as BoxImpl }.forEach { g.drawBox(it) }
         copy.clear()
         g.color = Color.yellow
-        val h = mutableListOf<Pair<Int, Int>>()
-        entities.hero?.let { h.add(it.position)}
-        (h + path).zipWithNext { a, b -> Pair(a.windowPosition, b.windowPosition) }.forEach { (a, b) ->
-            g.drawLine(a.first, a.second, b.first, b.second)
-        }
+        if (path.size > 1)
+            (mutableListOf<Pair<Int, Int>>().apply { entities.hero?.let { add(it.position) } } + path)
+                .zipWithNext { a, b -> Pair(a.windowPosition, b.windowPosition) }
+                .forEach { (a, b) -> g.drawLine(a.first, a.second, b.first, b.second) }
     }
 
     fun Graphics.drawShip(ship: ShipImpl) {
@@ -107,13 +107,13 @@ class EntitiesDebugUiModule : JPanel(), Runnable {
     }
 
     fun Graphics.drawMine(asset: BoxImpl) {
-        color = Color.orange
+        color = Color.pink
         val (x, y) = asset.windowPosition
         fillRect(x-2, y-2, 4, 4)
     }
 
     fun Graphics.drawPoi(poi: PoiImpl) {
-        color = Color.magenta
+        color = if (poi.type == POIType.NO_ACCESS) Color.gray else Color.magenta
         when (poi.shapeType) {
             ShapeType.CIRCLE -> poi.windowPosition.let { (x, y) ->
                 (poi.radius.xWindow to poi.radius.yWindow).let { (xr, yr) -> drawOval(x - xr, y - yr, 2*xr, 2*yr) }
@@ -142,8 +142,9 @@ class EntitiesDebugUiModule : JPanel(), Runnable {
             override fun mouseMoved(e: MouseEvent) {
                 if (!isInit) return
                 val pointer = e.point.mapPosition
-                val entity= entities.values.minByOrNull { it.distanceTo(pointer) }
-                pointerEntity = if (entity != null && entity.distanceTo(pointer) < 250) entity else null
+                pointerEntity = entities.values.filter { it !is PoiImpl }.minByOrNull { it.distanceTo(pointer) }
+                    ?.takeIf { it.distanceTo(pointer) < 250 }
+                    ?: entities.values.firstOrNull { it is PoiImpl && it.containsPoint(pointer.position)}
                 path = pathTracer.traceTo(pointer.position)
             }
         })
@@ -162,5 +163,5 @@ class EntitiesDebugUiModule : JPanel(), Runnable {
 
     private val isInit get() = this@EntitiesDebugUiModule::entities.isInitialized && this@EntitiesDebugUiModule::map.isInitialized
 
-    override fun run() { while (true) { repaint(); Thread.sleep(16) } }
+    override fun run() { while (true) { repaint(); Thread.sleep(1000/60) } }
 }

@@ -17,4 +17,4 @@ suspend inline fun <reified T : ProtocolPacket> waitOnPackage(exceptBy: Set<KCla
                                                               noinline postExecute: () -> Unit = {}): T
 = waitOnPackage(setOf(T::class), exceptBy, timeout, postExecute)
 
-suspend fun waitMs(ms: Long) = FeatureController.waitMs(ms)
+suspend fun waitMs(ms: Long, interruptKey: String = "") = FeatureController.waitMs(ms, interruptKey)

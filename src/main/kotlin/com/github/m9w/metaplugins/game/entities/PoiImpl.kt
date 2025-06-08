@@ -182,7 +182,7 @@ class PoiImpl(root: EntitiesModule, poi: MapAddPOICommand) : EntityImpl(root, 0,
     }
 
     companion object {
-        private const val MARGIN = 5
+        private const val MARGIN = 50
         private fun linesIntersect(x1: Int, y1: Int, x2: Int, y2: Int, x3: Int, y3: Int, x4: Int, y4: Int): Boolean {
             val v = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1)
             if (v == 0) return false

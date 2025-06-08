@@ -19,12 +19,14 @@ class BoxImpl(root: EntitiesModule, entity: AddMapEntityCommand): EntityImpl(roo
     }
     val collectable = type == Type.ORE || type == Type.BOX
 
-    override fun canInvoke(): Boolean = collectable && (root.hero?.distanceTo(this) ?: 100.0) < 10.0
+    override fun canInvoke(): Boolean = collectable && root.hero.distanceTo(this) < 10.0
 
     override fun invoke(): Boolean {
         val result = canInvoke()
-        if (result) root.hero?.let { root.gameEngine.collectRequest(it, this) }
-        else root.hero?.moveTo(this)
+        if (result) root.hero.let { root.gameEngine.collectRequest(it, this) }
+        else root.hero.moveTo(this.position) {
+            root.hero.let { root.gameEngine.collectRequest(it, this) }
+        }
         return result
     }
 

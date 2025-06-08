@@ -5,16 +5,20 @@ import com.github.m9w.feature.Future
 import com.github.m9w.feature.SchedulerEntity
 import com.github.m9w.feature.suspend.ExceptPacketException
 import com.github.m9w.protocol.Factory
+import java.lang.RuntimeException
 import java.util.*
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.callSuspend
 import kotlin.reflect.jvm.isAccessible
+
 
 class Scheduler : Runnable {
     private val eventPacketQueue = LinkedList<ProtocolPacket>()
     private val eventQueue = LinkedList<Pair<String, String>>()
     private val eventHandlers: MutableMap<String, MutableSet<PendingFuture>> = HashMap()
     private val timerQueue = TreeMap<Long, MutableList<() -> Unit>>()
+    private val timerCancellationKeys = HashMap<String, MutableList<((()->Exception)?)->Unit>>()
     private val lock = Object()
     private val hasEvents get() = !eventPacketQueue.isEmpty() || !eventQueue.isEmpty()
     private lateinit var thread: Thread
@@ -40,7 +44,21 @@ class Scheduler : Runnable {
         }
     }
 
-    fun resumeIn(future: Future<*>, ms: Long) = ms.schedule { future.resume() }
+    fun resumeIn(future: Future<*>, ms: Long, interruptKey: String) {
+        val resume: AtomicReference<()->Unit> = AtomicReference()
+        val interrupt: ((()->Exception)?)->Unit = {
+            timerQueue[ms]?.remove (resume.get())
+            future.interrupt { it?.invoke() ?: RuntimeException("External interrupt") }
+        }
+        resume.set {
+            if (interruptKey.isNotEmpty()) timerCancellationKeys[interruptKey]?.remove(interrupt)
+            future.resume()
+        }
+        if (interruptKey.isNotEmpty()) timerCancellationKeys.getOrPut(interruptKey) { mutableListOf() } += interrupt
+        ms.schedule(resume.get())
+    }
+
+    fun cancelWaitMs(key: String, block: (()-> Exception)? = null) = timerCancellationKeys.remove(key)?.forEach { it.invoke(block) }
 
     fun interruptIn(future: Future<*>, ms: Long, block: () -> Exception) = ms.schedule { future.interrupt(block) }
 

@@ -9,10 +9,10 @@ import kotlin.coroutines.*
 object FeatureController {
     fun <T> runCoroutine(scheduler: Scheduler, block: suspend () -> T): Future<T> = FutureImpl(scheduler, block)
 
-    suspend fun waitMs(ms: Long) = suspendWithInterrupt<Unit> {
+    suspend fun waitMs(ms: Long, interruptKey: String) = suspendWithInterrupt<Unit> {
         object : SuspendFlow {
             override fun <T> getFuture(): Future<T> = it as Future<T>
-            override fun <T> schedule(future: Future<T>) = it.scheduler.resumeIn(future, ms)
+            override fun <T> schedule(future: Future<T>) = it.scheduler.resumeIn(future, ms, interruptKey)
             override fun toString() = "Wait $ms ms"
         }
     }

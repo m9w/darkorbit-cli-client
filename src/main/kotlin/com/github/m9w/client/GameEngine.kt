@@ -27,6 +27,8 @@ class GameEngine(val authentication: AuthenticationProvider, private val schedul
 
     fun handleEvent(event: String, body: String = "") = scheduler.handleEvent(event, body)
 
+    fun cancelWaitMs(interruptKey: String, body: (()->Exception)?=null) = scheduler.cancelWaitMs(interruptKey, body)
+
     inline fun <reified T : ProtocolPacket> send(noinline changes: T.() -> Unit) {
         val data = Factory.build(T::class).also { changes.invoke(it) }
         network.send(data)

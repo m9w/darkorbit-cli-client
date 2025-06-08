@@ -12,6 +12,10 @@ open class PositionImpl(private var startX: Int, private var startY: Int) {
     private var moveStart: Long = 0
     private var timeToTarget: Int = 0
 
+    open fun stopHandler(point: Point) {}
+
+    open fun destinationTimeUpdateHandler(time: Int) {}
+
     open fun update(packet: ProtocolPacket) {
         if (packet is MoveCommand) {
             val (curX, curY) = position
@@ -19,18 +23,20 @@ open class PositionImpl(private var startX: Int, private var startY: Int) {
             moveStart = System.currentTimeMillis()
             timeToTarget = packet.timeToTarget
             targetX = packet.x; targetY = packet.y
+            if (timeToTarget == 0) stopHandler(targetX to targetY)
+            else destinationTimeUpdateHandler(timeToTarget)
         } else if (packet is AttributeShipSpeedUpdateCommand) {
-            if (isMoving) moveTo(PositionImpl(targetX, targetY), packet.newSpeed)
+            if (isMoving) moveTo(targetX to targetY, packet.newSpeed)
         }
     }
 
-    protected fun moveTo(pos: PositionImpl, speed: Int) {
+    protected fun moveTo(destination: Point, speed: Int) {
         val from = position
-        val dest = pos.position
         startX = from.x; startY = from.y
         moveStart = System.currentTimeMillis()
-        timeToTarget = (distance(from, dest) * 1000 / speed).toInt()
-        targetX = dest.x; targetY = dest.y
+        timeToTarget = (distance(from, destination) * 1000 / speed).toInt()
+        destinationTimeUpdateHandler(timeToTarget)
+        targetX = destination.x; targetY = destination.y
     }
 
     val position: Point get() {
@@ -38,7 +44,7 @@ open class PositionImpl(private var startX: Int, private var startY: Int) {
         val percent = (System.currentTimeMillis() - moveStart).toDouble() / timeToTarget
         return if (percent >= 1.0) {
             timeToTarget = 0
-            targetX to targetY
+            (targetX to targetY).also { stopHandler(it) }
         } else {
             startX + ((targetX - startX) * percent).toInt() to  startY + ((targetY - startY) * percent).toInt()
         }

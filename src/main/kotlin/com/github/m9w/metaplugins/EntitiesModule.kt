@@ -11,9 +11,11 @@ import com.github.m9w.metaplugins.game.PathTracerModule
 class EntitiesModule(private val entities: MutableMap<Long, EntityImpl> = HashMap()) : Map<Long, EntityImpl> by entities {
     @Inject lateinit var gameEngine: GameEngine
     @Inject lateinit var mapModule: MapModule
+    @Inject lateinit var moveModule: MoveModule
     @Inject private lateinit var pathTracer: PathTracerModule
 
-    val hero: HeroShip? get() = values.firstOrNull { it is HeroShip } as HeroShip?
+    lateinit var hero: HeroShip; private set
+    val isReady: Boolean get() = this::hero.isInitialized
 
     @OnPackage
     private fun onBoxCreate(box: AddBoxCommand) { BoxImpl(this, box).let { entities[it.id] = it } }
@@ -55,7 +57,10 @@ class EntitiesModule(private val entities: MutableMap<Long, EntityImpl> = HashMa
     private fun onJumpgateInitiation(jumpgate: JumpInitiatedCommand) { this[jumpgate.gateId]?.update(jumpgate) }
 
     @OnPackage
-    private fun onHeroInit(init: ShipInitializationCommand) { entities.clear(); this[init.userId] = HeroShip(this, init) }
+    private fun onHeroInit(init: ShipInitializationCommand) { entities.clear(); pathTracer.onChange(); this[init.userId] = HeroShip(this, init).also { hero = it } }
+
+    @OnPackage
+    private fun onHeroInit(speedUpdate: AttributeShipSpeedUpdateCommand) { hero.update(speedUpdate) }
 
     @OnPackage
     private fun onAssetCreate(createAsset: AssetCreateCommand) { this[createAsset.assetId] = AssetImpl(this, createAsset) }

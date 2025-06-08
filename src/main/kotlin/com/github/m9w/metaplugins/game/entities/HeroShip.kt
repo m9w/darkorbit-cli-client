@@ -3,8 +3,7 @@ package com.github.m9w.metaplugins.game.entities
 import com.darkorbit.*
 import com.github.m9w.changeConfig
 import com.github.m9w.metaplugins.EntitiesModule
-import com.github.m9w.metaplugins.game.PositionImpl
-import com.github.m9w.moveRequest
+import com.github.m9w.metaplugins.game.Point
 
 class HeroShip(root: EntitiesModule, ship: ShipInitializationCommand) : ShipImpl(root, ship) {
     private val cargoOres = listOf(OreType.PROMETIUM, OreType.ENDURIUM, OreType.TERBIUM, OreType.PROMETID, OreType.DURANIUM, OreType.PROMERIUM, OreType.SEPROM, OreType.PALLADIUM, OreType.OSMIUM)
@@ -48,10 +47,11 @@ class HeroShip(root: EntitiesModule, ship: ShipInitializationCommand) : ShipImpl
         }
     }
 
-    fun moveTo(dest: PositionImpl) {
-        root.gameEngine.moveRequest(position, dest.position)
-        moveTo(dest, speed)
-    }
+    fun moveTo(destination: Point = Int.MIN_VALUE to Int.MIN_VALUE, block: (Point) -> Unit = {}) = root.moveModule.moveTo(destination, block) { moveTo(it, speed) }
+
+    override fun stopHandler(point: Point) = root.moveModule.stopEvent(point)
+
+    override fun destinationTimeUpdateHandler(time: Int) = root.moveModule.destinationTimeUpdateEvent(time)
 
     override fun toString() = super.toString() + "Credits $credits URI $uridium\n" +
             "Cargo $cargo/$cargoSpaceMax\n"

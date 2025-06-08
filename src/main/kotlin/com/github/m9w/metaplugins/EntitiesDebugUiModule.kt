@@ -5,6 +5,8 @@ import com.darkorbit.ShapeType
 import com.github.m9w.feature.annotations.Inject
 import com.github.m9w.metaplugins.game.PathTracerModule
 import com.github.m9w.metaplugins.game.PositionImpl
+import com.github.m9w.metaplugins.game.PositionImpl.Companion.x
+import com.github.m9w.metaplugins.game.PositionImpl.Companion.y
 import com.github.m9w.metaplugins.game.entities.*
 import java.awt.Color
 import java.awt.Dimension
@@ -18,6 +20,7 @@ import javax.swing.SwingUtilities
 
 class EntitiesDebugUiModule : JPanel(), Runnable {
     @Inject private lateinit var pathTracer: PathTracerModule
+    @Inject private lateinit var moveModule: MoveModule
     @Inject private lateinit var entities: EntitiesModule
     @Inject private lateinit var map: MapModule
     private var pointerEntity: EntityImpl? = null
@@ -27,12 +30,12 @@ class EntitiesDebugUiModule : JPanel(), Runnable {
     override fun paintComponent(g: Graphics) {
         super.paintComponent(g)
         background = Color.black
-        if (!isInit) return
+        if (!isReady) return
 
         g.color = Color.gray
         g.drawString("Map ${map.map.name}", 5, 15)
 
-        entities.hero?.windowPosition?.let { (x, y) ->
+        entities.hero.windowPosition.let { (x, y) ->
             g.drawLine(x, 0, x, height)
             g.drawLine(0, y, width, y)
         }
@@ -48,12 +51,13 @@ class EntitiesDebugUiModule : JPanel(), Runnable {
         copy.filter { it is ShipImpl }.map { it as ShipImpl }.forEach { g.drawShip(it) }
         copy.filter { it is BoxImpl }.map { it as BoxImpl }.forEach { g.drawBox(it) }
         copy.clear()
+        g.color = Color.cyan
+        if (entities.hero.isMoving && moveModule.nextPoints.size > 1) moveModule.nextPoints.drawLine(g)
         g.color = Color.yellow
-        if (path.size > 1)
-            (mutableListOf<Pair<Int, Int>>().apply { entities.hero?.let { add(it.position) } } + path)
-                .zipWithNext { a, b -> Pair(a.windowPosition, b.windowPosition) }
-                .forEach { (a, b) -> g.drawLine(a.first, a.second, b.first, b.second) }
+        if (path.size > 1) (mutableListOf<Pair<Int, Int>>().apply { add(entities.hero.position) } + path).drawLine(g)
     }
+
+    private fun List<Pair<Int,Int>>.drawLine(g: Graphics) = zipWithNext { a, b -> a.windowPosition to b.windowPosition }.forEach { (a, b) -> g.drawLine(a.x, a.y, b.x, b.y) }
 
     fun Graphics.drawShip(ship: ShipImpl) {
         ship.windowPosition.let { (x, y) ->
@@ -140,7 +144,7 @@ class EntitiesDebugUiModule : JPanel(), Runnable {
 
         addMouseMotionListener(object : MouseAdapter() {
             override fun mouseMoved(e: MouseEvent) {
-                if (!isInit) return
+                if (!isReady) return
                 val pointer = e.point.mapPosition
                 pointerEntity = entities.values.filter { it !is PoiImpl }.minByOrNull { it.distanceTo(pointer) }
                     ?.takeIf { it.distanceTo(pointer) < 250 }
@@ -151,7 +155,7 @@ class EntitiesDebugUiModule : JPanel(), Runnable {
 
         addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent) {
-                if (e.button == 1) entities.hero?.moveTo(e.point.mapPosition)
+                if (e.button == 1) entities.hero.moveTo(e.point.mapPosition.position)
                 if (e.button == 3) pointerEntity?.invoke()
             }
         })
@@ -161,7 +165,7 @@ class EntitiesDebugUiModule : JPanel(), Runnable {
 
     private val Point.mapPosition: PositionImpl get() = PositionImpl((x.toDouble() / width * map.map.width).toInt(), (y.toDouble() / height * map.map.height).toInt())
 
-    private val isInit get() = this@EntitiesDebugUiModule::entities.isInitialized && this@EntitiesDebugUiModule::map.isInitialized
+    private val isReady get() = this@EntitiesDebugUiModule::entities.isInitialized && entities.isReady && this@EntitiesDebugUiModule::map.isInitialized
 
     override fun run() { while (true) { repaint(); Thread.sleep(1000/60) } }
 }

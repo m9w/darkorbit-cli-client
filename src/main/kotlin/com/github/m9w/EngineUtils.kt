@@ -2,6 +2,9 @@ package com.github.m9w
 
 import com.darkorbit.*
 import com.github.m9w.client.GameEngine
+import com.github.m9w.metaplugins.game.Point
+import com.github.m9w.metaplugins.game.PositionImpl.Companion.x
+import com.github.m9w.metaplugins.game.PositionImpl.Companion.y
 import com.github.m9w.metaplugins.game.entities.BoxImpl
 import com.github.m9w.metaplugins.game.entities.HeroShip
 
@@ -26,9 +29,9 @@ fun GameEngine.jumpRequest() {
     send<JumpRequest>{}
 }
 
-fun GameEngine.moveRequest(pos: Pair<Int, Int>, dest: Pair<Int, Int>) {
+fun GameEngine.moveRequest(pos: Point, dest: Point) {
     if (state.ordinal < 3) return
-    send<MoveRequest> { positionX = pos.first; positionY = pos.second; targetX = dest.first; targetY = dest.second }
+    send<MoveRequest> { positionX = pos.x; positionY = pos.y; targetX = dest.x; targetY = dest.y }
 }
 
 fun GameEngine.collectRequest(hero: HeroShip, box: BoxImpl) {

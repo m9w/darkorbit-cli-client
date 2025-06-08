@@ -29,6 +29,7 @@ fun main(args: Array<String>) {
         EntitiesModule(),
         EntitiesDebugUiModule(),
         MapModule(),
-        PathTracerModule()
+        PathTracerModule(),
+        MoveModule()
     )
 }

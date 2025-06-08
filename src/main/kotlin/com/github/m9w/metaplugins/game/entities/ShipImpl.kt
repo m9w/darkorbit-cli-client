@@ -20,7 +20,7 @@ open class ShipImpl(root: EntitiesModule, ship: ShipCreateCommand) : EntityImpl(
 
     constructor(root: EntitiesModule, ship: ShipInitializationCommand)
             : this(root, Factory.build(ShipCreateCommand::class, Factory.getData(ship)).apply {
-        clanDiplomacy = Factory.build(ClanRelationModule::class).apply { type = Type.NONE }
+        clanDiplomacy = clanDiplomacy.apply { type = Type.NONE }
     })
 
     override fun update(packet: ProtocolPacket) {

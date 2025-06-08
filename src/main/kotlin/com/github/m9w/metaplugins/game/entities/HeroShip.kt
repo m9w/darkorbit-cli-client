@@ -22,6 +22,7 @@ class HeroShip(root: EntitiesModule, ship: ShipInitializationCommand) : ShipImpl
     var shipConfig get() = configVal; set(value) { if((value == 1 || value == 2) && value != configVal) root.gameEngine.changeConfig() }
     var target: EntityImpl? = null; set(value) { field = value; lastTarget = value }
     var lastTarget: EntityImpl? = null; private set
+    var pet: HeroPet? = null
 
     init { update(ship) }
 

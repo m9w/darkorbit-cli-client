@@ -89,6 +89,63 @@ class EntitiesModule(private val entities: MutableMap<Long, EntityImpl> = HashMa
     @OnPackage
     private fun onPoiRemove(poi: MapRemovePOICommand) { entities.remove(poi.poiId.hashCode().toLong() - Int.MAX_VALUE.toLong()) }
 
+    @OnPackage
+    private fun onHealthUpdate(health: HealthModule) { hero.update(health) }
+    @OnPackage
+    private fun onHealthUpdate(health: ShipSelectionCommand) { this[health.userId]?.update(health) }
+    @OnPackage
+    private fun onHealthUpdate(health: HealCommand) { this[health.healedId]?.update(health) }
+    @OnPackage
+    private fun onHealthUpdate(health: HitpointInfoCommand) { hero.update(health) }
+    @OnPackage
+    private fun onHealthUpdate(health: AttackHitCommand) { this[health.victimId]?.update(health) }
+    @OnPackage
+    private fun onHealthUpdate(health: PetStatusCommand) { this[health.petId]?.update(health) }
+    @OnPackage
+    private fun onHealthUpdate(health: AttributeShieldUpdateCommand) { hero.update(health) }
+    @OnPackage
+    private fun onHealthUpdate(health: AssetInfoCommand) { this[health.assetId]?.update(health) }
+    @OnPackage
+    private fun onHealthUpdate(health: AttackHitAssetCommand) { this[health.assetId]?.update(health) }
+    @OnPackage
+    private fun onHealthUpdate(health: StationModuleModule) { this[health.asteroidId]?.update(health) }
+    @OnPackage
+    private fun onHealthUpdate(health: ModuleStatusUpdateCommand) { this[health.asteroidId]?.update(health) }
+    @OnPackage
+    private fun onHealthUpdate(health: AttackHitNoLockCommand) { this[health.victimId]?.update(health) }
+    @OnPackage
+    private fun onHealthUpdate(health: AttributeHitpointUpdateCommand) { hero.update(health) }
+    @OnPackage
+    private fun onHealthUpdate(health: PetHitpointsUpdateCommand) { hero.pet?.update(health) }
+    @OnPackage
+    private fun onHealthUpdate(health: PetShieldUpdateCommand) { hero.pet?.update(health) }
+    @OnPackage
+    private fun onFuelUpdate(fuel: PetFuelUpdateCommand) { hero.pet?.update(fuel) }
+    @OnPackage
+    private fun onExpUpdate(expUpdate: PetExperiencePointsUpdateCommand) { hero.pet?.update(expUpdate) }
+    @OnPackage
+    private fun onLevelUpdate(levelUpdate: PetLevelUpdateCommand) { hero.pet?.update(levelUpdate) }
+    @OnPackage
+    private fun onHeatUpdate(heat: PetHeatUpdateCommand) { hero.pet?.update(heat) }
+    @OnPackage
+    private fun onPetActivation(activation: PetHeroActivationCommand) { hero.pet?.update(activation) }
+    @OnPackage
+    private fun onPetDeactivation(deactivation: PetDeactivationCommand) { hero.pet?.update(deactivation) }
+    @OnPackage
+    private fun onDestroyed(destroyed: PetIsDestroyedCommand) { hero.pet?.update(destroyed) }
+    @OnPackage
+    private fun onGearAdd(gearAdd: PetGearAddCommand) { hero.pet?.update(gearAdd) }
+    @OnPackage
+    private fun onGearRemove(gearRemove: PetGearRemoveCommand) { hero.pet?.update(gearRemove) }
+    @OnPackage
+    private fun onGearReset(gearReset: PetGearResetCommand) { hero.pet?.update(gearReset) }
+    @OnPackage
+    private fun onGearSelect(gearSelect: PetGearSelectCommand) { hero.pet?.update(gearSelect) }
+    @OnPackage
+    private fun onRepairComplete(repairComplete: PetRepairCompleteCommand) { hero.pet?.update(repairComplete) }
+    @OnPackage
+    private fun onBlockUI(blockUI: PetBlockUICommand) { hero.pet?.update(blockUI) }
+
     operator fun get(id: Int) = entities[id.toLong()]
     fun <T : EntityImpl> getLong(id: Int): T? = entities[id.toLong()].let { it as? T }
     private operator fun set(id: Int, entityImpl: EntityImpl) { entities[id.toLong()] = entityImpl }

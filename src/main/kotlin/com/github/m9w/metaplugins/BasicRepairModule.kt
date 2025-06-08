@@ -5,18 +5,14 @@ import com.darkorbit.KillScreenRepairRequest
 import com.darkorbit.LoginRequest
 import com.github.m9w.client.GameEngine
 import com.github.m9w.client.auth.AuthenticationProvider
-import com.github.m9w.feature.annotations.Inject
+import com.github.m9w.context
 import com.github.m9w.feature.annotations.OnPackage
 import com.github.m9w.feature.waitMs
 import com.github.m9w.protocol.Factory
 
 object BasicRepairModule {
-
-    @Inject
-    private lateinit var gameEngine: GameEngine
-
-    @Inject
-    private lateinit var authentication: AuthenticationProvider
+    private val gameEngine: GameEngine by context
+    private val authentication: AuthenticationProvider by context
 
     @OnPackage
     private suspend fun mapUpdate(screen: KillScreenPostCommand) {

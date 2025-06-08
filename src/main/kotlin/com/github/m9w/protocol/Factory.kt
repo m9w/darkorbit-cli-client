@@ -44,7 +44,7 @@ object Factory {
             Float::class.java -> 0F
             Double::class.java -> 0.0
             String::class.java -> ""
-            MutableList::class.java -> emptyList<Any>()
+            MutableList::class.java -> mutableListOf<Any>()
             else -> build(returnType.kotlin as KClass<ProtocolPacket>)
         }
     }

@@ -2,8 +2,9 @@ package com.github.m9w.metaplugins
 
 import com.darkorbit.POIType
 import com.darkorbit.ShapeType
-import com.github.m9w.feature.annotations.Inject
-import com.github.m9w.metaplugins.game.PathTracerModule
+import com.darkorbit.ShipInitializationCommand
+import com.github.m9w.context
+import com.github.m9w.feature.annotations.OnPackage
 import com.github.m9w.metaplugins.game.PositionImpl
 import com.github.m9w.metaplugins.game.PositionImpl.Companion.x
 import com.github.m9w.metaplugins.game.PositionImpl.Companion.y
@@ -19,10 +20,10 @@ import javax.swing.JPanel
 import javax.swing.SwingUtilities
 
 class EntitiesDebugUiModule : JPanel(), Runnable {
-    @Inject private lateinit var pathTracer: PathTracerModule
-    @Inject private lateinit var moveModule: MoveModule
-    @Inject private lateinit var entities: EntitiesModule
-    @Inject private lateinit var map: MapModule
+    private val pathTracer: PathTracerModule by context
+    private val moveModule: MoveModule by context
+    private val entities: EntitiesModule by context
+    private val map: MapModule by context
     private var pointerEntity: EntityImpl? = null
     private var copy = HashSet<EntityImpl>()
     private var path = listOf<Pair<Int, Int>>()
@@ -30,7 +31,6 @@ class EntitiesDebugUiModule : JPanel(), Runnable {
     override fun paintComponent(g: Graphics) {
         super.paintComponent(g)
         background = Color.black
-        if (!isReady) return
 
         g.color = Color.gray
         g.drawString("Map ${map.map.name}", 5, 15)
@@ -134,7 +134,8 @@ class EntitiesDebugUiModule : JPanel(), Runnable {
     private val Pair<Int, Int>.windowPosition: Pair<Int, Int> get() = first.xWindow to second.yWindow
     private val PositionImpl.windowPosition: Pair<Int, Int> get() = position.windowPosition
 
-    init {
+    @OnPackage
+    private fun init(init: ShipInitializationCommand) {
         val scale = 4
         preferredSize = Dimension(210*scale, 131*scale)
         SwingUtilities.invokeLater { JFrame("Entities canvas").apply {
@@ -144,10 +145,9 @@ class EntitiesDebugUiModule : JPanel(), Runnable {
 
         addMouseMotionListener(object : MouseAdapter() {
             override fun mouseMoved(e: MouseEvent) {
-                if (!isReady) return
                 val pointer = e.point.mapPosition
                 pointerEntity = entities.values.filter { it !is PoiImpl }.minByOrNull { it.distanceTo(pointer) }
-                    ?.takeIf { it.distanceTo(pointer) < 250 }
+                    ?.takeIf { it.distanceTo(pointer) < 125 }
                     ?: entities.values.firstOrNull { it is PoiImpl && it.containsPoint(pointer.position)}
                 path = pathTracer.traceTo(pointer.position)
             }
@@ -159,13 +159,10 @@ class EntitiesDebugUiModule : JPanel(), Runnable {
                 if (e.button == 3) pointerEntity?.invoke()
             }
         })
-
         Thread(this, "UI").apply { isDaemon = true }.start()
     }
 
     private val Point.mapPosition: PositionImpl get() = PositionImpl((x.toDouble() / width * map.map.width).toInt(), (y.toDouble() / height * map.map.height).toInt())
-
-    private val isReady get() = this@EntitiesDebugUiModule::entities.isInitialized && entities.isReady && this@EntitiesDebugUiModule::map.isInitialized
 
     override fun run() { while (true) { repaint(); Thread.sleep(1000/60) } }
 }

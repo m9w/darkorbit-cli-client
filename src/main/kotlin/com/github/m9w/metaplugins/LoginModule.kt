@@ -3,8 +3,8 @@ package com.github.m9w.metaplugins
 import com.darkorbit.*
 import com.github.m9w.client.GameEngine
 import com.github.m9w.client.auth.AuthenticationProvider
+import com.github.m9w.context
 import com.github.m9w.feature.annotations.OnEvent
-import com.github.m9w.feature.annotations.Inject
 import com.github.m9w.feature.annotations.OnPackage
 import com.github.m9w.feature.annotations.SystemEvents
 import com.github.m9w.feature.waitMs
@@ -14,12 +14,8 @@ import com.github.m9w.feature.waitOnPackage
 @Suppress("unused")
 object LoginModule {
     private var unsuccessfulLoginCount = 0
-
-    @Inject
-    private lateinit var gameEngine: GameEngine
-
-    @Inject
-    private lateinit var authentication: AuthenticationProvider
+    private val gameEngine: GameEngine by context
+    private val authentication: AuthenticationProvider by context
 
     @OnEvent(SystemEvents.ON_CONNECT)
     suspend fun onConnect(body: String) {

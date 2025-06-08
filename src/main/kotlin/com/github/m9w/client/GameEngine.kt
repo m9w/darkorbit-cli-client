@@ -4,11 +4,15 @@ import com.darkorbit.ProtocolPacket
 import com.github.m9w.Scheduler
 import com.github.m9w.client.auth.AuthenticationProvider
 import com.github.m9w.client.network.NetworkLayer
+import com.github.m9w.context
 import com.github.m9w.feature.annotations.SystemEvents
 import com.github.m9w.protocol.Factory
 import java.net.InetSocketAddress
 
-class GameEngine(val authentication: AuthenticationProvider, private val scheduler: Scheduler) {
+class GameEngine() {
+    private val authentication: AuthenticationProvider by context
+    private val scheduler: Scheduler by context
+
     var network: NetworkLayer = NetworkLayer(InetSocketAddress(0)); private set
     var state: State = State.NOT_CONNECTED
 

@@ -1,9 +1,10 @@
 package com.github.m9w.client.auth
 
+import com.github.m9w.feature.Classifier
 import java.net.InetSocketAddress
 import java.net.URI
 
-interface AuthenticationProvider {
+interface AuthenticationProvider : Classifier<AuthenticationProvider> {
     val userID: Int
     val server: String
     val sessionID: String

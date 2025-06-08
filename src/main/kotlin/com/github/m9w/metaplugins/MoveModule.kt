@@ -1,11 +1,11 @@
 package com.github.m9w.metaplugins
 
 import com.github.m9w.client.GameEngine
-import com.github.m9w.feature.annotations.Inject
+import com.github.m9w.context
 import com.github.m9w.feature.annotations.OnEvent
 import com.github.m9w.feature.annotations.SystemEvents
 import com.github.m9w.feature.waitMs
-import com.github.m9w.metaplugins.game.PathTracerModule
+import com.github.m9w.metaplugins.PathTracerModule
 import com.github.m9w.metaplugins.game.Point
 import com.github.m9w.metaplugins.game.PositionImpl.Companion.distanceTo
 import com.github.m9w.metaplugins.game.PositionImpl.Companion.x
@@ -17,9 +17,9 @@ import kotlin.math.hypot
 
 @Suppress("unused")
 class MoveModule {
-    @Inject private lateinit var gameEngine: GameEngine
-    @Inject private lateinit var pathTracer: PathTracerModule
-    @Inject private lateinit var entities: EntitiesModule
+    private val gameEngine: GameEngine by context
+    private val pathTracer: PathTracerModule by context
+    private val entities: EntitiesModule by context
 
     private var onComplete: (Point) -> Unit = {}
     private var updatePosition: (Point) -> Unit = {}
@@ -38,7 +38,6 @@ class MoveModule {
     }
 
     fun stopEvent(point: Point) {
-        println("Stop Point $point")
         if (nextPoints.isEmpty()) return
         val heroPosition = entities.hero.position
         if (nextPoints.first().distanceTo(heroPosition) < 50) {

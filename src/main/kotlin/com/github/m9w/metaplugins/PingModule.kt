@@ -3,16 +3,13 @@ package com.github.m9w.metaplugins
 import com.darkorbit.KeepAlive
 import com.darkorbit.StayinAlive
 import com.github.m9w.client.GameEngine
-import com.github.m9w.feature.annotations.Inject
-import com.github.m9w.feature.annotations.OnEvent
+import com.github.m9w.context
 import com.github.m9w.feature.annotations.Repeat
-import com.github.m9w.feature.annotations.SystemEvents
 import com.github.m9w.feature.timePrefix
 import com.github.m9w.feature.waitOnPackage
 
 object PingModule {
-    @Inject
-    private lateinit var gameEngine: GameEngine
+    private val gameEngine: GameEngine by context
     private var sentKeepAliveTime = System.currentTimeMillis()
     private val pingList = ArrayList<Long>()
     var ping: Double = -1.0; private set

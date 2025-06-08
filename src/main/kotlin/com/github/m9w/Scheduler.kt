@@ -1,8 +1,12 @@
 package com.github.m9w
 
 import com.darkorbit.ProtocolPacket
+import com.github.m9w.client.GameEngine
 import com.github.m9w.feature.Future
 import com.github.m9w.feature.SchedulerEntity
+import com.github.m9w.feature.annotations.OnEvent
+import com.github.m9w.feature.annotations.OnPackage
+import com.github.m9w.feature.annotations.Repeat
 import com.github.m9w.feature.suspend.ExceptPacketException
 import com.github.m9w.protocol.Factory
 import java.lang.RuntimeException
@@ -10,10 +14,14 @@ import java.util.*
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.callSuspend
+import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.hasAnnotation
+import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.jvm.isAccessible
+import kotlin.reflect.jvm.jvmErasure
 
 
-class Scheduler : Runnable {
+class Scheduler(vararg ctx: Any) : Runnable {
     private val eventPacketQueue = LinkedList<ProtocolPacket>()
     private val eventQueue = LinkedList<Pair<String, String>>()
     private val eventHandlers: MutableMap<String, MutableSet<PendingFuture>> = HashMap()
@@ -23,6 +31,8 @@ class Scheduler : Runnable {
     private val hasEvents get() = !eventPacketQueue.isEmpty() || !eventQueue.isEmpty()
     private lateinit var thread: Thread
     @Volatile private var isRun = true
+    private val engine: GameEngine by context
+    private val rawContext: Set<Any> = mutableSetOf<Any>(this).apply { addAll(ctx) }
 
     fun performTimer() {
         if (timerQueue.isEmpty()) return
@@ -89,7 +99,28 @@ class Scheduler : Runnable {
         eventHandlers.values.forEach { it.remove(pendingFuture) }
     }
 
+    private fun loadContextTasks() {
+        rawContext.flatMap { instance ->
+            instance::class.memberFunctions.mapNotNull { method ->
+                if (method.hasAnnotation<OnPackage>()) {
+                    if (method.parameters.size != 2) throw IllegalArgumentException("Unexpected argument count in $method")
+                    val packetType = method.parameters[1].type.jvmErasure
+                    Handler(packetType.simpleName!!, method, instance)
+                } else if (method.hasAnnotation<Repeat>()) {
+                    if (method.parameters.size != 1) throw IllegalArgumentException("Unexpected argument count in $method")
+                    method.findAnnotation<Repeat>()?.let { Repeatable(it.ms, method, instance, it.noInitDelay) }
+                } else if (method.hasAnnotation<OnEvent>()) {
+                    if (method.parameters.size != 2) throw IllegalArgumentException("Unexpected argument count in $method")
+                    Handler("@"+method.findAnnotation<OnEvent>()!!.event, method, instance)
+                } else null
+            }
+        }.forEach(SchedulerEntity::schedule)
+    }
+
     override fun run() {
+        Context.apply(rawContext)
+        loadContextTasks()
+        engine.connect()
         val delay = 500
         var last = System.currentTimeMillis()
         var delta = 0L
@@ -97,9 +128,7 @@ class Scheduler : Runnable {
             try {
                 while (hasEvents || (delay - (System.currentTimeMillis() - last)).also { delta = it } > 0) {
                     performHandler()
-                    synchronized(lock) {
-                        if(!hasEvents && delta > 0) lock.wait(delta)
-                    }
+                    synchronized(lock) { if(!hasEvents && delta > 0) lock.wait(delta) }
                 }
                 performTimer()
                 last = System.currentTimeMillis()
@@ -128,7 +157,7 @@ class Scheduler : Runnable {
         }
     }
 
-    inner class Repeatable(private val ms: Long, private val method: KFunction<*>, private val instance: Any, private var noInitDelay: Boolean = false) : SchedulerEntity(this, method.isSuspend) {
+    private inner class Repeatable(private val ms: Long, private val method: KFunction<*>, private val instance: Any, private var noInitDelay: Boolean = false) : SchedulerEntity(this, method.isSuspend) {
         init { method.isAccessible = true }
         override fun postAction() = schedule()
         override fun schedule(){
@@ -139,7 +168,7 @@ class Scheduler : Runnable {
         }
     }
 
-    inner class Handler(private val packetType: String, private val method: KFunction<*>, private val instance: Any) : SchedulerEntity(this, method.isSuspend) {
+    private inner class Handler(private val packetType: String, private val method: KFunction<*>, private val instance: Any) : SchedulerEntity(this, method.isSuspend) {
         init { method.isAccessible = true }
         override fun schedule() {
             val pf = PendingFuture(onSuccess = {

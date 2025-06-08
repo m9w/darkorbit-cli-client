@@ -1,10 +1,8 @@
-package com.github.m9w.metaplugins.game
+package com.github.m9w.metaplugins
 
 import com.darkorbit.POIType
-import com.github.m9w.client.GameEngine
-import com.github.m9w.feature.annotations.Inject
-import com.github.m9w.metaplugins.EntitiesModule
-import com.github.m9w.metaplugins.MapModule
+import com.github.m9w.context
+import com.github.m9w.metaplugins.game.Point
 import com.github.m9w.metaplugins.game.entities.PoiImpl
 import java.util.ArrayList
 import java.util.HashSet
@@ -16,8 +14,8 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 
 class PathTracerModule() {
-    @Inject private lateinit var entities: EntitiesModule
-    @Inject private lateinit var mapModule: MapModule
+    private val entities: EntitiesModule by context
+    private val mapModule: MapModule by context
 
     private var points: MutableSet<Location> = HashSet()
     private var areas: List<PoiImpl> = ArrayList()
@@ -31,7 +29,7 @@ class PathTracerModule() {
     }
 
     fun traceTo(destination: Point): List<Point> {
-        val current = entities.hero?.position?.loc ?: return listOf(destination)
+        val current = entities.hero.position.loc
         if (changed) {
             areas = entities.values.filterIsInstance<PoiImpl>().filter { it.type == POIType.NO_ACCESS }
             points = areas.flatMap { it.getPoints().map { it.loc } }.filter { !isOutOfMap(it) && canMove(it) }.toMutableSet()

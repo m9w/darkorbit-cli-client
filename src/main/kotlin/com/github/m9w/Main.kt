@@ -1,8 +1,9 @@
 package com.github.m9w
 
+import com.github.m9w.client.GameEngine
 import com.github.m9w.client.auth.AuthenticationProvider
 import com.github.m9w.metaplugins.*
-import com.github.m9w.metaplugins.game.PathTracerModule
+import com.github.m9w.metaplugins.PathTracerModule
 import com.github.m9w.util.ProcessIdentifier
 import kotlin.system.exitProcess
 
@@ -22,7 +23,9 @@ fun main(args: Array<String>) {
         else -> throw RuntimeException()
     }
 
-    Bootstrap(auth,
+    Scheduler(
+        GameEngine(),
+        auth,
         LoginModule,
         BasicRepairModule,
         PingModule,
@@ -30,6 +33,6 @@ fun main(args: Array<String>) {
         EntitiesDebugUiModule(),
         MapModule(),
         PathTracerModule(),
-        MoveModule()
-    )
+        MoveModule(),
+    ).start()
 }

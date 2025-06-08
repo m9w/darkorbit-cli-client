@@ -1,21 +1,19 @@
 package com.github.m9w.metaplugins
 
 import com.darkorbit.*
+import com.github.m9w.context
 import com.github.m9w.client.GameEngine
-import com.github.m9w.feature.annotations.Inject
 import com.github.m9w.feature.annotations.OnPackage
 import com.github.m9w.metaplugins.game.entities.*
-import com.github.m9w.metaplugins.game.PathTracerModule
+import com.github.m9w.metaplugins.PathTracerModule
 
 @Suppress("unused")
 class EntitiesModule(private val entities: MutableMap<Long, EntityImpl> = HashMap()) : Map<Long, EntityImpl> by entities {
-    @Inject lateinit var gameEngine: GameEngine
-    @Inject lateinit var mapModule: MapModule
-    @Inject lateinit var moveModule: MoveModule
-    @Inject private lateinit var pathTracer: PathTracerModule
-
+    val gameEngine: GameEngine by context
+    val mapModule: MapModule by context
+    val moveModule: MoveModule by context
+    val pathTracer: PathTracerModule by context
     lateinit var hero: HeroShip; private set
-    val isReady: Boolean get() = this::hero.isInitialized
 
     @OnPackage
     private fun onBoxCreate(box: AddBoxCommand) { BoxImpl(this, box).let { entities[it.id] = it } }

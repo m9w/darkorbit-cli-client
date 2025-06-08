@@ -23,12 +23,11 @@ fun main(args: Array<String>) {
         else -> throw RuntimeException()
     }
 
-    Scheduler(
-        GameEngine(),
+    Scheduler(GameEngine(),
         auth,
-        LoginModule,
-        BasicRepairModule,
-        PingModule,
+        LoginModule(),
+        BasicRepairModule(),
+        PingModule(),
         EntitiesModule(),
         EntitiesDebugUiModule(),
         MapModule(),

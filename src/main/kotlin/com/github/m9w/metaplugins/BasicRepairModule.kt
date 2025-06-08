@@ -10,7 +10,7 @@ import com.github.m9w.feature.annotations.OnPackage
 import com.github.m9w.feature.waitMs
 import com.github.m9w.protocol.Factory
 
-object BasicRepairModule {
+class BasicRepairModule {
     private val gameEngine: GameEngine by context
     private val authentication: AuthenticationProvider by context
 

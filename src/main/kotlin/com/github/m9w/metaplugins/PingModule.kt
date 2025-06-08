@@ -8,7 +8,7 @@ import com.github.m9w.feature.annotations.Repeat
 import com.github.m9w.feature.timePrefix
 import com.github.m9w.feature.waitOnPackage
 
-object PingModule {
+class PingModule {
     private val gameEngine: GameEngine by context
     private var sentKeepAliveTime = System.currentTimeMillis()
     private val pingList = ArrayList<Long>()

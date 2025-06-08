@@ -12,7 +12,7 @@ import com.github.m9w.protocol.ProtocolParser
 import com.github.m9w.feature.waitOnPackage
 
 @Suppress("unused")
-object LoginModule {
+class LoginModule {
     private var unsuccessfulLoginCount = 0
     private val gameEngine: GameEngine by context
     private val authentication: AuthenticationProvider by context

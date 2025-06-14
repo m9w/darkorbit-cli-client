@@ -21,7 +21,7 @@ dependencies {
     implementation("com.google.code.gson", "gson","2.12.1")
     implementation("org.jetbrains.kotlin", "kotlin-reflect", "2.1.20")
     implementation("io.netty", "netty-buffer", "4.2.0.Final")
-    api("com.github.m9w", "darkorbit-protocol", "1.1.46")
+    api("com.github.m9w", "darkorbit-protocol", "1.1.47")
 }
 
 tasks.test {

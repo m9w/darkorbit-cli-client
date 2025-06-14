@@ -3,6 +3,7 @@ package com.github.m9w.metaplugins
 import com.darkorbit.POIType
 import com.github.m9w.context
 import com.github.m9w.metaplugins.game.Point
+import com.github.m9w.metaplugins.game.PositionImpl.Companion.distanceTo
 import com.github.m9w.metaplugins.game.entities.PoiImpl
 import java.util.ArrayList
 import java.util.HashSet
@@ -16,7 +17,6 @@ import kotlin.math.sqrt
 class PathTracerModule() {
     private val entities: EntitiesModule by context
     private val mapModule: MapModule by context
-
     private var points: MutableSet<Location> = HashSet()
     private var areas: List<PoiImpl> = ArrayList()
     private var changed = true
@@ -43,7 +43,7 @@ class PathTracerModule() {
             || !calculate(this, fixedCurrent, fixedDestination, list)
         ) list.add(fixedDestination)
         if (current.distanceTo(fixedCurrent) > 50) list.addFirst(fixedCurrent)
-        return list.map { Pair(it.x, it.y) }
+        return list.map { it.point }
     }
 
     private fun calculate(finder: PathTracerModule, from: Location, to: Location, path: LinkedList<Location>): Boolean {
@@ -57,18 +57,14 @@ class PathTracerModule() {
     }
 
     private fun fixToClosest(initial: Location): Location {
-        var result = Location(initial.x, initial.y)
-
+        var result = initial
         var area = areaTo(result)
         if (area != null) {
             result = area.toSide(result.point).loc
             area = areaTo(result)
         }
         if (isOutOfMap(result)) {
-            result = Location(
-                min(max(result.x, 0), mapModule.map.width),
-                min(max(result.y, 0), mapModule.map.height)
-            )
+            result = Location(result.x.coerceIn(0, mapModule.map.width), result.y.coerceIn(0, mapModule.map.height))
             if (canMove(result)) return result
         } else if (area == null) return result
 
@@ -103,7 +99,7 @@ class PathTracerModule() {
         for (other in point.lineOfSight) other.lineOfSight.remove(point)
     }
 
-    private fun closest(point: Location): Location? = points.minByOrNull { p -> p.distanceTo(point) }
+    private fun closest(point: Location): Location? = points.minByOrNull { it.distanceTo(point) }
 
     private fun isOutOfMap(point: Location): Boolean = mapModule.map.isOutOfMap(point.x, point.y)
 
@@ -153,7 +149,6 @@ class PathTracerModule() {
         var f: Int = 0
         var g: Int = 0
         var s: Int = 0
-
         var lineOfSight: MutableSet<Location> = HashSet()
 
         override fun hashCode(): Int = 32 * x + y
@@ -162,14 +157,8 @@ class PathTracerModule() {
 
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
-            if (javaClass != other?.javaClass) return false
-
-            other as Location
-
-            if (x != other.x) return false
-            if (y != other.y) return false
-
-            return true
+            if (other !is Location) return false
+            return !(x != other.x || y != other.y)
         }
 
         fun set(f: Int, g: Int, s: Int) {
@@ -180,16 +169,10 @@ class PathTracerModule() {
 
         fun fillLineOfSight(finder: PathTracerModule) {
             lineOfSight.clear()
-            for (point in finder.points)
-                if (point !== this && finder.hasLineOfSight(point, this))
-                    lineOfSight.add(point)
+            finder.points.filter { it !== this && finder.hasLineOfSight(it, this) }.forEach { lineOfSight.add(it) }
         }
 
-        fun distanceTo(other: Location): Double {
-            val ox = other.x - x
-            val oy = other.y - y
-            return sqrt((ox * ox + oy * oy).toDouble())
-        }
+        fun distanceTo(other: Location): Double = this.point.distanceTo(other.point)
     }
 
     companion object {

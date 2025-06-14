@@ -40,90 +40,61 @@ class EntitiesDebugUiModule : JPanel(), Runnable {
             g.drawLine(0, y, width, y)
         }
 
-        if (pointerEntity != null)
-           pointerEntity.toString().split('\n').filter { it.isNotEmpty() }
-               .forEachIndexed { i, s -> g.drawString(s, 5, 30 + i * 15) }
-
         try { copy.addAll(entities.values) } catch (_: ConcurrentModificationException) { return }
-        copy.filter { it is PoiImpl }.map { it as PoiImpl }.forEach { g.drawPoi(it) }
-        copy.filter { it is JumpgateImpl }.map { it as JumpgateImpl }.forEach { g.drawGate(it) }
-        copy.filter { it is AssetImpl }.map { it as AssetImpl }.forEach { g.drawAsset(it) }
-        copy.filter { it is ShipImpl }.map { it as ShipImpl }.forEach { g.drawShip(it) }
-        copy.filter { it is BoxImpl }.map { it as BoxImpl }.forEach { g.drawBox(it) }
+        copy.filterIsInstance<PoiImpl>().forEach { g.drawPoi(it) }
+        copy.filterIsInstance<JumpgateImpl>().forEach { g.drawGate(it) }
+        copy.filterIsInstance<AssetImpl>().forEach { g.drawAsset(it) }
+        copy.filterIsInstance<ShipImpl>().forEach { g.drawShip(it) }
+        copy.filterIsInstance<BoxImpl>().forEach { g.drawBox(it) }
         copy.clear()
         g.color = Color.cyan
-        if (entities.hero.isMoving && moveModule.nextPoints.size > 1) moveModule.nextPoints.drawLine(g)
+        if (entities.hero.isMoving && moveModule.nextPoints.size > 1) g.drawLine(moveModule.nextPoints)
         g.color = Color.yellow
-        if (path.size > 1) (mutableListOf<Pair<Int, Int>>().apply { add(entities.hero.position) } + path).drawLine(g)
+        if (path.size > 1) g.drawLine(listOf(entities.hero.position) + path)
+        g.color = Color.gray
+        pointerEntity?.let { g.drawText(it.toString(), 5, 30) }
+        entities.hero.target?.let { g.drawText(it.toString(), width - 5, 15, true) }
     }
 
-    private fun List<Pair<Int,Int>>.drawLine(g: Graphics) = zipWithNext { a, b -> a.windowPosition to b.windowPosition }.forEach { (a, b) -> g.drawLine(a.x, a.y, b.x, b.y) }
+    private fun Graphics.drawLine(line: List<Pair<Int,Int>>) = line.zipWithNext { a, b -> a.windowPosition to b.windowPosition }.forEach { (a, b) -> drawLine(a.x, a.y, b.x, b.y) }
 
-    fun Graphics.drawShip(ship: ShipImpl) {
-        ship.windowPosition.let { (x, y) ->
-            if (ship.isMoving) {
-                color = Color.cyan
-                val (x2, y2) = ship.direction.windowPosition
-                drawLine(x, y, x2, y2)
-            }
-            color = if (ship is HeroShip) Color.white else if(ship.isSafe) Color.blue else Color.red
-            if (ship is HeroShip) fillRect(x-2, y-2, 5, 5)
-            else drawRect(x-2, y-2, 4, 4)
+    private fun Graphics.drawText(text: String, x: Int, y: Int, alignRight: Boolean = false) = text.split('\n').filter { it.isNotEmpty() }.forEachIndexed { i, s -> drawString(s, if (alignRight) x-fontMetrics.stringWidth(s) else x, y + i * 15) }
+
+    private fun Graphics.rect(pos: Pair<Int, Int>, size: Int, fill: Boolean = false) = if(fill) fillRect(pos.x-size/2, pos.y-size/2, size, size) else drawRect(pos.x-size/2, pos.y-size/2, size, size)
+
+    private fun Graphics.oval(pos: Pair<Int, Int>, size: Int, fill: Boolean = false) = if(fill) fillOval(pos.x-size/2, pos.y-size/2, size, size) else drawOval(pos.x-size/2, pos.y-size/2, size, size)
+
+    private fun Graphics.line(pos: Pair<Int, Int>, pos1: Pair<Int, Int>) = drawLine(pos.x, pos.y, pos1.x, pos1.y)
+
+    private fun <T> Graphics.color(newColor: Color, block: ()->T): T = color.let { current -> color = newColor; block.invoke().also {color = current } }
+
+    private fun Graphics.drawShip(ship: ShipImpl) = ship.windowPosition.let { pos ->
+        if (ship.isMoving) color(Color.cyan) { line(pos, ship.direction.windowPosition) }
+        color(if (ship is HeroShip) Color.white else if (ship.isSafe) Color.blue else Color.red) {
+            rect(pos, if (ship is HeroShip) 5 else 4, ship is HeroShip)
         }
     }
 
-    fun Graphics.drawGate(gate: JumpgateImpl) {
-        color = Color.gray
-        val (x, y) = gate.windowPosition
-        drawOval(x-5, y-5, 11, 11)
-        if (gate.initiated) {
-            color = Color.cyan
-            fillOval(x-4, y-4, 9, 9)
-        } else if (gate.canInvoke()) {
-            color = Color.yellow
-            drawOval(x-4, y-4, 9, 9)
-        }
+    private fun Graphics.drawGate(gate: JumpgateImpl) = color(Color.gray) { gate.windowPosition.also { oval(it, 11) } }.let {pos -> color(if(gate.initiated) Color.cyan else Color.yellow) { if (gate.canInvoke()) oval(pos, 9, gate.initiated) } }
+
+    private fun Graphics.drawAsset(asset: AssetImpl) = color(if (asset.isSafe) Color.green else Color.red) {
+        val pos = asset.windowPosition.also { oval(it, 7, true) }
+        if (asset.isMoving) color(Color.cyan) { line(pos, asset.direction.windowPosition) }
+        if (asset.canInvoke()) color(Color.yellow) { oval(pos, 9) }
     }
 
-    fun Graphics.drawAsset(asset: AssetImpl) {
-        color = if (asset.isSafe) Color.green else Color.red
-        val (x, y) = asset.windowPosition
-        fillOval(x-3, y-3, 7, 7)
-        if (asset.isMoving) {
-            color = Color.cyan
-            val (x2, y2) = asset.direction.windowPosition
-            drawLine(x, y, x2, y2)
-        }
-        if (asset.canInvoke()) {
-            color = Color.yellow
-            drawOval(x-4, y-4, 9, 9)
-        }
+    private fun Graphics.drawBox(asset: BoxImpl) = when (asset.type) {
+        BoxImpl.Type.MINE -> drawMine(asset)
+        BoxImpl.Type.BOX, BoxImpl.Type.ORE -> { color(Color.yellow) { rect(asset.windowPosition, 4, asset.canInvoke()) } }
+        else -> Unit
     }
 
-    fun Graphics.drawBox(asset: BoxImpl) {
-        if (asset.type == BoxImpl.Type.MINE) drawMine(asset)
-        else if (asset.type == BoxImpl.Type.BOX || asset.type == BoxImpl.Type.ORE) {
-            color = Color.yellow
-            val (x, y) = asset.windowPosition
-            if (asset.canInvoke()) fillRect(x-2, y-2, 4, 4)
-            else drawRect(x-2, y-2, 4, 4)
-        }
-    }
+    private fun Graphics.drawMine(asset: BoxImpl) = color(Color.pink) { rect(asset.windowPosition, 4, true) }
 
-    fun Graphics.drawMine(asset: BoxImpl) {
-        color = Color.pink
-        val (x, y) = asset.windowPosition
-        fillRect(x-2, y-2, 4, 4)
-    }
-
-    fun Graphics.drawPoi(poi: PoiImpl) {
-        color = if (poi.type == POIType.NO_ACCESS) Color.gray else Color.magenta
+    private fun Graphics.drawPoi(poi: PoiImpl) = color(if (poi.type == POIType.NO_ACCESS) Color.gray else Color.magenta) {
         when (poi.shapeType) {
-            ShapeType.CIRCLE -> poi.windowPosition.let { (x, y) ->
-                (poi.radius.xWindow to poi.radius.yWindow).let { (xr, yr) -> drawOval(x - xr, y - yr, 2*xr, 2*yr) }
-            }
-            ShapeType.RECTANGLE,
-            ShapeType.POLYGON -> poi.cords.map { it.windowPosition }.let { cords ->
+            ShapeType.CIRCLE -> poi.windowPosition.let { (x, y) -> (poi.radius.xWindow to poi.radius.yWindow).let { (xr, yr) -> drawOval(x - xr, y - yr, 2 * xr, 2 * yr) } }
+            ShapeType.RECTANGLE, ShapeType.POLYGON -> poi.cords.map { it.windowPosition }.let { cords ->
                 drawPolygon(cords.map { it.first }.toIntArray(), cords.map { it.second }.toIntArray(), cords.size)
             }
         }
@@ -134,8 +105,11 @@ class EntitiesDebugUiModule : JPanel(), Runnable {
     private val Pair<Int, Int>.windowPosition: Pair<Int, Int> get() = first.xWindow to second.yWindow
     private val PositionImpl.windowPosition: Pair<Int, Int> get() = position.windowPosition
 
+    private var isInit = false
     @OnPackage
     private fun init(init: ShipInitializationCommand) {
+        if (isInit) return
+        isInit = true
         val scale = 4
         preferredSize = Dimension(210*scale, 131*scale)
         SwingUtilities.invokeLater { JFrame("Entities canvas").apply {
@@ -146,9 +120,9 @@ class EntitiesDebugUiModule : JPanel(), Runnable {
         addMouseMotionListener(object : MouseAdapter() {
             override fun mouseMoved(e: MouseEvent) {
                 val pointer = e.point.mapPosition
-                pointerEntity = entities.values.filter { it !is PoiImpl }.minByOrNull { it.distanceTo(pointer) }
+                pointerEntity = entities.values.filter { it !is PoiImpl && it !is HeroShip }.minByOrNull { it.distanceTo(pointer) }
                     ?.takeIf { it.distanceTo(pointer) < 125 }
-                    ?: entities.values.firstOrNull { it is PoiImpl && it.containsPoint(pointer.position)}
+                    ?: entities.values.firstOrNull { it is PoiImpl && it.containsPoint(pointer.position)} ?: entities.hero
                 path = pathTracer.traceTo(pointer.position)
             }
         })

@@ -2,7 +2,6 @@ package com.github.m9w.protocol
 
 import com.darkorbit.ProtocolPacket
 import java.lang.reflect.Proxy
-import kotlin.collections.emptyList
 import kotlin.reflect.KClass
 import kotlin.reflect.cast
 
@@ -18,11 +17,7 @@ object Factory {
                     map["is" + methodName.removePrefix("get")] ?: map[methodName.removePrefix("get").replaceFirstChar { it.lowercaseChar() }] ?: default(method.returnType)
                 }
                 methodName.startsWith("set") && args?.size == 1 -> {
-                    val type= method.parameterTypes.first()
-                    if (type.isPrimitive && type.name == "boolean")
-                        map["is" + methodName.removePrefix("set")] = args[0]
-                    else
-                        map[methodName.removePrefix("set").replaceFirstChar { it.lowercaseChar() }] = args[0]
+                    map[methodName.removePrefix("set").replaceFirstChar { it.lowercaseChar() }] = args[0]
                     null
                 }
                 methodName == "cls" -> type.simpleName

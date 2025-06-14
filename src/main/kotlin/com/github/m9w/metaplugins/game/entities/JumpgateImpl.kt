@@ -23,10 +23,10 @@ class JumpgateImpl(root: EntitiesModule, jumpgate: JumpgateCreateCommand) : Enti
     }
 
     override fun invoke(): Boolean {
-        return if (canInvoke()) {
-            root.gameEngine.jumpRequest()
-            true
-        } else false
+        val canInvoke = canInvoke()
+        if (canInvoke) root.gameEngine.jumpRequest()
+        else root.hero.moveTo(this.position) { root.gameEngine.jumpRequest() }
+        return canInvoke
     }
 
     override fun toString() = super.toString() +

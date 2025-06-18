@@ -2,6 +2,7 @@ group = "com.github.m9w"
 
 plugins {
     kotlin("jvm") version "2.1.20"
+    kotlin("plugin.serialization") version "2.2.0-RC3"
     id("org.gradle.application")
 }
 version = "1.0.0-Beta"
@@ -20,8 +21,9 @@ dependencies {
     testImplementation(kotlin("test"))
     implementation("com.google.code.gson", "gson","2.12.1")
     implementation("org.jetbrains.kotlin", "kotlin-reflect", "2.1.20")
+    implementation("org.jetbrains.kotlinx", "kotlinx-serialization-core", "1.8.1")
     implementation("io.netty", "netty-buffer", "4.2.0.Final")
-    api("com.github.m9w", "darkorbit-protocol", "1.1.47")
+    api("com.github.m9w", "darkorbit-protocol", "1.1.49")
 }
 
 tasks.test {

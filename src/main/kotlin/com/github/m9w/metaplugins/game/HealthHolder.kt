@@ -3,15 +3,15 @@ package com.github.m9w.metaplugins.game
 import com.darkorbit.*
 
 class HealthHolder {
-    var health: Int = 0; private set
-    var healthMax: Int = 0; private set
+    var health: Long = 0; private set
+    var healthMax: Long = 0; private set
     var shield: Int = 0; private set
     var shieldMax: Int = 0; private set
     var nano: Int = 0; private set
     var nanoMax: Int = 0; private set
 
     override fun toString(): String =
-        if (health + healthMax + shield + shieldMax + nano + nanoMax == 0) ""
+        if (health + healthMax + shield + shieldMax + nano + nanoMax == 0L) ""
         else "HP(${(health+nano)/1000}k/${healthMax/1000}k) SH(${shield/1000}k/${shieldMax/1000}k)\n"
 
     fun update(packet: ProtocolPacket) {
@@ -63,7 +63,7 @@ class HealthHolder {
     }
 
     fun update(heal: HealCommand) {
-        health = heal.currentHitpoints
+        health = heal.currentHitpoints.toLong()
     }
 
     fun update(hitPoints: HitpointInfoCommand) {
@@ -80,8 +80,8 @@ class HealthHolder {
     }
 
     fun update(petHitPoints: PetHitpointsUpdateCommand) {
-        health = petHitPoints.hitpointsNow
-        healthMax = petHitPoints.hitpointsMax
+        health = petHitPoints.hitpointsNow.toLong()
+        healthMax = petHitPoints.hitpointsMax.toLong()
     }
 
     fun update(petShield: PetShieldUpdateCommand) {
@@ -90,8 +90,8 @@ class HealthHolder {
     }
 
     fun update(petStatus: PetStatusCommand) {
-        health = petStatus.petHitPoints
-        healthMax = petStatus.petHitPointsMax
+        health = petStatus.petHitPoints.toLong()
+        healthMax = petStatus.petHitPointsMax.toLong()
         shield = petStatus.petShieldEnergyNow
         shieldMax = petStatus.petShieldEnergyMax
     }
@@ -114,15 +114,15 @@ class HealthHolder {
     }
 
     fun update(station: StationModuleModule) {
-        health = station.currentHitpoints
-        healthMax = station.maxHitpoints
+        health = station.currentHitpoints.toLong()
+        healthMax = station.maxHitpoints.toLong()
         shield = station.currentShield
         shieldMax = station.maxShield
     }
 
     fun update(asteroid: ModuleStatusUpdateCommand) {
-        health = asteroid.hitpoints
-        healthMax = asteroid.hitpointsMax
+        health = asteroid.hitpoints.toLong()
+        healthMax = asteroid.hitpointsMax.toLong()
         shield = asteroid.shield
         shieldMax = asteroid.shieldMax
     }
@@ -137,7 +137,7 @@ class HealthHolder {
     }
 
     fun update(hitPoints: AttributeHitpointUpdateCommand) {
-        health = hitPoints.hitpointsNow
-        healthMax = hitPoints.hitpointsMax
+        health = hitPoints.hitpointsNow.toLong()
+        healthMax = hitPoints.hitpointsMax.toLong()
     }
 }

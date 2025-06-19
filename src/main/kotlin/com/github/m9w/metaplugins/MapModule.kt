@@ -12,6 +12,7 @@ import com.github.m9w.context
 import com.github.m9w.metaplugins.game.Point
 import com.github.m9w.metaplugins.game.PositionImpl.Companion.x
 import com.github.m9w.metaplugins.game.PositionImpl.Companion.y
+import com.github.m9w.metaplugins.game.entities.EntityImpl
 
 class MapModule {
     var map: GameMap = UNKNOWN; private set
@@ -49,6 +50,8 @@ class MapModule {
     fun nextPortal(to: GameMap): JumpgateImpl? {
         TODO()
     }
+
+    fun getDisplayPoint(entity: EntityImpl): Point = frameRect.let { (start, end) -> entity.position.let { (x, y) -> ((start.x - x) / end.x.toDouble() * 1920).toInt().coerceIn(0, 1920) to (1080 - (start.y - y) / end.y.toDouble() * 1080).toInt().coerceIn(0, 1080) } }
 
     companion object {
         val UNKNOWN: GameMap = GameMap(0, "Unknown", 21000, 13100)

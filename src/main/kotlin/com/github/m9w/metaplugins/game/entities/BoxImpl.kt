@@ -21,7 +21,7 @@ class BoxImpl(root: EntitiesModule, entity: AddMapEntityCommand): EntityImpl(roo
 
     override fun canInvoke(): Boolean = collectable && root.hero.distanceTo(this) < 10.0
 
-    override fun invoke(): Boolean {
+    override fun invoke(attack: Boolean): Boolean {
         val result = canInvoke()
         if (result) root.hero.let { root.gameEngine.collectRequest(it, this) }
         else root.hero.moveTo(this.position) {

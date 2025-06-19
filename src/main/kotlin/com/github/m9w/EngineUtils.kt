@@ -6,6 +6,7 @@ import com.github.m9w.metaplugins.game.Point
 import com.github.m9w.metaplugins.game.PositionImpl.Companion.x
 import com.github.m9w.metaplugins.game.PositionImpl.Companion.y
 import com.github.m9w.metaplugins.game.entities.BoxImpl
+import com.github.m9w.metaplugins.game.entities.EntityImpl
 import com.github.m9w.metaplugins.game.entities.HeroShip
 
 
@@ -43,6 +44,34 @@ fun GameEngine.collectRequest(hero: HeroShip, box: BoxImpl) {
         boxX = bx; boxY = by
         itemHash = box.hash
     }
+}
+
+fun GameEngine.selectRequest(hero: HeroShip, target: EntityImpl) {
+    if (state.ordinal < 3) return
+    val (hx, hy) = hero.position
+    val (tx, ty) = target.position
+    val (dx, dy) = target.root.mapModule.getDisplayPoint(target)
+    send<ShipSelectRequest> {
+        posX = hx; posY = hy
+        targetX = tx; targetY = ty - (tx + ty + hx + hy) % 8
+        targetId = target.id.toInt()
+        clickX = dx; clickY = dy
+        radius = 45
+    }
+}
+
+fun GameEngine.attackRequest(target: EntityImpl) {
+    if (state.ordinal < 3) return
+    val (tx, ty) = target.position
+    send<AttackLaserRequest> {
+        targetX = tx; targetY = ty
+        targetId = target.id.toInt()
+    }
+}
+
+fun GameEngine.abortAttackRequest() {
+    if (state.ordinal < 3) return
+    send<AttackAbortLaserRequest> {}
 }
 
 fun GameEngine.instantRepairActivate(id: Int) {

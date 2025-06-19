@@ -27,7 +27,7 @@ class AssetImpl(root: EntitiesModule, asset: AssetCreateCommand) : EntityImpl(ro
 
     override fun canInvoke() = canInvoke
 
-    override fun invoke(): Boolean {
+    override fun invoke(attack: Boolean): Boolean {
         if (!canInvoke()) return false
         when(type) {
             AssetType.INSTANT_REPAIR_HOME,

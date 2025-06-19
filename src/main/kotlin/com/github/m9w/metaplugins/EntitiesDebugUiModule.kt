@@ -39,6 +39,7 @@ class EntitiesDebugUiModule : JPanel(), Runnable {
             g.drawLine(x, 0, x, height)
             g.drawLine(0, y, width, y)
         }
+        map.frameRect.let { it.first.windowPosition to it.second.windowPosition }.let { g.drawRect(it.first.x, it.first.y, it.second.x - it.first.x, it.second.y - it.first.y) }
 
         try { copy.addAll(entities.values) } catch (_: ConcurrentModificationException) { return }
         copy.filterIsInstance<PoiImpl>().forEach { g.drawPoi(it) }

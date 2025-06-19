@@ -8,6 +8,10 @@ import com.github.m9w.metaplugins.game.GameMap
 import com.github.m9w.metaplugins.game.entities.JumpgateImpl
 import com.github.m9w.util.Http
 import com.github.m9w.util.Http.Companion.content
+import com.github.m9w.context
+import com.github.m9w.metaplugins.game.Point
+import com.github.m9w.metaplugins.game.PositionImpl.Companion.x
+import com.github.m9w.metaplugins.game.PositionImpl.Companion.y
 
 class MapModule {
     var map: GameMap = UNKNOWN; private set
@@ -16,20 +20,22 @@ class MapModule {
     var inRadiationZone: Boolean = false; private set
     var inStation: Boolean = false; private set
     var nearJumpGate: Boolean = false; private set
+    private val entitiesModule: EntitiesModule by context
+    val frameRect: Pair<Point, Point> get() = entitiesModule.hero.position.run { (x-1150 to y-571) to (x+1149 to y+570) }
 
     @OnPackage
-    fun onShipInit(init: ShipInitializationCommand) {
+    private fun onShipInit(init: ShipInitializationCommand) {
         map = findMap(init.mapId)
         nextMap = UNKNOWN
     }
 
     @OnPackage
-    fun onJump(jump: JumpInitiatedCommand) {
+    private fun onJump(jump: JumpInitiatedCommand) {
         nextMap = findMap(jump.mapId)
     }
 
     @OnPackage
-    fun onBeacon(beacon: BeaconCommand) {
+    private fun onBeacon(beacon: BeaconCommand) {
         inPeaceArea = beacon.inPeaceArea
         inRadiationZone = beacon.inRadiationZone
         inStation = beacon.inStation

@@ -14,7 +14,6 @@ import java.util.concurrent.TimeUnit
 
 class NetworkLayer(address: InetSocketAddress) : Closeable {
     private val client = AsynchronousSocketChannel.open()
-    private val pool = PooledByteBufAllocator(true)
     private var isDisconnected = false
     var onConnectHandler: () -> Unit = {}
     var onDisconnect: () -> Unit = {}
@@ -63,7 +62,6 @@ class NetworkLayer(address: InetSocketAddress) : Closeable {
             }
 
             override fun failed(exc: Throwable, buf: ByteBuf) {
-                exc.printStackTrace()
                 buf.release()
                 close()
             }
@@ -94,7 +92,6 @@ class NetworkLayer(address: InetSocketAddress) : Closeable {
             }
 
             override fun failed(exc: Throwable, buf: ByteBuf) {
-                exc.printStackTrace()
                 buf.release()
                 close()
             }
@@ -107,5 +104,11 @@ class NetworkLayer(address: InetSocketAddress) : Closeable {
         try { client.close() } catch (_: Exception) {}
         val once = synchronized(this) { if (isDisconnected) false else { isDisconnected = true; true } }
         if (once) onDisconnect()
+    }
+
+    companion object {
+        private val pool = PooledByteBufAllocator(true)
+        private val metric = pool.metric()
+        val memoryUsage: Long get() = metric.usedDirectMemory()
     }
 }

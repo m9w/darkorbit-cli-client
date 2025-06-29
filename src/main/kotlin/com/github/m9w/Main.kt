@@ -20,6 +20,7 @@ fun main(args: Array<String>) {
     val auth = when (args[0]) {
         "login" -> AuthenticationProvider.byLoginPassword(args[1], args[2])
         "sid" -> AuthenticationProvider.byServerSid(args[1], args[2])
+        "external" -> AuthenticationProvider.byLoginPasswordExternal(args[1], args[2], args[3])
         else -> throw RuntimeException()
     }
 

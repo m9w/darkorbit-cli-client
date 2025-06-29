@@ -12,10 +12,12 @@ import com.github.m9w.protocol.ProtocolParser
 import com.github.m9w.feature.waitOnPackage
 
 @Suppress("unused")
-class LoginModule {
+class LoginModule(val type: Type = Type.UNITY) {
     private var unsuccessfulLoginCount = 0
     private val gameEngine: GameEngine by context
     private val authentication: AuthenticationProvider by context
+
+    enum class Type { UNITY, FLASH }
 
     @OnEvent(SystemEvents.ON_CONNECT)
     suspend fun onConnect(body: String) {

@@ -1,31 +1,44 @@
 package com.github.m9w.protocol
 
 import com.darkorbit.ProtocolPacket
+import java.lang.reflect.Method
 import java.lang.reflect.Proxy
 import kotlin.reflect.KClass
+import kotlin.reflect.KMutableProperty
 import kotlin.reflect.cast
+import kotlin.reflect.full.memberProperties
+import kotlin.reflect.jvm.javaGetter
+import kotlin.reflect.jvm.javaSetter
 
 object Factory {
     private val classLoader = Factory::class.java.classLoader
+    private val packetTypes: MutableSet<KClass<*>> = HashSet()
+    private val getters: MutableMap<Method, String> = HashMap()
+    private val setters: MutableMap<Method, String> = HashMap()
 
-    fun <T : ProtocolPacket> build(type: KClass<T>, data: Map<String, Any?> = HashMap()): T {
+    fun <T : ProtocolPacket> build(packetType: KClass<T>, data: Map<String, Any?> = HashMap()): T {
+        if (!packetTypes.contains(packetType)) storeMethodMapping(packetType)
         val map = HashMap<String, Any?>(data)
-        return type.cast(Proxy.newProxyInstance(classLoader, arrayOf(type.java, Metadata::class.java)) { proxy, method, args ->
-            val methodName = method.name
-            when {
-                methodName.startsWith("get") && args.isNullOrEmpty() -> {
-                    map["is" + methodName.removePrefix("get")] ?: map[methodName.removePrefix("get").replaceFirstChar { it.lowercaseChar() }] ?: default(method.returnType)
-                }
-                methodName.startsWith("set") && args?.size == 1 -> {
-                    map[methodName.removePrefix("set").replaceFirstChar { it.lowercaseChar() }] = args[0]
-                    null
-                }
-                methodName == "cls" -> type.simpleName
-                methodName == "map" -> map
-                methodName == "toString" -> type.simpleName + map.toString()
+        return packetType.cast(Proxy.newProxyInstance(classLoader, arrayOf(packetType.java, Metadata::class.java)) { proxy, method, args ->
+            getters[method]?.let { return@newProxyInstance map[it] ?: default(method.returnType) }
+            setters[method]?.let { map[it] = args[0]; return@newProxyInstance null; }
+            when (method.name) {
+                "cls" -> packetType.simpleName
+                "map" -> map
+                "toString" -> packetType.simpleName + map.toString()
                 else -> null
             }
         })
+    }
+
+    inline fun <reified T : ProtocolPacket> build(block: T.()->Unit) = build(T::class).apply { block() }
+
+    private fun storeMethodMapping(packetType: KClass<*>) {
+        packetType.memberProperties.forEach {
+            getters.put(it.javaGetter!!, it.name)
+            if (it is KMutableProperty<*>) setters.put(it.javaSetter!!, it.name)
+        }
+        packetTypes.add(packetType)
     }
 
     private fun default(returnType: Class<*>): Any? {

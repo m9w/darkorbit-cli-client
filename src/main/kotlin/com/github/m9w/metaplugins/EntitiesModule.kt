@@ -5,6 +5,7 @@ import com.github.m9w.context
 import com.github.m9w.client.GameEngine
 import com.github.m9w.feature.annotations.OnPackage
 import com.github.m9w.metaplugins.game.entities.*
+import com.github.m9w.protocol.Factory
 
 @Suppress("unused")
 class EntitiesModule(private val entities: MutableMap<Long, EntityImpl> = HashMap()) : Map<Long, EntityImpl> by entities {
@@ -148,6 +149,20 @@ class EntitiesModule(private val entities: MutableMap<Long, EntityImpl> = HashMa
     private fun onIdleMode(idleMode: PetIdleModeCommand) { get(idleMode.petId)?.update(idleMode) }
     @OnPackage
     private fun onLegacyEvent(event: LegacyModule) { if (this::hero.isInitialized) hero.update(event) }
+    @OnPackage
+    private fun onCaptchaTriggerEvent(event: CaptchaTriggerCommand) {
+        entities["Captcha zone".hashCode().toLong() - Int.MAX_VALUE.toLong()] = PoiImpl(this, Factory.build<MapAddPOICommand> {
+            poiId = "Captcha zone"
+            shape = ShapeType.CIRCLE
+            inverted = true
+            design = design.apply { designValue = POIDesign.NONE }
+            poiType = poiType.apply { typeValue = POIType.FACTION_NO_ACCESS }
+            poiTypeSpecification = "${event.type} [${event.blackBox}, ${event.redBox}] ${event.captchaTimer}"
+            shapeCoordinates = mutableListOf(event.posX, event.posY, event.Radius)
+        })
+    }
+    @OnPackage
+    private fun onCaptchaResolvedEvent(event: CaptchaResolvedCommand) = entities.remove("Captcha zone".hashCode().toLong() - Int.MAX_VALUE.toLong())
 
     operator fun get(id: Int) = entities[id.toLong()]
     fun <T : EntityImpl> getLong(id: Int): T? = entities[id.toLong()].let { it as? T }

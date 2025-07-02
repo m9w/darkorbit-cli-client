@@ -4,7 +4,7 @@ import com.darkorbit.*
 import com.github.m9w.jumpRequest
 import com.github.m9w.metaplugins.EntitiesModule
 
-class JumpgateImpl(root: EntitiesModule, jumpgate: JumpgateCreateCommand) : EntityImpl(root, jumpgate.gateId.toLong(), "Jumpgate", jumpgate.x, jumpgate.y) {
+class JumpgateImpl(root: EntitiesModule, jumpgate: JumpgateCreateCommand) : EntityImpl(root, jumpgate.gateId.toLong(), "Jumpgate", jumpgate.x, jumpgate.y, jumpgate.isVisibleOnMinimap) {
     override val designId: Int = jumpgate.designId
     override val faction = Faction.entries[jumpgate.factionId]
     var initiated: Boolean = false; private set

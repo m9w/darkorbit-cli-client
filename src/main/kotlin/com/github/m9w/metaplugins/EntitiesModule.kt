@@ -5,7 +5,6 @@ import com.github.m9w.context
 import com.github.m9w.client.GameEngine
 import com.github.m9w.feature.annotations.OnPackage
 import com.github.m9w.metaplugins.game.entities.*
-import com.github.m9w.metaplugins.PathTracerModule
 
 @Suppress("unused")
 class EntitiesModule(private val entities: MutableMap<Long, EntityImpl> = HashMap()) : Map<Long, EntityImpl> by entities {
@@ -126,13 +125,15 @@ class EntitiesModule(private val entities: MutableMap<Long, EntityImpl> = HashMa
     @OnPackage
     private fun onHeatUpdate(heat: PetHeatUpdateCommand) { hero.pet?.update(heat) }
     @OnPackage
-    private fun onPetActivation(activation: PetHeroActivationCommand) { hero.pet?.update(activation) }
+    private fun onPetActivation(activation: PetHeroActivationCommand) { this[activation.petId] = HeroPet(this, activation).also { hero.pet = it } }
     @OnPackage
-    private fun onPetDeactivation(deactivation: PetDeactivationCommand) { hero.pet?.update(deactivation) }
+    private fun onPetDeactivation(deactivation: PetDeactivationCommand) { if (this::hero.isInitialized && hero.pet?.id?.toInt() == deactivation.petId) hero.pet = null; remove(deactivation.petId) }
     @OnPackage
-    private fun onDestroyed(destroyed: PetIsDestroyedCommand) { hero.pet?.update(destroyed) }
+    private fun onPetDestroyed(destroyed: PetIsDestroyedCommand) { hero.pet?.update(destroyed) }
     @OnPackage
     private fun onGearAdd(gearAdd: PetGearAddCommand) { hero.pet?.update(gearAdd) }
+    @OnPackage
+    private fun onLocatorInit(locator: PetLocatorGearInitializationCommand) { hero.pet?.update(locator) }
     @OnPackage
     private fun onGearRemove(gearRemove: PetGearRemoveCommand) { hero.pet?.update(gearRemove) }
     @OnPackage
@@ -143,6 +144,10 @@ class EntitiesModule(private val entities: MutableMap<Long, EntityImpl> = HashMa
     private fun onRepairComplete(repairComplete: PetRepairCompleteCommand) { hero.pet?.update(repairComplete) }
     @OnPackage
     private fun onBlockUI(blockUI: PetBlockUICommand) { hero.pet?.update(blockUI) }
+    @OnPackage
+    private fun onIdleMode(idleMode: PetIdleModeCommand) { get(idleMode.petId)?.update(idleMode) }
+    @OnPackage
+    private fun onLegacyEvent(event: LegacyModule) { if (this::hero.isInitialized) hero.update(event) }
 
     operator fun get(id: Int) = entities[id.toLong()]
     fun <T : EntityImpl> getLong(id: Int): T? = entities[id.toLong()].let { it as? T }

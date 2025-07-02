@@ -2,13 +2,11 @@ package com.github.m9w.metaplugins
 
 import com.darkorbit.KillScreenPostCommand
 import com.darkorbit.KillScreenRepairRequest
-import com.darkorbit.LoginRequest
 import com.github.m9w.client.GameEngine
 import com.github.m9w.client.auth.AuthenticationProvider
 import com.github.m9w.context
 import com.github.m9w.feature.annotations.OnPackage
 import com.github.m9w.feature.waitMs
-import com.github.m9w.protocol.Factory
 
 class BasicRepairModule {
     private val gameEngine: GameEngine by context
@@ -20,7 +18,7 @@ class BasicRepairModule {
         if(gameEngine.state != GameEngine.State.DESTROYED) return
         gameEngine.send<KillScreenRepairRequest> {
             selection = screen.options[0].repairType
-            requestModule = Factory.build(LoginRequest::class).apply {
+            requestModule = requestModule.apply {
                 userID = authentication.userID
                 sessionID = authentication.sessionID
                 instanceId = authentication.instanceId

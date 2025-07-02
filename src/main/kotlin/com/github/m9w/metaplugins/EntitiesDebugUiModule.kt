@@ -3,6 +3,7 @@ package com.github.m9w.metaplugins
 import com.darkorbit.POIType
 import com.darkorbit.ShapeType
 import com.darkorbit.ShipInitializationCommand
+import com.github.m9w.client.network.NetworkLayer
 import com.github.m9w.context
 import com.github.m9w.feature.annotations.OnPackage
 import com.github.m9w.metaplugins.game.PositionImpl
@@ -15,9 +16,7 @@ import java.awt.Graphics
 import java.awt.Point
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import javax.swing.JFrame
-import javax.swing.JPanel
-import javax.swing.SwingUtilities
+import javax.swing.*
 
 class EntitiesDebugUiModule : JPanel(), Runnable {
     private val pathTracer: PathTracerModule by context
@@ -71,8 +70,9 @@ class EntitiesDebugUiModule : JPanel(), Runnable {
 
     private fun Graphics.drawShip(ship: ShipImpl) = ship.windowPosition.let { pos ->
         if (ship.isMoving) color(Color.cyan) { line(pos, ship.direction.windowPosition) }
-        color(if (ship is HeroShip) Color.white else if (ship.isSafe) Color.blue else Color.red) {
-            rect(pos, if (ship is HeroShip) 5 else 4, ship is HeroShip)
+        if (ship is HeroShip) return@let
+        color(if (ship is HeroPet) Color.white else if (ship.isSafe) Color.blue else Color.red) {
+            rect(pos, if (ship is HeroPet) 2 else 4, false)
         }
     }
 
@@ -135,6 +135,32 @@ class EntitiesDebugUiModule : JPanel(), Runnable {
             }
         })
         Thread(this, "UI").apply { isDaemon = true }.start()
+        showControls()
+    }
+
+    private fun showControls() {
+        SwingUtilities.invokeLater {
+            val frame = JFrame("Controls")
+            frame.pack()
+            frame.setLocationRelativeTo(null)
+            frame.setSize(250, 400)
+            val panel = JPanel()
+            panel.setLayout(BoxLayout(panel, BoxLayout.Y_AXIS))
+            panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10))
+            fun button(name: String, block: () -> Unit) {
+                panel.add(JButton(name).apply { setAlignmentX(CENTER_ALIGNMENT); addActionListener { block.invoke() } })
+                panel.add(Box.createRigidArea(Dimension(0, 10)))
+            }
+
+            button("Toggle network debug") { NetworkLayer.debug = !NetworkLayer.debug }
+
+            button("Toggle config") { entities.hero.shipConfig = when (entities.hero.shipConfig) { 1 -> 2; 2 -> 1; else -> 1 } }
+
+            button("Toggle PET") { entities.hero.pet?.deactivate() ?: entities.hero.enablePet() }
+
+            frame.contentPane = panel
+            frame.isVisible = true
+        }
     }
 
     private val Point.mapPosition: PositionImpl get() = PositionImpl((x.toDouble() / width * map.map.width).toInt(), (y.toDouble() / height * map.map.height).toInt())

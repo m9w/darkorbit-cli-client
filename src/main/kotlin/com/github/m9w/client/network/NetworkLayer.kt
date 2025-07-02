@@ -11,14 +11,14 @@ import java.net.InetSocketAddress
 import java.nio.channels.AsynchronousSocketChannel
 import java.nio.channels.CompletionHandler
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 
 class NetworkLayer(address: InetSocketAddress) : Closeable {
     private val client = AsynchronousSocketChannel.open()
-    private var isDisconnected = false
+    private var isDisconnected = AtomicBoolean(false)
     var onConnectHandler: () -> Unit = {}
     var onDisconnect: () -> Unit = {}
     var onPackageHandler: (ProtocolPacket)->Unit = {}
-    var debug = false
 
     init {
         if (address.port != 0) {
@@ -102,11 +102,11 @@ class NetworkLayer(address: InetSocketAddress) : Closeable {
 
     override fun close() {
         try { client.close() } catch (_: Exception) {}
-        val once = synchronized(this) { if (isDisconnected) false else { isDisconnected = true; true } }
-        if (once) onDisconnect()
+        if (!isDisconnected.getAndSet(true)) onDisconnect()
     }
 
     companion object {
+        var debug = false
         private val pool = PooledByteBufAllocator(true)
         private val metric = pool.metric()
         val memoryUsage: Long get() = metric.usedDirectMemory()

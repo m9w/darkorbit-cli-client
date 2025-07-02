@@ -7,7 +7,7 @@ import com.github.m9w.metaplugins.EntitiesModule
 import com.github.m9w.protocol.Factory
 import com.github.m9w.selectRequest
 
-open class ShipImpl(root: EntitiesModule, ship: ShipCreateCommand) : EntityImpl(root, ship.userId.toLong(), ship.userName, ship.x, ship.y, ship.cloaked) {
+open class ShipImpl(root: EntitiesModule, ship: ShipCreateCommand) : EntityImpl(root, ship.userId.toLong(), ship.userName, ship.x, ship.y, !ship.cloaked) {
     val isNpc: Boolean = ship.npc
     override val diplomacy: Type = ship.clanDiplomacy.type
     override val faction = Faction.entries[ship.factionId]

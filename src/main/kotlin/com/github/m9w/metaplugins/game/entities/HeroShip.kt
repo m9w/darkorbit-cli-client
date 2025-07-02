@@ -4,6 +4,7 @@ import com.darkorbit.*
 import com.github.m9w.changeConfig
 import com.github.m9w.metaplugins.EntitiesModule
 import com.github.m9w.metaplugins.game.Point
+import com.github.m9w.setPetActive
 
 class HeroShip(root: EntitiesModule, ship: ShipInitializationCommand) : ShipImpl(root, ship) {
     private val cargoOres = listOf(OreType.PROMETIUM, OreType.ENDURIUM, OreType.TERBIUM, OreType.PROMETID, OreType.DURANIUM, OreType.PROMERIUM, OreType.SEPROM, OreType.PALLADIUM, OreType.OSMIUM)
@@ -18,8 +19,7 @@ class HeroShip(root: EntitiesModule, ship: ShipInitializationCommand) : ShipImpl
     var jackpot: Float = ship.jackpot; private set
     var speed: Int = ship.speed; private set
     var jumpCupons: Int = 0; private set
-    private var configVal: Int = 0
-    var shipConfig get() = configVal; set(value) { if((value == 1 || value == 2) && value != configVal) root.gameEngine.changeConfig() }
+    var shipConfig: Int = 1; set(value) { if (value in 1..2 && value != field) root.gameEngine.changeConfig(value) else if (value in -2..-1) field = -value }
     var target: EntityImpl? = null; set(value) { field = value; lastTarget = value }
     var lastTarget: EntityImpl? = null; private set
     var pet: HeroPet? = null
@@ -43,7 +43,7 @@ class HeroShip(root: EntitiesModule, ship: ShipInitializationCommand) : ShipImpl
                 packet.check("0|LM|ST|CRE|") { credits = it[1].toLong() }
                 packet.check("0|LM|ST|URI|") { uridium = it[1].toLong() }
                 packet.check("0|A|JV|") { jumpCupons = it[0].toInt() }
-                packet.check("0|S|CFG|") { configVal = it[0].toInt() }
+                packet.check("0|S|CFG|") { shipConfig = -it[0].toInt() }
             }
         }
     }
@@ -54,6 +54,15 @@ class HeroShip(root: EntitiesModule, ship: ShipInitializationCommand) : ShipImpl
 
     override fun destinationTimeUpdateHandler(time: Int) = root.moveModule.destinationTimeUpdateEvent(time)
 
+    fun enablePet() = root.gameEngine.setPetActive(true)
+
     override fun toString() = super.toString() + "Credits $credits URI $uridium\n" +
-            "Cargo $cargo/$cargoSpaceMax\n"
+            "Cargo $cargo/$cargoSpaceMax\n" +
+            "Config $shipConfig\n" +
+            ("In peace area\n".takeIf { root.mapModule.inPeaceArea } ?: "") +
+            ("In radiation zone\n".takeIf { root.mapModule.inRadiationZone } ?: "") +
+            ("In station\n".takeIf { root.mapModule.inStation }  ?: "") +
+            ("Near jump gate\n".takeIf { root.mapModule.nearJumpGate } ?: "") +
+
+            if (pet != null) " \nPET:\n$pet\n" else ""
 }

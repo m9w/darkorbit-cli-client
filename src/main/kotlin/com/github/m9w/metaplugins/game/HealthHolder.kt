@@ -12,7 +12,7 @@ class HealthHolder {
 
     override fun toString(): String =
         if (health + healthMax + shield + shieldMax + nano + nanoMax == 0L) ""
-        else "HP(${(health+nano)/1000}k/${healthMax/1000}k) SH(${shield/1000}k/${shieldMax/1000}k)\n"
+        else "HP(${(health+nano)/1000}k/${healthMax/1000}k)" + if (shieldMax>0) " SH(${shield/1000}k/${shieldMax/1000}k)\n" else "\n"
 
     fun update(packet: ProtocolPacket) {
         when (packet) {

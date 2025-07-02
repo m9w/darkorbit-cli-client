@@ -12,6 +12,7 @@ import java.net.InetSocketAddress
 class GameEngine() {
     private val authentication: AuthenticationProvider by context
     private val scheduler: Scheduler by context
+    val userIdAndSid get() = authentication.run { "$userID|$sessionID" }
 
     var network: NetworkLayer = NetworkLayer(InetSocketAddress(0)); private set
     var state: State = State.NOT_CONNECTED
@@ -22,6 +23,7 @@ class GameEngine() {
 
     fun connect() {
         state = State.NOT_CONNECTED
+        network.onDisconnect = {}
         network.close()
         network = NetworkLayer(authentication.address)
         network.onPackageHandler = scheduler::handleEvent

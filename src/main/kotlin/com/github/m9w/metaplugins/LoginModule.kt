@@ -26,28 +26,8 @@ class LoginModule(val type: Type = Type.UNITY) {
             gameEngine.send<VersionRequest> { version = ProtocolParser.getVersion() }
         }
         if (versionCommand.equal) {
-            val loginResponse = waitOnPackage<LoginResponse> {
-                gameEngine.send<LoginRequest> {
-                    userID = authentication.userID
-                    sessionID = authentication.sessionID
-                    instanceId = authentication.instanceId
-                    isMiniClient = true
-                }
-            }
-            unsuccessfulLoginCount++
-            when (loginResponse.status) {
-                LoginResponseStatus.Success -> unsuccessfulLoginCount = 0
-                LoginResponseStatus.ShipIsDestroyed -> gameEngine.state = GameEngine.State.DESTROYED
-                LoginResponseStatus.Error,
-                LoginResponseStatus.ShuttingDown,
-                LoginResponseStatus.WrongServer,
-                LoginResponseStatus.PlayerIsLoggedOut,
-                LoginResponseStatus.InvalidSessionId -> gameEngine.disconnect(true)
-                LoginResponseStatus.InvalidData,
-                LoginResponseStatus.WrongInstanceId,
-                LoginResponseStatus.IPRestricted -> gameEngine.disconnect()
-            }
-            if (unsuccessfulLoginCount > 0) println("Connection error: ${loginResponse.status}")
+            val status = gameLogin()
+            if (unsuccessfulLoginCount > 0) println("Connection error: $status")
         } else {
             gameEngine.disconnect()
             println("Close, server expected ${versionCommand.version}, client is ${ProtocolParser.getVersion()}")
@@ -55,6 +35,33 @@ class LoginModule(val type: Type = Type.UNITY) {
             println("Protocol updated to latest version ${ProtocolParser.getVersion()}")
             gameEngine.connect()
         }
+    }
+
+    private suspend fun gameLogin(delayBefore: Long = 0): LoginResponseStatus {
+        gameEngine.cancelWaitMs("LoginModule_gameLogin")
+        delayBefore.takeIf { it > 0 }?.let { waitMs(it, "LoginModule_gameLogin") }
+        val loginResponse = waitOnPackage<LoginResponse> {
+            gameEngine.send<LoginRequest> {
+                userID = authentication.userID
+                sessionID = authentication.sessionID
+                instanceId = authentication.instanceId
+                isMiniClient = true
+            }
+        }
+        unsuccessfulLoginCount++
+        when (loginResponse.status) {
+            LoginResponseStatus.Success -> unsuccessfulLoginCount = 0
+            LoginResponseStatus.ShipIsDestroyed -> gameEngine.state = GameEngine.State.DESTROYED
+            LoginResponseStatus.Error,
+            LoginResponseStatus.ShuttingDown,
+            LoginResponseStatus.WrongServer,
+            LoginResponseStatus.PlayerIsLoggedOut,
+            LoginResponseStatus.InvalidSessionId -> gameEngine.disconnect(true)
+            LoginResponseStatus.InvalidData -> return gameLogin(1000)
+            LoginResponseStatus.WrongInstanceId,
+            LoginResponseStatus.IPRestricted -> gameEngine.disconnect()
+        }
+        return loginResponse.status
     }
 
     @OnPackage

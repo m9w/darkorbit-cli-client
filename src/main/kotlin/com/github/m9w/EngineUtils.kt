@@ -15,14 +15,22 @@ fun GameEngine.setPetActive(isActive: Boolean) {
     send<PetRequest> { this.petRequestType = if (isActive) PetRequestType.LAUNCH else PetRequestType.DEACTIVATE }
 }
 
+fun GameEngine.setPetGear(gearType: PetGearType, optional: Int) {
+    if (state.ordinal < 3 || gearType == PetGearType.BEHAVIOR || gearType == PetGearType.ADMIN) return
+    send<PetGearActivationRequest> {
+        gearTypeToActivate = gearTypeToActivate.apply { typeValue = gearType }
+        optParam = optional.toShort()
+    }
+}
+
 fun GameEngine.buyPetFuel() {
     if (state.ordinal < 3) return
     send<PetRequest> { this.petRequestType = PetRequestType.HOTKEY_BUY_FUEL }
 }
 
-fun GameEngine.changeConfig() {
+fun GameEngine.changeConfig(config: Int) {
     if (state.ordinal < 3) return
-    send<ConfigChangeRequest>{}
+    send<LegacyModule>{ message = "S|CFG|$config|$userIdAndSid" }
 }
 
 fun GameEngine.jumpRequest() {

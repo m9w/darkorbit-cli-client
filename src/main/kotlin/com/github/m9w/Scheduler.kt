@@ -65,12 +65,12 @@ class Scheduler(vararg ctx: Any) : Runnable {
             future.resume()
         }
         if (interruptKey.isNotEmpty()) timerCancellationKeys.getOrPut(interruptKey) { mutableListOf() } += interrupt
-        ms.schedule(resume.get())
+        schedule(ms, resume.get())
     }
 
     fun cancelWaitMs(key: String, block: (()-> Exception)? = null) = timerCancellationKeys.remove(key)?.forEach { it.invoke(block) }
 
-    fun interruptIn(future: Future<*>, ms: Long, block: () -> Exception) = ms.schedule { future.interrupt(block) }
+    fun interruptIn(future: Future<*>, ms: Long, block: () -> Exception) = schedule(ms) { future.interrupt(block) }
 
     fun handleEvent(packet: ProtocolPacket) {
         synchronized(eventPacketQueue) {
@@ -138,8 +138,8 @@ class Scheduler(vararg ctx: Any) : Runnable {
         }
     }
 
-    private fun Long.schedule(callback: () -> Unit) {
-        timerQueue.getOrPut(System.currentTimeMillis() + this) { mutableListOf() } += callback
+    fun schedule(delay: Long = 0, callback: () -> Unit) {
+        timerQueue.getOrPut(System.currentTimeMillis() + delay) { mutableListOf() } += callback
     }
 
     fun start() {
@@ -161,7 +161,7 @@ class Scheduler(vararg ctx: Any) : Runnable {
         init { method.isAccessible = true }
         override fun postAction() = schedule()
         override fun schedule(){
-            (if (noInitDelay) 0 else ms).schedule {
+            schedule(if (noInitDelay) 0 else ms) {
                 run({ method.callSuspend(instance) }, { method.call(instance) })
             }
             noInitDelay = false

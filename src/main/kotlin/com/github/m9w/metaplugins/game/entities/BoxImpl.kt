@@ -4,7 +4,7 @@ import com.darkorbit.*
 import com.github.m9w.collectRequest
 import com.github.m9w.metaplugins.EntitiesModule
 
-class BoxImpl(root: EntitiesModule, entity: AddMapEntityCommand): EntityImpl(root,entity.hash.toLong(36) + 100000000, entity.name,entity.x,entity.y) {
+class BoxImpl(root: EntitiesModule, entity: AddMapEntityCommand): EntityImpl(root,entity.hash.toLong(36) + Int.MAX_VALUE, entity.name,entity.x,entity.y) {
     val hash: String = entity.hash
     val oreId: OreType? = if(entity is AddOreCommand) entity.oreType.typeValue else null
     val boxType: String? = if(entity is AddBoxCommand) entity.boxType else null

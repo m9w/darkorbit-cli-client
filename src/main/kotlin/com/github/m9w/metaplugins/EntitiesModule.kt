@@ -168,6 +168,6 @@ class EntitiesModule(private val entities: MutableMap<Long, EntityImpl> = HashMa
     operator fun get(id: Int) = entities[id.toLong()]
     fun <T : EntityImpl> getLong(id: Int): T? = entities[id.toLong()].let { it as? T }
     private operator fun set(id: Int, entityImpl: EntityImpl) { entities[id.toLong()] = entityImpl }
-    private fun remove(hash: String) { entities.remove(hash.toLong(36)+100000000) }
+    private fun remove(hash: String) { entities.remove(hash.toLong(36)+Int.MAX_VALUE) }
     private fun remove(id: Int) { entities.remove(id.toLong()) }
 }

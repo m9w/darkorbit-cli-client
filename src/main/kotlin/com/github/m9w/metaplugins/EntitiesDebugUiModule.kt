@@ -3,26 +3,25 @@ package com.github.m9w.metaplugins
 import com.darkorbit.POIType
 import com.darkorbit.ShapeType
 import com.darkorbit.ShipInitializationCommand
+import com.github.m9w.Scheduler
+import com.github.m9w.client.auth.AuthenticationProvider
 import com.github.m9w.client.network.NetworkLayer
 import com.github.m9w.context
 import com.github.m9w.feature.annotations.OnPackage
+import com.github.m9w.feature.waitMs
 import com.github.m9w.metaplugins.game.PositionImpl
 import com.github.m9w.metaplugins.game.PositionImpl.Companion.x
 import com.github.m9w.metaplugins.game.PositionImpl.Companion.y
 import com.github.m9w.metaplugins.game.entities.*
-import java.awt.Color
-import java.awt.Dimension
-import java.awt.Graphics
-import java.awt.Point
-import java.awt.event.MouseAdapter
-import java.awt.event.MouseEvent
+import java.awt.*
+import java.awt.event.*
+import java.util.*
 import javax.swing.*
 
-class EntitiesDebugUiModule : JPanel(), Runnable {
-    private val pathTracer: PathTracerModule by context
-    private val moveModule: MoveModule by context
-    private val entities: EntitiesModule by context
-    private val map: MapModule by context
+class EntitiesDebugUiModule(private val block: (AuthenticationProvider, Any) -> Unit) : JPanel(), Runnable {
+    private val instances: MutableSet<InnerModule> = HashSet()
+    private val instance: InnerModule? get() = instances.run { find { it.selected } ?: firstOrNull() }
+    private val instanceSelector = JComboBox<InnerModule>()
     private var pointerEntity: EntityImpl? = null
     private var copy = HashSet<EntityImpl>()
     private var path = listOf<Pair<Int, Int>>()
@@ -30,7 +29,10 @@ class EntitiesDebugUiModule : JPanel(), Runnable {
     override fun paintComponent(g: Graphics) {
         super.paintComponent(g)
         background = Color.black
+        instance?.draw(g)
+    }
 
+    private fun InnerModule.draw(g: Graphics) {
         g.color = Color.gray
         g.drawString("Map ${map.map.name}", 5, 15)
 
@@ -38,20 +40,38 @@ class EntitiesDebugUiModule : JPanel(), Runnable {
             g.drawLine(x, 0, x, height)
             g.drawLine(0, y, width, y)
         }
-        map.frameRect.let { it.first.windowPosition to it.second.windowPosition }.let { g.drawRect(it.first.x, it.first.y, it.second.x - it.first.x, it.second.y - it.first.y) }
+        val viewMarkerSize = 6
+        g.color(Color.lightGray) {
+            map.frameRect.let { it.first.windowPosition to it.second.windowPosition }.let {
+                g.drawLine(it.first.x, it.first.y, it.first.x + viewMarkerSize, it.first.y)
+                g.drawLine(it.first.x, it.first.y, it.first.x, it.first.y + viewMarkerSize)
+                g.drawLine(it.second.x, it.first.y, it.second.x - viewMarkerSize, it.first.y)
+                g.drawLine(it.second.x, it.first.y, it.second.x, it.first.y + viewMarkerSize)
+                g.drawLine(it.second.x, it.second.y, it.second.x - viewMarkerSize, it.second.y)
+                g.drawLine(it.second.x, it.second.y, it.second.x, it.second.y - viewMarkerSize)
+                g.drawLine(it.first.x, it.second.y, it.first.x, it.second.y - viewMarkerSize)
+                g.drawLine(it.first.x, it.second.y, it.first.x + viewMarkerSize, it.second.y)
+            }
+        }
 
-        try { copy.addAll(entities.values) } catch (_: ConcurrentModificationException) { return }
+        try {
+            val heroIds = instances.mapTo(HashSet()) { it.entities.hero.id }
+            copy.clear()
+            copy.add(entities.hero)
+            copy.addAll(entities.values.filter { !heroIds.contains(it.id) })
+            instances.filter { it.key == key && it.entities.hero != entities.hero }.forEach { container ->
+                copy.add(container.entities.hero)
+                copy.addAll(container.entities.values.filter { !heroIds.contains(it.id) })
+            }
+        } catch (_: ConcurrentModificationException) { return }
+
         copy.filterIsInstance<PoiImpl>().forEach { g.drawPoi(it) }
         copy.filterIsInstance<JumpgateImpl>().forEach { g.drawGate(it) }
         copy.filterIsInstance<AssetImpl>().forEach { g.drawAsset(it) }
         copy.filterIsInstance<ShipImpl>().forEach { g.drawShip(it) }
         copy.filterIsInstance<BoxImpl>().forEach { g.drawBox(it) }
-        copy.clear()
-        g.color = Color.cyan
-        if (entities.hero.isMoving && moveModule.nextPoints.size > 1) g.drawLine(moveModule.nextPoints)
-        g.color = Color.yellow
-        if (path.size > 1) g.drawLine(listOf(entities.hero.position) + path)
-        g.color = Color.gray
+        if (entities.hero.isMoving && entities.moveModule.nextPoints.size > 1) g.color(Color.cyan) { g.drawLine(entities.moveModule.nextPoints) }
+        if (path.size > 1) g.color(Color.yellow) { g.drawLine(listOf(entities.hero.position) + path) }
         pointerEntity?.let { g.drawText(it.toString(), 5, 30) }
         entities.hero.target?.let { g.drawText(it.toString(), width - 5, 15, true) }
     }
@@ -70,9 +90,9 @@ class EntitiesDebugUiModule : JPanel(), Runnable {
 
     private fun Graphics.drawShip(ship: ShipImpl) = ship.windowPosition.let { pos ->
         if (ship.isMoving) color(Color.cyan) { line(pos, ship.direction.windowPosition) }
-        if (ship is HeroShip) return@let
-        color(if (ship is HeroPet) Color.white else if (ship.isSafe) Color.blue else Color.red) {
-            rect(pos, if (ship is HeroPet) 2 else 4, false)
+        if (ship.id == instance!!.entities.hero.id) return
+        color(if (ship is HeroPet || ship is HeroShip) Color.white else if (ship.isSafe) Color.blue else Color.red) {
+            rect(pos, when(ship) { is HeroShip -> 5; is PetImpl -> 2; else -> 4 }, ship is HeroShip)
         }
     }
 
@@ -101,16 +121,12 @@ class EntitiesDebugUiModule : JPanel(), Runnable {
         }
     }
 
-    private val Int.xWindow get() = (this.toDouble() / map.map.width * width).toInt()
-    private val Int.yWindow get() = (this.toDouble() / map.map.height * height).toInt()
+    private val Int.xWindow get() = (this.toDouble() / instance!!.map.map.width * width).toInt()
+    private val Int.yWindow get() = (this.toDouble() / instance!!.map.map.height * height).toInt()
     private val Pair<Int, Int>.windowPosition: Pair<Int, Int> get() = first.xWindow to second.yWindow
     private val PositionImpl.windowPosition: Pair<Int, Int> get() = position.windowPosition
 
-    private var isInit = false
-    @OnPackage
-    private fun init(init: ShipInitializationCommand) {
-        if (isInit) return
-        isInit = true
+    init {
         val scale = 4
         preferredSize = Dimension(210*scale, 131*scale)
         SwingUtilities.invokeLater { JFrame("Entities canvas").apply {
@@ -120,25 +136,36 @@ class EntitiesDebugUiModule : JPanel(), Runnable {
 
         addMouseMotionListener(object : MouseAdapter() {
             override fun mouseMoved(e: MouseEvent) {
-                val pointer = e.point.mapPosition
-                pointerEntity = entities.values.filter { it !is PoiImpl && it !is HeroShip }.minByOrNull { it.distanceTo(pointer) }
-                    ?.takeIf { it.distanceTo(pointer) < 125 }
-                    ?: entities.values.firstOrNull { it is PoiImpl && it.containsPoint(pointer.position)} ?: entities.hero
-                path = pathTracer.traceTo(pointer.position)
+                instance?.apply {
+                    val pointer = e.point.mapPosition
+                    pointerEntity = copy.filter { it !is PoiImpl && it != entities.hero }.minByOrNull { it.distanceTo(pointer) }
+                        ?.takeIf { it.distanceTo(pointer) < 125 }
+                        ?: copy.firstOrNull { it is PoiImpl && it.containsPoint(pointer.position)} ?: entities.hero
+                    path = pathTracer.traceTo(pointer.position)
+                }
             }
         })
 
         addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent) {
-                if (e.button == 1) entities.hero.moveTo(e.point.mapPosition.position)
-                if (e.button == 3) pointerEntity?.invoke()
+                instance?.apply {
+                    if (e.button == 1) entities.hero.moveTo(e.point.mapPosition.position)
+                    if (e.button == 3) pointerEntity?.let {
+                        if (it is HeroShip && it != entities.hero) instances.find { instance -> instance.entities.hero == it }?.selectContainer()
+                        else entities[it.id]?.invoke()
+                    }
+                }
             }
         })
         Thread(this, "UI").apply { isDaemon = true }.start()
         showControls()
     }
 
+    private val <T:Component> T.center: T get() = this.also { setAlignmentX(LEFT_ALIGNMENT) }
+
     private fun showControls() {
+        instanceSelector.removeAllItems()
+        instanceSelector.addActionListener { (instanceSelector.selectedItem as? InnerModule)?.selectContainer() }
         SwingUtilities.invokeLater {
             val frame = JFrame("Controls")
             frame.pack()
@@ -147,23 +174,78 @@ class EntitiesDebugUiModule : JPanel(), Runnable {
             val panel = JPanel()
             panel.setLayout(BoxLayout(panel, BoxLayout.Y_AXIS))
             panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10))
-            fun button(name: String, block: () -> Unit) {
-                panel.add(JButton(name).apply { setAlignmentX(CENTER_ALIGNMENT); addActionListener { block.invoke() } })
-                panel.add(Box.createRigidArea(Dimension(0, 10)))
-            }
+            fun JPanel.addWithPadding(comp: Component) = add(comp).let { add(Box.createRigidArea(Dimension(0, 10))) }
+            fun button(name: String, block: InnerModule.() -> Unit) = panel.addWithPadding(JButton(name).center.apply { addActionListener { instance?.apply(block) } })
 
+            JButton("Login + Password").center.apply { addActionListener { InputDialog(frame, "Login", "Password") {
+                block(AuthenticationProvider.byLoginPassword(this["Login"]!!, this["Password"]!!), InnerModule() )
+            } } }.let(panel::addWithPadding)
+            JButton("Server + SID").center.apply { addActionListener { InputDialog(frame, "Server", "SID") {
+                block(AuthenticationProvider.byServerSid(this["Server"]!!, this["SID"]!!), InnerModule())
+            } } }.let(panel::addWithPadding)
+            JButton("External login").center.apply { addActionListener { InputDialog(frame, "Login", "Password") {
+                block(AuthenticationProvider.byLoginPasswordExternal(this["Login"]!!, this["Password"]!!), InnerModule())
+            } } }.let(panel::addWithPadding)
+            panel.addWithPadding(instanceSelector.center)
+            panel.addWithPadding(JButton("Disconnect selected").center.apply { addActionListener { (instanceSelector.selectedItem as? InnerModule)?.apply {
+                scheduler.close()
+                instances.remove(this)
+                instanceSelector.removeItem(this)
+            } } })
             button("Toggle network debug") { NetworkLayer.debug = !NetworkLayer.debug }
-
             button("Toggle config") { entities.hero.shipConfig = when (entities.hero.shipConfig) { 1 -> 2; 2 -> 1; else -> 1 } }
-
             button("Toggle PET") { entities.hero.pet?.deactivate() ?: entities.hero.enablePet() }
-
             frame.contentPane = panel
             frame.isVisible = true
         }
     }
 
-    private val Point.mapPosition: PositionImpl get() = PositionImpl((x.toDouble() / width * map.map.width).toInt(), (y.toDouble() / height * map.map.height).toInt())
+    private val Point.mapPosition: PositionImpl get() = PositionImpl((x.toDouble() / width * instance!!.map.map.width).toInt(), (y.toDouble() / height * instance!!.map.map.height).toInt())
 
     override fun run() { while (true) { repaint(); Thread.sleep(1000/60) } }
+
+    private inner class InnerModule() {
+        val auth: AuthenticationProvider by context
+        val pathTracer: PathTracerModule by context
+        val entities: EntitiesModule by context
+        val scheduler: Scheduler by context
+        val map: MapModule by context
+        val key: String get() = "${auth.address}|${map.map.id}"
+        var selected: Boolean = false; private set
+        private var name = "Loading..."
+        init { instanceSelector.addItem(this) }
+        @OnPackage
+        private suspend fun init(init: ShipInitializationCommand) {
+            waitMs(0)
+            name = "${map.map.name} - ${init.userName}"
+            instanceSelector.repaint()
+            instances.add(this)
+        }
+        fun selectContainer() = instances.forEach { it.selected = false }.also { selected = true }
+        override fun toString() = name
+    }
+
+    private class InputDialog(owner: Frame?, vararg fields: String, private val block: Map<String, String>.() -> Unit) : JDialog(owner, "Input Dialog", true) {
+        private var jFields: MutableMap<String, JTextField> = mutableMapOf()
+        private var okButton: JButton = JButton("OK")
+        private var cancelButton: JButton = JButton("Cancel")
+
+        init {
+            val inputPanel = JPanel(GridLayout(fields.size, 2, 5, 5)).apply {
+                setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10))
+                fields.forEach { label -> add(JLabel(label)); add(JTextField(20).also { jFields.put(label, it) }) }
+            }
+            val buttonPanel = JPanel(FlowLayout(FlowLayout.RIGHT)).apply { add(okButton); add(cancelButton) }
+            okButton.addActionListener { isVisible = false; block.invoke(jFields.entries.associate { (k, v) -> k to v.getText() }) }
+            cancelButton.addActionListener { isVisible = false }
+            getRootPane().registerKeyboardAction({ isVisible = false }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), WHEN_IN_FOCUSED_WINDOW)
+            getRootPane().setDefaultButton(okButton)
+            layout = BorderLayout(10, 10)
+            add(inputPanel, BorderLayout.CENTER)
+            add(buttonPanel, BorderLayout.SOUTH)
+            pack()
+            setLocationRelativeTo(owner)
+            isVisible = true
+        }
+    }
 }

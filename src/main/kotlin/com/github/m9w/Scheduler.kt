@@ -9,6 +9,7 @@ import com.github.m9w.feature.annotations.OnPackage
 import com.github.m9w.feature.annotations.Repeat
 import com.github.m9w.feature.suspend.ExceptPacketException
 import com.github.m9w.protocol.Factory
+import java.io.Closeable
 import java.lang.RuntimeException
 import java.util.*
 import java.util.concurrent.atomic.AtomicReference
@@ -21,7 +22,7 @@ import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.jvmErasure
 
 
-class Scheduler(vararg ctx: Any) : Runnable {
+class Scheduler(vararg ctx: Any) : Runnable, Closeable {
     private val eventPacketQueue = LinkedList<ProtocolPacket>()
     private val eventQueue = LinkedList<Pair<String, String>>()
     private val eventHandlers: MutableMap<String, MutableSet<PendingFuture>> = HashMap()
@@ -136,15 +137,23 @@ class Scheduler(vararg ctx: Any) : Runnable {
                 e.printStackTrace()
             }
         }
+        Context.clear()
     }
 
     fun schedule(delay: Long = 0, callback: () -> Unit) {
         timerQueue.getOrPut(System.currentTimeMillis() + delay) { mutableListOf() } += callback
+        if (delay == 0L) synchronized(lock) { lock.notifyAll() }
     }
 
     fun start() {
         thread = Thread(this, "Scheduler instance")
         thread.start()
+    }
+
+    override fun close() {
+        isRun = false
+        engine.disconnect()
+        thread.interrupt()
     }
 
     data class PendingFuture(private val isSuccess: (String) -> Boolean = { true },

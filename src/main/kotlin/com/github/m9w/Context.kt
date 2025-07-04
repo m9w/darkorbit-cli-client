@@ -1,8 +1,12 @@
 package com.github.m9w
 
 import com.github.m9w.feature.Classifier
+import kotlin.reflect.KClass
 import kotlin.reflect.KClassifier
 import kotlin.reflect.KProperty
+import kotlin.reflect.full.declaredMemberProperties
+import kotlin.reflect.full.memberProperties
+import kotlin.reflect.jvm.isAccessible
 
 val context get() = Context()
 val optionalContext get() = Context().Optional()
@@ -26,9 +30,13 @@ class Context() {
     }
 
     companion object {
-        private val ctx = ThreadLocal.withInitial { HashMap<String, Any>() }.get().computeIfAbsent("LOCAL_CONTEXT") { HashMap<KClassifier, Any>() } as MutableMap<KClassifier, Any>
-        fun findInContext(classifier: KClassifier): Any = ctx[classifier] ?: ClassNotFoundException(classifier.toString())
-        fun apply(context: Set<Any>) = ctx.putAll(context.associateBy { (if (it is Classifier<*>) it.classifier else it::class) })
+        private val ctx = ThreadLocal.withInitial { mutableMapOf<KClassifier, Any>() }
+        fun findInContext(classifier: KClassifier): Any = ctx.get()[classifier] ?: throw ClassNotFoundException(classifier.toString())
+        fun apply(context: Set<Any>) {
+            ctx.get().putAll(context.associateBy { (if (it is Classifier<*>) it.classifier else it::class) })
+            context.map { module -> module::class.declaredMemberProperties.filter { d -> context.any { (d.returnType.classifier as KClass<*>).isInstance(it) } }.map { it.apply { isAccessible = true }.getter.call(module) } }
+        }
         inline fun <reified T : Any> get(): T = findInContext(T::class) as T
+        fun clear() = ctx.remove()
     }
 }

@@ -18,7 +18,7 @@ interface AuthenticationProvider : Classifier<AuthenticationProvider> {
         private val mapRegex = Regex("""<map\s+id="(\d+)">.*?<gameserverIP>([^<]+)</gameserverIP>.*?</map>""", RegexOption.DOT_MATCHES_ALL)
         fun byServerSid(server: String, sessionID: String) = ServerSidAuthenticationProvider(server, sessionID)
         fun byLoginPassword(login: String, password: String) = LoginPasswordAuthenticationProvider(login, password)
-        fun byLoginPasswordExternal(endpoint: String, login: String, password: String) = ExternalAuthenticationProvider(endpoint, login, password)
+        fun byLoginPasswordExternal(login: String, password: String) = ExternalAuthenticationProvider(login, password)
         fun byStatic(userID: Int, server: String, sessionID: String, instanceId: Int, mapId: Int = 1) =
             StaticAuthenticationProvider(userID, server, sessionID, instanceId, mapId)
 

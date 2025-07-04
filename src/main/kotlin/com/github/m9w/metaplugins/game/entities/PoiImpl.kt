@@ -6,7 +6,7 @@ import com.github.m9w.metaplugins.game.Point
 import kotlin.collections.chunked
 import kotlin.math.*
 
-class PoiImpl(root: EntitiesModule, poi: MapAddPOICommand) : EntityImpl(root, 0, poi.poiId, poi.shapeCoordinates[0], poi.shapeCoordinates[1]) {
+class PoiImpl(root: EntitiesModule, id: Long, poi: MapAddPOICommand) : EntityImpl(root, id, poi.poiId, poi.shapeCoordinates[0], poi.shapeCoordinates[1]) {
     val shapeType: ShapeType = poi.shape
     val cords: List<Point> = if (shapeType != ShapeType.CIRCLE) poi.shapeCoordinates.chunked(2).map { it[0] to it[1] } else listOf(-1 to -1)
     private val minX: Int = cords.minOf { it.x }

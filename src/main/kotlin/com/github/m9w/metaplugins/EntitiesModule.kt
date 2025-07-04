@@ -29,12 +29,12 @@ class EntitiesModule(private val entities: MutableMap<Long, EntityImpl> = HashMa
 
     @OnPackage
     private fun onPoiCreate(poi: MapAddPOICommand) {
-        entities[poi.poiId.hashCode().toLong() - Int.MAX_VALUE.toLong()] = PoiImpl(this, poi)
+        entities[poi.poiId.id] = PoiImpl(this, poi.poiId.id, poi)
         if (poi.poiType.typeValue == POIType.NO_ACCESS) pathTracer.onChange()
     }
 
     @OnPackage
-    private fun onPoiCreate(poi: MapAddControlPOIZoneCommand) { entities[poi.poiId.hashCode().toLong() - Int.MAX_VALUE.toLong()]  = PoiImpl(this, poi) }
+    private fun onPoiCreate(poi: MapAddControlPOIZoneCommand) { entities[poi.poiId.id]  = PoiImpl(this, poi.poiId.id, poi) }
 
     @OnPackage
     private fun onMoveCommand(move: MoveCommand) = this[move.userId]?.update(move)
@@ -151,7 +151,7 @@ class EntitiesModule(private val entities: MutableMap<Long, EntityImpl> = HashMa
     private fun onLegacyEvent(event: LegacyModule) { if (this::hero.isInitialized) hero.update(event) }
     @OnPackage
     private fun onCaptchaTriggerEvent(event: CaptchaTriggerCommand) {
-        entities["Captcha zone".hashCode().toLong() - Int.MAX_VALUE.toLong()] = PoiImpl(this, Factory.build<MapAddPOICommand> {
+        onPoiCreate(Factory.build<MapAddPOICommand> {
             poiId = "Captcha zone"
             shape = ShapeType.CIRCLE
             inverted = true
@@ -162,8 +162,9 @@ class EntitiesModule(private val entities: MutableMap<Long, EntityImpl> = HashMa
         })
     }
     @OnPackage
-    private fun onCaptchaResolvedEvent(event: CaptchaResolvedCommand) = entities.remove("Captcha zone".hashCode().toLong() - Int.MAX_VALUE.toLong())
+    private fun onCaptchaResolvedEvent(event: CaptchaResolvedCommand) = entities.remove("Captcha zone".id)
 
+    private val String.id get() = hashCode().toLong() - Int.MAX_VALUE.toLong()
     operator fun get(id: Int) = entities[id.toLong()]
     fun <T : EntityImpl> getLong(id: Int): T? = entities[id.toLong()].let { it as? T }
     private operator fun set(id: Int, entityImpl: EntityImpl) { entities[id.toLong()] = entityImpl }

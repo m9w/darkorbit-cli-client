@@ -10,12 +10,15 @@ import com.github.m9w.feature.annotations.SystemEvents
 import com.github.m9w.feature.waitMs
 import com.github.m9w.protocol.ProtocolParser
 import com.github.m9w.feature.waitOnPackage
+import com.github.m9w.metaplugins.proxy.ProxyModule
+import com.github.m9w.optionalContext
 
 @Suppress("unused")
 class LoginModule(val type: Type = Type.UNITY) {
     private var unsuccessfulLoginCount = 0
     private val gameEngine: GameEngine by context
     private val authentication: AuthenticationProvider by context
+    private val proxy: ProxyModule? by optionalContext
 
     enum class Type { UNITY, FLASH }
 
@@ -59,7 +62,7 @@ class LoginModule(val type: Type = Type.UNITY) {
             LoginResponseStatus.InvalidSessionId -> gameEngine.disconnect(true)
             LoginResponseStatus.InvalidData -> return gameLogin(1000)
             LoginResponseStatus.WrongInstanceId,
-            LoginResponseStatus.IPRestricted -> gameEngine.disconnect()
+            LoginResponseStatus.IPRestricted -> { proxy?.ipRestricted(); gameEngine.disconnect() }
         }
         return loginResponse.status
     }

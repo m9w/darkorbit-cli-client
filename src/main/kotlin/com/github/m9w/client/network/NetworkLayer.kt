@@ -3,6 +3,7 @@ package com.github.m9w.client.network
 import com.darkorbit.ProtocolPacket
 import com.github.m9w.protocol.ProtocolParser
 import com.github.m9w.feature.timePrefix
+import com.github.m9w.metaplugins.proxy.ProxyModule
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.PooledByteBufAllocator
 import io.netty.buffer.Unpooled
@@ -13,7 +14,7 @@ import java.nio.channels.CompletionHandler
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
-class NetworkLayer(address: InetSocketAddress) : Closeable {
+class NetworkLayer(address: InetSocketAddress = InetSocketAddress(0), proxyModule: ProxyModule? = null) : Closeable {
     private val client = AsynchronousSocketChannel.open()
     private var isDisconnected = AtomicBoolean(false)
     var onConnectHandler: () -> Unit = {}
@@ -22,8 +23,8 @@ class NetworkLayer(address: InetSocketAddress) : Closeable {
 
     init {
         if (address.port != 0) {
-            client.connect(address).get(5, TimeUnit.SECONDS)
-            println("[${timePrefix}] Connected to $address")
+            proxyModule?.performConnect(client, address) ?: client.connect(address).get(5, TimeUnit.SECONDS)
+            println("[$timePrefix] Connected to ${address.hostName}:${address.port}${if(proxyModule == null) "" else " over $proxyModule"}")
             onConnectHandler.invoke()
             onRead()
         }

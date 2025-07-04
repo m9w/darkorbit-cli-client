@@ -122,7 +122,7 @@ class Scheduler(vararg ctx: Any) : Runnable, Closeable {
         Context.apply(rawContext)
         loadContextTasks()
         engine.connect()
-        val delay = 500
+        val delay = 50
         var last = System.currentTimeMillis()
         var delta = 0L
         while (isRun) {

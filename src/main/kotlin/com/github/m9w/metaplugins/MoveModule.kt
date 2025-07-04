@@ -11,6 +11,7 @@ import com.github.m9w.metaplugins.game.PositionImpl.Companion.distanceTo
 import com.github.m9w.metaplugins.game.PositionImpl.Companion.x
 import com.github.m9w.metaplugins.game.PositionImpl.Companion.y
 import com.github.m9w.moveRequest
+import java.lang.System.currentTimeMillis
 import java.nio.channels.CancelledKeyException
 import java.util.*
 import kotlin.math.hypot
@@ -20,10 +21,12 @@ class MoveModule {
     private val gameEngine: GameEngine by context
     private val pathTracer: PathTracerModule by context
     private val entities: EntitiesModule by context
-
+    private val map: MapModule by context
     private var onComplete: (Point) -> Unit = {}
     private var updatePosition: (Point) -> Unit = {}
     private var startFrom: Point = Pair(0,0)
+    private var lastMove = 0L
+    private var scheduledPoint: Point? = null
     val nextPoints: LinkedList<Point> = LinkedList()
 
     fun destinationTimeUpdateEvent(time: Int) = gameEngine.handleEvent(SystemEvents.ON_HERO_MOVING_UPDATE, time.toString())
@@ -42,10 +45,10 @@ class MoveModule {
         val heroPosition = entities.hero.position
         if (nextPoints.first().distanceTo(heroPosition) < 50) {
             nextPoints.removeFirst()
-            moveToNext(heroPosition)
+            moveToNext()
             if (nextPoints.isEmpty()) onComplete.invoke(heroPosition)
         } else if(distanceToSegment(startFrom, nextPoints.first(), heroPosition) < 50) {
-            moveToNext(heroPosition)
+            moveToNext()
         } else {
             moveTo(nextPoints.last(), updatePosition, onComplete)
         }
@@ -54,19 +57,37 @@ class MoveModule {
     fun moveTo(point: Point, block: (Point) -> Unit, update: (Point) -> Unit) {
         updatePosition = update
         onComplete = block
-        val heroPosition = entities.hero.position
-        if (point.x == Int.MIN_VALUE && point.y == Int.MIN_VALUE) gameEngine.moveRequest(heroPosition, heroPosition)
+
+        if (point.x == Int.MIN_VALUE && point.y == Int.MIN_VALUE) moveRequestDelay(entities.hero.position)
+        else if (point.x == Int.MAX_VALUE && point.y == Int.MAX_VALUE) moveTo((0..map.map.width).random() to (0..map.map.height).random(), block, update)
         else {
-            startFrom = heroPosition
+            startFrom = entities.hero.position
             nextPoints.clear()
             nextPoints.addAll(pathTracer.traceTo(point))
-            moveToNext(heroPosition)
+            moveToNext()
         }
     }
 
-    private fun moveToNext(hero: Point) = if (nextPoints.isNotEmpty()) {
+    private fun moveRequestDelay(dest: Point) {
+        if (lastMove + 100 > currentTimeMillis()) {
+            if (scheduledPoint == null) gameEngine.handleEvent("MoveModule_delay")
+            scheduledPoint = dest
+        } else {
+            gameEngine.moveRequest(entities.hero.position, dest)
+            lastMove = currentTimeMillis()
+        }
+    }
+
+    @OnEvent("MoveModule_delay")
+    private suspend fun onEvent(body: String) {
+        waitMs(100)
+        scheduledPoint?.let { moveRequestDelay(it) }
+        scheduledPoint = null
+    }
+
+    private fun moveToNext() = if (nextPoints.isNotEmpty()) {
         updatePosition.invoke(nextPoints.first())
-        gameEngine.moveRequest(hero, nextPoints.first())
+        moveRequestDelay(nextPoints.first())
     } else Unit
 
     private fun distanceToSegment(start: Point, end: Point, point: Point): Double {
@@ -85,5 +106,4 @@ class MoveModule {
         val (cx, cy) = closest
         return hypot(px - cx, py - cy)
     }
-
 }

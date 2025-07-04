@@ -50,6 +50,8 @@ class HeroShip(root: EntitiesModule, ship: ShipInitializationCommand) : ShipImpl
 
     fun moveTo(destination: Point = Int.MIN_VALUE to Int.MIN_VALUE, block: (Point) -> Unit = {}) = root.moveModule.moveTo(destination, block) { moveTo(it, speed) }
 
+    fun moveRandom(block: (Point) -> Unit = {}) = moveTo(Int.MAX_VALUE to Int.MAX_VALUE, block)
+
     override fun stopHandler(point: Point) = root.moveModule.stopEvent(point)
 
     override fun destinationTimeUpdateHandler(time: Int) = root.moveModule.destinationTimeUpdateEvent(time)

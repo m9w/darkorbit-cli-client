@@ -50,7 +50,7 @@ open class PositionImpl(private var startX: Int, private var startY: Int) {
         }
     }
 
-    val direction get() = PositionImpl(targetX, targetY)
+    val destination get() = PositionImpl(targetX, targetY)
 
     val isMoving: Boolean get() = position.run { timeToTarget != 0 }
 

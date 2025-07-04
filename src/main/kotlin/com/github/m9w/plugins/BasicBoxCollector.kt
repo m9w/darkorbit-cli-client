@@ -35,7 +35,7 @@ open class BasicBoxCollector {
         best = targets.values.minByOrNull { entities.hero.position.distanceTo(it.x to it.y) }
         if (best == null && !entities.hero.isMoving) entities.hero.moveRandom()
         val best = best ?: return
-        if (entities.hero.direction.position.run { x == best.x && y == best.y } ) return
+        if (entities.hero.destination.position.run { x == best.x && y == best.y } ) return
         entities.hero.moveTo(best.x to best.y) {
             entities[best.hash.toLong(36)+Int.MAX_VALUE]?.let {
                 entities.gameEngine.collectRequest(entities.hero, it as BoxImpl)

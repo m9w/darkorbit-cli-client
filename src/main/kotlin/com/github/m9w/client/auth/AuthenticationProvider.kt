@@ -22,6 +22,7 @@ interface AuthenticationProvider : Classifier<AuthenticationProvider> {
         fun byStatic(userID: Int, server: String, sessionID: String, instanceId: Int, mapId: Int = 1) =
             StaticAuthenticationProvider(userID, server, sessionID, instanceId, mapId)
 
+        @Synchronized
         fun getMapAddress(host: String, mapId: Int): InetSocketAddress {
             val records = cache.computeIfAbsent(host) {
                 val xml = String(URI("$host/spacemap/xml/maps.php").toURL().readBytes())

@@ -3,6 +3,7 @@ package com.github.m9w.protocol
 import com.darkorbit.ProtocolPacket
 import java.lang.reflect.Method
 import java.lang.reflect.Proxy
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.cast
@@ -12,12 +13,12 @@ import kotlin.reflect.jvm.javaSetter
 
 object Factory {
     private val classLoader = Factory::class.java.classLoader
-    private val packetTypes: MutableSet<KClass<*>> = HashSet()
-    private val getters: MutableMap<Method, String> = HashMap()
-    private val setters: MutableMap<Method, String> = HashMap()
+    private val packetTypes: MutableMap<KClass<*>, Unit> = ConcurrentHashMap()
+    private val getters: MutableMap<Method, String> = ConcurrentHashMap()
+    private val setters: MutableMap<Method, String> = ConcurrentHashMap()
 
     fun <T : ProtocolPacket> build(packetType: KClass<T>, data: Map<String, Any?> = HashMap()): T {
-        if (!packetTypes.contains(packetType)) storeMethodMapping(packetType)
+        if (!packetTypes.containsKey(packetType)) storeMethodMapping(packetType)
         val map = HashMap<String, Any?>(data)
         return packetType.cast(Proxy.newProxyInstance(classLoader, arrayOf(packetType.java, Metadata::class.java)) { proxy, method, args ->
             getters[method]?.let { return@newProxyInstance map[it] ?: default(method.returnType) }
@@ -38,7 +39,7 @@ object Factory {
             getters.put(it.javaGetter!!, it.name)
             if (it is KMutableProperty<*>) setters.put(it.javaSetter!!, it.name)
         }
-        packetTypes.add(packetType)
+        packetTypes.put(packetType, Unit)
     }
 
     private fun default(returnType: Class<*>): Any? {

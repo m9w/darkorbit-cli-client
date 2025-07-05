@@ -41,6 +41,6 @@ class HttpProxyModule() : ProxyModule {
     }
 
     override fun ipRestricted() = ProxyPool.ipRestricted(proxy).also { proxy = null }
-    override fun releaseProxy() = proxy?.let(ProxyPool::releaseProxy) ?: Unit
+    override fun releaseProxy() = proxy?.let(ProxyPool::releaseProxy).also { proxy = null } ?: Unit
     override fun toString(): String = proxy?.run { "HTTP $socket" } ?: ""
 }

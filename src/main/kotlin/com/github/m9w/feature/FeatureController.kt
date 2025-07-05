@@ -5,7 +5,7 @@ import com.github.m9w.feature.suspend.SuspendFlow
 import java.io.InterruptedIOException
 import kotlin.coroutines.*
 
-
+@Suppress("unchecked_cast")
 object FeatureController {
     fun <T> runCoroutine(scheduler: Scheduler, block: suspend () -> T): Future<T> = FutureImpl(scheduler, block)
 
@@ -35,7 +35,7 @@ object FeatureController {
     }
 
     private suspend fun <T> suspendWithInterrupt(reason: (FutureImpl<T>) -> SuspendFlow): T =
-        suspendCoroutine { it.getFuture().apply { interruptReason = reason.invoke(this) }.continuation = it as Continuation<Any> }
+        suspendCoroutine { it.getFuture().apply { interruptReason = reason.invoke(this) }.continuation = it }
 
     private fun <T> Continuation<T>.getFuture(): FutureImpl<T> = (this.context[FutureContext]?.future ?: error("No future in context")) as FutureImpl<T>
 
@@ -43,24 +43,22 @@ object FeatureController {
         private var result: Result<T>? = null
         override val isDone: Boolean get() = result != null
         override val hasError: Boolean get() = result?.isFailure == true
-        var continuation: Continuation<Any>? = null
+        var continuation: Continuation<T>? = null
         var interruptReason: SuspendFlow? = null
 
         init {
-            block.startCoroutine(object : Continuation<T> {
-                override val context: CoroutineContext = FutureContext(this@FutureImpl)
-                override fun resumeWith(r: Result<T>) = this@FutureImpl.run { result = r }
-            })
+            block.startCoroutine(Continuation(FutureContext(this)) { run { result = it } })
             if (!isDone) interruptReason?.schedule(this)
         }
 
         override fun resume(result: Any) {
-            if (!isDone) continuation?.resume(result)
+            if (!isDone) continuation?.resume(result as T)
             if (!isDone) interruptReason?.schedule(this)
         }
 
         override fun interrupt(block: () -> Exception) {
-            if (!isDone) continuation?.resumeWith(Result.failure(block.invoke()))
+            if (!isDone) continuation?.resumeWithException(block.invoke())
+            if (!isDone) interruptReason?.schedule(this)
         }
 
         override fun getResult(): T = result?.getOrThrow() ?: throw IllegalStateException("Not completed")

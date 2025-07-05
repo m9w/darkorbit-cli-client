@@ -43,7 +43,7 @@ open class ServerSidAuthenticationProvider(protected open val server: String, pr
             content.substringAfter("flashembed(").substringBefore(")")
                 .let { Gson().fromJson<List<Any>>("[$it]", List::class.java)[2] as Map<String, Any> }
         else "userID\":\"(\\d+)\",\"instanceID\":\"(\\d+)".toRegex().find(content)
-                ?.let {mapOf("userID" to it.groupValues[1], "pid" to it.groupValues[2], "sessionID" to sid)}
-                ?: throw RuntimeException("Identifiers not found")
+                ?.let { mapOf("userID" to it.groupValues[1], "pid" to it.groupValues[2], "sessionID" to sid) }
+                ?: throw RuntimeException("Identifiers not found $content")
     }
 }

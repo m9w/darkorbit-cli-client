@@ -7,7 +7,7 @@ import kotlin.lazy
 class ExternalAuthenticationProvider(private val login: String, private val password: String) : ServerSidAuthenticationProvider("", "") {
     private val serverSidPair by lazy {
         Http(System.getenv("external_login_endpoint"), "POST")
-            .setParams("username" to login.take(20), "password" to password.take(45))
+            .setParams("username" to login, "password" to password)
             .connect.asJson<Map<String, String>>()
             .let { it["domain"]!!.substringBefore(".") to it["sid"]!! }
     }

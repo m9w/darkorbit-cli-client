@@ -6,6 +6,7 @@ import com.github.m9w.client.auth.AuthenticationProvider
 import com.github.m9w.client.network.NetworkLayer
 import com.github.m9w.context
 import com.github.m9w.feature.annotations.SystemEvents
+import com.github.m9w.feature.waitMs
 import com.github.m9w.metaplugins.proxy.ProxyModule
 import com.github.m9w.optionalContext
 import com.github.m9w.protocol.Factory
@@ -37,10 +38,21 @@ class GameEngine() {
         }
     }
 
-    fun disconnect(reconnect: Boolean = false) {
-        state = if(reconnect) State.NOT_CONNECTED else State.STOPED
-        if (!reconnect) proxy?.releaseProxy()
+    fun disconnect() {
+        proxy?.releaseProxy()
         network.close()
+        state = State.STOPED
+    }
+
+    suspend fun reconnect(reconnectInMs: Long = 0, keepProxy: Boolean = false) {
+        network.close()
+        if (reconnectInMs > 0) {
+            if (!keepProxy) proxy?.releaseProxy()
+            network.close()
+            state = State.STOPED
+            waitMs(reconnectInMs)
+        }
+        state = State.NOT_CONNECTED
     }
 
     fun handleEvent(event: String, body: String = "") = scheduler.handleEvent(event, body)

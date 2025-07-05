@@ -12,6 +12,7 @@ import com.github.m9w.protocol.ProtocolParser
 import com.github.m9w.feature.waitOnPackage
 import com.github.m9w.metaplugins.proxy.ProxyModule
 import com.github.m9w.optionalContext
+import java.io.InterruptedIOException
 
 @Suppress("unused")
 class LoginModule(val type: Type = Type.UNITY) {
@@ -29,7 +30,12 @@ class LoginModule(val type: Type = Type.UNITY) {
             gameEngine.send<VersionRequest> { version = ProtocolParser.getVersion() }
         }
         if (versionCommand.equal) {
-            val status = gameLogin()
+            val status = try {
+                gameLogin()
+            } catch (e: InterruptedIOException) {
+                proxy?.degradationReport()
+                gameEngine.reconnect(5000)
+            }
             if (unsuccessfulLoginCount > 0) println("Connection error: $status")
         } else {
             gameEngine.disconnect()
@@ -43,7 +49,7 @@ class LoginModule(val type: Type = Type.UNITY) {
     private suspend fun gameLogin(delayBefore: Long = 0): LoginResponseStatus {
         gameEngine.cancelWaitMs("LoginModule_gameLogin")
         delayBefore.takeIf { it > 0 }?.let { waitMs(it, "LoginModule_gameLogin") }
-        val loginResponse = waitOnPackage<LoginResponse> {
+        val loginResponse = waitOnPackage<LoginResponse>(timeout = 10000) {
             gameEngine.send<LoginRequest> {
                 userID = authentication.userID
                 sessionID = authentication.sessionID
@@ -59,10 +65,10 @@ class LoginModule(val type: Type = Type.UNITY) {
             LoginResponseStatus.ShuttingDown,
             LoginResponseStatus.WrongServer,
             LoginResponseStatus.PlayerIsLoggedOut,
-            LoginResponseStatus.InvalidSessionId -> gameEngine.disconnect(true)
+            LoginResponseStatus.InvalidSessionId -> gameEngine.reconnect()
             LoginResponseStatus.InvalidData -> return gameLogin(1000)
-            LoginResponseStatus.WrongInstanceId,
-            LoginResponseStatus.IPRestricted -> { proxy?.ipRestricted(); gameEngine.disconnect() }
+            LoginResponseStatus.IPRestricted -> { proxy?.ipRestricted(); gameEngine.reconnect() }
+            LoginResponseStatus.WrongInstanceId -> gameEngine.disconnect()
         }
         return loginResponse.status
     }
@@ -71,7 +77,7 @@ class LoginModule(val type: Type = Type.UNITY) {
     private fun onInit(init: ShipInitializationCommand){
         gameEngine.send<ReadyRequest> { readyType = ReadyMessage.MAP_LOADED_2D }
         gameEngine.send<ReadyRequest> { readyType = ReadyMessage.UI_READY }
-        gameEngine.state = GameEngine.State.NORMAL
+        gameEngine.state = GameEngine.State.REPAIRING
     }
 
     @OnEvent(SystemEvents.ON_DISCONNECT)
@@ -95,8 +101,7 @@ class LoginModule(val type: Type = Type.UNITY) {
     @OnPackage
     suspend fun onRelogin(l: ReloginCommand) {
         authentication.mapId = l.mapID
-        if ( l.delayInMillis > 0 ) waitMs(l.delayInMillis.toLong())
         gameEngine.send<ChannelCloseRequest> { close = true }
-        gameEngine.disconnect(true)
+        gameEngine.reconnect(l.delayInMillis.toLong(), true)
     }
 }

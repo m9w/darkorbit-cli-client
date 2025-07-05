@@ -37,7 +37,7 @@ class HttpProxyModule() : ProxyModule {
     }
 
     override fun degradationReport() {
-        if (ProxyPool.degradationReport(proxy)) proxy = null
+        proxy?.let { if (ProxyPool.degradationReport(it)) proxy = null }
     }
 
     override fun ipRestricted() = ProxyPool.ipRestricted(proxy).also { proxy = null }

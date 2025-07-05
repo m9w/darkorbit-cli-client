@@ -175,7 +175,7 @@ class EntitiesDebugUiModule(private val block: (AuthenticationProvider, Any) -> 
             val frame = JFrame("Controls")
             frame.pack()
             frame.setLocationRelativeTo(null)
-            frame.setSize(250, 524)
+            frame.setSize(300, 550)
             val panel = JPanel()
             panel.setLayout(BoxLayout(panel, BoxLayout.Y_AXIS))
             panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10))

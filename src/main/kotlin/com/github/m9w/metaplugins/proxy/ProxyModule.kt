@@ -7,6 +7,7 @@ import java.nio.channels.AsynchronousSocketChannel
 
 interface ProxyModule : Classifier<ProxyModule> {
     fun performConnect(channel: AsynchronousSocketChannel, address: InetSocketAddress)
+    fun degradationReport()
     fun releaseProxy()
     fun ipRestricted()
 }

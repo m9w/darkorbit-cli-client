@@ -31,9 +31,13 @@ class HttpProxyModule() : ProxyModule {
             val statusLine = rawResponse.lineSequence().firstOrNull() ?: throw RuntimeException("Invalid proxy response: no status line")
             if (!statusLine.contains("200")) throw RuntimeException("Proxy CONNECT failed: $statusLine")
         } catch (t: Throwable) {
-            if (ProxyPool.degradationReport(proxy)) proxy = null
+            degradationReport()
             throw t
         }
+    }
+
+    override fun degradationReport() {
+        if (ProxyPool.degradationReport(proxy)) proxy = null
     }
 
     override fun ipRestricted() = ProxyPool.ipRestricted(proxy).also { proxy = null }

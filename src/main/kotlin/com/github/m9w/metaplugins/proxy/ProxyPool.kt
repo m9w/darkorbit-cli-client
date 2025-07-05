@@ -32,7 +32,7 @@ object ProxyPool {
             }
         }
         return proxies.filter { it.value.connections < 5 && it.value.degradationLevel < DEGRADATION_THRESHOLD }
-            .minByOrNull { it.value.connections }
+            .minByOrNull { it.value.connections * 100 + it.value.degradationLevel }
             ?.also { it.value.connections++ }
             ?.key ?: throw RuntimeException("No proxy available")
     }

@@ -23,13 +23,18 @@ class GameEngine() {
     }
 
     fun connect() {
-        state = State.NOT_CONNECTED
-        network.onDisconnect = {}
-        network.close()
-        network = NetworkLayer(authentication.address, proxy)
-        network.onPackageHandler = scheduler::handleEvent
-        network.onDisconnect = { handleEvent(SystemEvents.ON_DISCONNECT) }
-        handleEvent(SystemEvents.ON_CONNECT)
+        try {
+            state = State.NOT_CONNECTED
+            network.onDisconnect = {}
+            network.close()
+            network = NetworkLayer(authentication.address, proxy)
+            network.onPackageHandler = scheduler::handleEvent
+            network.onDisconnect = { handleEvent(SystemEvents.ON_DISCONNECT) }
+            handleEvent(SystemEvents.ON_CONNECT)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            handleEvent(SystemEvents.ON_DISCONNECT)
+        }
     }
 
     fun disconnect(reconnect: Boolean = false) {

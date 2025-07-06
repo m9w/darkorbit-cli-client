@@ -15,7 +15,7 @@ class BasicRepairModule {
     @OnPackage
     private suspend fun mapUpdate(screen: KillScreenPostCommand) {
         waitMs(1000)
-        if(gameEngine.state != GameEngine.State.DESTROYED) return
+        // if(gameEngine.state != GameEngine.State.DESTROYED) return
         gameEngine.send<KillScreenRepairRequest> {
             selection = screen.options[0].repairType
             requestModule = requestModule.apply {

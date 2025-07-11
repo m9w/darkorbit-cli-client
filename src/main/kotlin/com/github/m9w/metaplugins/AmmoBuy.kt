@@ -10,7 +10,7 @@ import com.github.m9w.feature.annotations.OnPackage
 
 class AmmoBuy {
     private val gameEngine: GameEngine by context
-
+    // Only x1
     @OnPackage
     fun checkammo(event: InventoryItemUpdatedCommand) {
         val item = event.item

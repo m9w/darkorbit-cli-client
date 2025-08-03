@@ -6,6 +6,7 @@ import com.github.m9w.feature.timePrefix
 import com.github.m9w.metaplugins.proxy.ProxyModule
 import io.ktor.utils.io.charsets.Charset
 import io.netty.buffer.ByteBuf
+import io.netty.buffer.ByteBufUtil
 import io.netty.buffer.PooledByteBufAllocator
 import io.netty.buffer.Unpooled
 import io.netty.handler.codec.base64.Base64
@@ -13,6 +14,7 @@ import java.io.Closeable
 import java.net.InetSocketAddress
 import java.nio.channels.AsynchronousSocketChannel
 import java.nio.channels.CompletionHandler
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -89,9 +91,8 @@ class NetworkLayer(address: InetSocketAddress = InetSocketAddress(0), proxyModul
                 } catch (e: Exception) {
                     if (debug) {
                         buf.resetReaderIndex()
-                        println("!>Protocol parser cannot parse sequence (${buf.readableBytes()}) ${Base64.encode(buf).toString(Charset.defaultCharset())} by reason ${e.message}")
+                        println("!>Protocol parser cannot parse sequence (${buf.readableBytes()}) ${ByteBufUtil.hexDump(buf).uppercase()} by reason ${e.message}")
                     }
-                    close()
                 } finally {
                     buf.release()
                 }
@@ -113,7 +114,7 @@ class NetworkLayer(address: InetSocketAddress = InetSocketAddress(0), proxyModul
     }
 
     companion object {
-        var debug = true
+        var debug = false
         private val pool = PooledByteBufAllocator(true)
         private val metric = pool.metric()
         val memoryUsage: Long get() = metric.usedDirectMemory()

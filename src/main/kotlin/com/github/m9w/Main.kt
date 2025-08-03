@@ -13,7 +13,7 @@ fun main() {
         Scheduler(GameEngine(),
             auth,
             cont,
-            LoginModule(LoginModule.Type.FLASH),
+            LoginModule(LoginModule.Type.UNITY),
             //HttpProxyModule(),
             BasicRepairModule(),
             PingModule(),

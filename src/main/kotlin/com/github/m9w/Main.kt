@@ -14,7 +14,7 @@ fun main() {
             auth,
             cont,
             LoginModule(LoginModule.Type.FLASH),
-            HttpProxyModule(),
+            //HttpProxyModule(),
             BasicRepairModule(),
             PingModule(),
             EntitiesModule(),

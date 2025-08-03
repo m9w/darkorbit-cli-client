@@ -4,9 +4,11 @@ import com.darkorbit.ProtocolPacket
 import com.github.m9w.protocol.ProtocolParser
 import com.github.m9w.feature.timePrefix
 import com.github.m9w.metaplugins.proxy.ProxyModule
+import io.ktor.utils.io.charsets.Charset
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.PooledByteBufAllocator
 import io.netty.buffer.Unpooled
+import io.netty.handler.codec.base64.Base64
 import java.io.Closeable
 import java.net.InetSocketAddress
 import java.nio.channels.AsynchronousSocketChannel
@@ -84,7 +86,11 @@ class NetworkLayer(address: InetSocketAddress = InetSocketAddress(0), proxyModul
                     val parsed = ProtocolParser.deserialize(buf) ?: throw RuntimeException("Parsed object is null")
                     if (debug) println(">>$parsed")
                     onPackageHandler(parsed)
-                } catch (_: Exception) {
+                } catch (e: Exception) {
+                    if (debug) {
+                        buf.resetReaderIndex()
+                        println("!>Protocol parser cannot parse sequence (${buf.readableBytes()}) ${Base64.encode(buf).toString(Charset.defaultCharset())} by reason ${e.message}")
+                    }
                     close()
                 } finally {
                     buf.release()
@@ -107,7 +113,7 @@ class NetworkLayer(address: InetSocketAddress = InetSocketAddress(0), proxyModul
     }
 
     companion object {
-        var debug = false
+        var debug = true
         private val pool = PooledByteBufAllocator(true)
         private val metric = pool.metric()
         val memoryUsage: Long get() = metric.usedDirectMemory()

@@ -40,7 +40,7 @@ class Http(private val baseUrl: String, val method: String = "GET", private val 
      * Equivalent to [HttpURLConnection.setRequestProperty]
      */
     fun setHeaders(vararg headers: Pair<String, String>): Http {
-        headers.forEach { this.headers.put(encode(it.first), encode(it.second)) }
+        headers.forEach { (key, value) -> this.headers.put(encode(key), encode(value)) }
         return this
     }
 
@@ -49,7 +49,7 @@ class Http(private val baseUrl: String, val method: String = "GET", private val 
      * Equivalent to [HttpURLConnection.setRequestProperty]
      */
     fun setRawHeaders(vararg rawHeaders: Pair<String, String>): Http {
-        rawHeaders.forEach { headers.put(it.first, it.second) }
+        rawHeaders.forEach { (key, value) -> headers.put(key, value) }
         return this
     }
 
@@ -61,7 +61,7 @@ class Http(private val baseUrl: String, val method: String = "GET", private val 
      * Is encoded via [java.net.URLEncoder.encode]
      */
     fun setParams(vararg params: Pair<Any, Any>): Http {
-        params.forEach { bodyHolder.setParam(it.first, it.second) }
+        params.forEach { (key, value) -> bodyHolder.setParam(key, value) }
         return this
     }
 
@@ -71,7 +71,7 @@ class Http(private val baseUrl: String, val method: String = "GET", private val 
      * Be aware, this wont be encoded via [java.net.URLEncoder.encode]
      */
     fun setRawParams(vararg rawParams: Pair<Any, Any>): Http {
-        rawParams.forEach { bodyHolder.setRawParam(it.first, it.second) }
+        rawParams.forEach { (key, value) -> bodyHolder.setRawParam(key, value) }
         return this
     }
 

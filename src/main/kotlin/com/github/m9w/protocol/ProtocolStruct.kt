@@ -1,6 +1,7 @@
 package com.github.m9w.protocol
 
 import com.darkorbit.ProtocolPacket
+import com.github.m9w.util.ResourceUtil
 import com.google.gson.Gson
 import java.util.Collections
 import kotlin.arrayOf
@@ -13,7 +14,7 @@ class ProtocolStruct() {
     var hash: String = ""; private set
 
     init {
-        load(String(ProtocolStruct::class.java.classLoader.resources("darkorbit-protocol.json").findFirst().get().openStream().readAllBytes()))
+        load(ResourceUtil["darkorbit-protocol.json"])
     }
 
     fun load(structJson: String) {

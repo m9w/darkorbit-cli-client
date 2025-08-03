@@ -189,8 +189,8 @@ class EntitiesDebugUiModule(private val block: (AuthenticationProvider, Any) -> 
             buttonI("Server + SID") { InputDialog(frame, "Server", "SID") {
                 block(AuthenticationProvider.byServerSid(this["Server"]!!, this["SID"]!!), InnerModule())
             } }
-            buttonI("External login") { InputDialog(frame, "Login", "Password") {
-                block(AuthenticationProvider.byLoginPasswordExternal(this["Login"]!!, this["Password"]!!), InnerModule())
+            buttonI("External login") { InputDialog(frame, "Login") {
+                block(AuthenticationProvider.byLoginExternal(this["Login"]!!), InnerModule())
             } }
             panel.addWithPadding(instanceSelector.center)
             panel.addWithPadding(JButton("Disconnect selected").center.apply { addActionListener { (instanceSelector.selectedItem as? InnerModule)?.apply {

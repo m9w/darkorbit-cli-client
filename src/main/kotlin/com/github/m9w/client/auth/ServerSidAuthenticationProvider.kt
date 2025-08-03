@@ -21,7 +21,7 @@ open class ServerSidAuthenticationProvider(protected open val server: String, pr
     final override val host get() = loginParams["host"]?.toString() ?: "https://$server.darkorbit.com"
     final override val sessionID get() = loginParams["sessionID"]?.toString() ?: throw RuntimeException("SessionID is null")
     final override val userID: Int get() = loginParams["userID"]?.toString()?.toInt() ?: throw RuntimeException("User is null")
-    final override val instanceId: Int get() = loginParams["pid"]?.toString()?.toInt() ?: throw RuntimeException("InstanceId is null")
+    final override val instanceId: Int get() = loginParams["pid"]?.toString()?.toDouble()?.toInt() ?: throw RuntimeException("InstanceId is null")
     final override var mapId: Int = -1; get() = if (field == -1) loginParams["mapID"]?.toString()?.toInt() ?: 1 else field
 
     private val getLastUnityVersion get() = Http("https://alicdn-oss-prod.darkorbit.com/vc/current.txt").connect.content

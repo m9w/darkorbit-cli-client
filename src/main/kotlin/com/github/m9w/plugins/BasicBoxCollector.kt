@@ -15,8 +15,9 @@ import com.github.m9w.metaplugins.game.entities.BoxImpl.Companion.name
 
 @Suppress("unused")
 open class BasicBoxCollector {
+    var enabled = true
     private val entities: EntitiesModule by context
-    protected val targetNames = mutableSetOf("BONUS_BOX", "SOLAR_CLASH")
+    protected val targetNames = mutableSetOf("ALIEN_EGG", "SOLAR_CLASH")
     private val targets: MutableMap<String, AddBoxCommand> = HashMap()
     private var best: AddBoxCommand? = null
 
@@ -27,11 +28,11 @@ open class BasicBoxCollector {
     private fun boxCreate(event: AddBoxCommand) { if (targetNames.contains(event.name)) targets.put(event.hash, event).also { calcBest() } }
 
     @OnPackage
-    private fun boxRemove(event: RemoveCollectableCommand) { if (event.collected) removeHash(event.hash).also { calcBest() } }
+private fun boxRemove(event: RemoveCollectableCommand) { if (event.collected) removeHash(event.hash).also { calcBest() } }
 
     @Repeat(100)
     private fun calcBest() {
-        if (entities.gameEngine.state != GameEngine.State.NORMAL) return
+        if (!enabled || entities.gameEngine.state != GameEngine.State.NORMAL) return
         best = targets.values.minByOrNull { entities.hero.position.distanceTo(it.x to it.y) }
         if (best == null && !entities.hero.isMoving) entities.hero.moveRandom()
         val best = best ?: return

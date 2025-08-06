@@ -1,0 +1,105 @@
+[Fri Aug 01 14:46:11 CEST 2025] Connected to 170.33.12.50:6004
+<<VersionRequest{version=157f7f332faf880f2a844e5cb6dc8b97}
+>>VersionCommand{equal=true, version=157f7f332faf880f2a844e5cb6dc8b97}
+<<LoginRequest{instanceId=22, isMiniClient=true, sessionID=8b87d35eef0ae5c954dfa978ffffd1c3, userID=170671550}
+>>LegacyModule{message=0|A|c|1600}
+>>EnergyUpdateCommand{maxCaptainEnergy=0, captainEnergyDrain=0, currentCaptainEnergy=0}
+>>PlayerUpdateCommand{updates=[RaidGateGameStageModule{gameStage=0, isInGate=false}]}
+>>LegacyModule{message=0|A|BKBB|0}
+>>LegacyModule{message=0|A|BKS|0}
+>>LegacyModule{message=0|A|BKB|0}
+>>LegacyModule{message=0|A|BKRET|0}
+>>LegacyModule{message=0|A|BKA|0}
+>>LegacyModule{message=0|A|BKM|0}
+>>LegacyModule{message=0|A|BKLL|0}
+>>LegacyModule{message=0|A|BKBLC|0}
+>>LegacyModule{message=0|A|BKEG|0}
+>>LegacyModule{message=0|A|BKEP|0}
+>>LegacyModule{message=0|A|BKP|0}
+>>LegacyModule{message=0|A|BKRET|0}
+>>LegacyModule{message=0|A|BKEB|0}
+>>LegacyModule{message=0|A|BKAP|0}
+>>LegacyModule{message=0|A|BKPG|0}
+>>LegacyModule{message=0|A|BKER|0}
+>>LegacyModule{message=0|A|BKE|0}
+>>LegacyModule{message=0|A|BKPR|0}
+>>LegacyModule{message=0|A|BKR|0}
+>>LegacyModule{message=0|A|BKBLD|0}
+>>LegacyModule{message=0|A|BK|12}
+>>LegacyModule{message=0|A|BKL|0}
+>>ChrominUpdateCommand{currentAmt=0, maxAmt=160000}
+>>LegacyModule{message=0|TR}
+>>HintWindowListInitCommand{windows=[HintWindowModule{content=MOTIVATIONAL_SURVEY}, HintWindowModule{content=SECOND_CONFIGURATION}, HintWindowModule{content=HOW_TO_FLY}, HintWindowModule{content=ROCKET_LAUNCHER}, HintWindowModule{content=REQUEST_MISSION}, HintWindowModule{content=AUCTION_HOUSE}, HintWindowModule{content=TECH_FACTORY}, HintWindowModule{content=SKILL_TREE}, HintWindowModule{content=GALAXY_GATE}, HintWindowModule{content=EXTRA_CPU}, HintWindowModule{content=CONTACT_LIST}, HintWindowModule{content=ORE_TRANSFER}]}
+>>ShipInitializationCommand{shield=150000, useSystemFont=true, cargoSpace=1600, modifier=[], speed=248, captainEnergy=0, nanoHull=0, maxCaptainEnergy=0, refreshMap=true, premium=false, credits=64392303, jackpot=0.0, hitPoints=1000, factionId=2, shieldMax=150000, clanId=0, hitMax=356000, level=14, ep=71768848, userName=Casyn2, userId=170671550, uridium=1016, cloaked=false, dailyRank=4, cargoSpaceMax=1600, maxNanoHull=356000, x=18275, honourPoints=383753, y=2050, typeId=ship_venom, mapId=5, clanTag=, galaxyGatesDone=0, expansionStage=3}
+>>LegacyModule{message=0|A|CC|2}
+>>CPUInitializationCommand{advancedJumpCPUEquipped=false, radarCPUEquipped=false}
+<<ReadyRequest{readyType=MAP_LOADED_3D}
+>>AttributeOreCountUpdateCommand{oreCountList=[OreCountModule{count=11421, oreType=OreTypeModule{typeValue=XENOMIT}}]}
+>>LegacyModule{message=0|n|INV|170671550|0}
+>>DroneFormationChangeCommand{uid=170671550, selectedFormationId=0}
+<<ReadyRequest{readyType=UI_READY}
+>>LegacyModule{message=0|S|CFG|1}
+<<POIReadyCommand{}
+>>AttributeBoosterUpdateCommand{boostedDetailsUpdate=[BoosterPlayerDetailModule{secondsLeft=3948, lootId=booster_npc-b01}], boostedDetailsRemove=[], boostedAttributes=[BoosterUpdateModule{value=0.0, attributeType=ABILITY_COOLDOWN_TIME}, BoosterUpdateModule{value=0.0, attributeType=COLLECT_RESOURCES}, BoosterUpdateModule{value=0.0, attributeType=COLLECT_RESOURCES_NEWBIE}, BoosterUpdateModule{value=0.0, attributeType=EXPERIENCE_POINTS}, BoosterUpdateModule{value=0.0, attributeType=HITPOINTS}, BoosterUpdateModule{value=0.0, attributeType=HONOUR_POINTS}, BoosterUpdateModule{value=0.0, attributeType=DAMAGE}, BoosterUpdateModule{value=0.0, attributeType=REPAIR}, BoosterUpdateModule{value=0.0, attributeType=SHIELD}, BoosterUpdateModule{value=0.0, attributeType=SHIELD_REGENERATION}]}
+>>BeaconCommand{inPeaceArea=true, inRadiationZone=false, repairRobotActive=false, positionAheadY=2050, positionAheadX=18275, positionX=18275, positionY=2050, repairRobotLootId=equipment_extra_repbot_rep-2, repairBotSkilled=false, nearJumpGate=false, inStation=true, isAlarmEffectActive=false}
+>>LegacyModule{message=0|n|t|170671550|321|title_achievement_destroy_aliens-1}
+>>LegacyModule{message=0|A|JV|2}
+>>ShipUpgradeModuleUpdateCommand{moduleTypeIds=[], uid=170671550, max=3}
+>>DesignSetUpdateCommand{name=NONE, active=false, userId=170671550}
+>>DesignSetUpdateCommand{name=NONE, active=false, userId=170671550}
+>>DesignSetUpdateCommand{name=NONE, active=false, userId=170671550}
+>>LegacyModule{message=0|n|w|3}
+>>AssetCreateCommand{modifier=[], invisible=false, clanRelation=ClanRelationModule{type=NONE}, type=AssetTypeModule{typeValue=STATION_TURRET_SMALL_HOME}, userName=StationTurret_Small_6, posX=18843, posY=206, assetId=150000032, showBubble=true, designId=0, detectedByWarnRadar=true, clanTag=, factionId=2, visibleOnWarnRadar=false, expansionStage=0, clanId=0}
+>>AssetCreateCommand{modifier=[], invisible=false, clanRelation=ClanRelationModule{type=NONE}, type=AssetTypeModule{typeValue=STATION_TURRET_SMALL_HOME}, userName=StationTurret_Small_7, posX=19465, posY=261, assetId=150000033, showBubble=true, designId=0, detectedByWarnRadar=true, clanTag=, factionId=2, visibleOnWarnRadar=false, expansionStage=0, clanId=0}
+>>AssetCreateCommand{modifier=[], invisible=false, clanRelation=ClanRelationModule{type=NONE}, type=AssetTypeModule{typeValue=STATION_TURRET_SMALL_HOME}, userName=StationTurret_Small_8, posX=20032, posY=525, assetId=150000034, showBubble=true, designId=0, detectedByWarnRadar=true, clanTag=, factionId=2, visibleOnWarnRadar=false, expansionStage=0, clanId=0}
+>>AssetCreateCommand{modifier=[], invisible=false, clanRelation=ClanRelationModule{type=NONE}, type=AssetTypeModule{typeValue=STATION_TURRET_SMALL_HOME}, userName=StationTurret_Small_9, posX=20474, posY=967, assetId=150000035, showBubble=true, designId=0, detectedByWarnRadar=true, clanTag=, factionId=2, visibleOnWarnRadar=false, expansionStage=0, clanId=0}
+>>AssetCreateCommand{modifier=[], invisible=false, clanRelation=ClanRelationModule{type=NONE}, type=AssetTypeModule{typeValue=STATION_TURRET_SMALL_HOME}, userName=StationTurret_Small_10, posX=20738, posY=1534, assetId=150000036, showBubble=true, designId=0, detectedByWarnRadar=true, clanTag=, factionId=2, visibleOnWarnRadar=false, expansionStage=0, clanId=0}
+>>AssetCreateCommand{modifier=[], invisible=false, clanRelation=ClanRelationModule{type=NONE}, type=AssetTypeModule{typeValue=STATION_TURRET_SMALL_HOME}, userName=StationTurret_Small_11, posX=20793, posY=2156, assetId=150000037, showBubble=true, designId=0, detectedByWarnRadar=true, clanTag=, factionId=2, visibleOnWarnRadar=false, expansionStage=0, clanId=0}
+>>AssetCreateCommand{modifier=[], invisible=false, clanRelation=ClanRelationModule{type=NONE}, type=AssetTypeModule{typeValue=STATION_TURRET_SMALL_HOME}, userName=StationTurret_Small_12, posX=20631, posY=2760, assetId=150000038, showBubble=true, designId=0, detectedByWarnRadar=true, clanTag=, factionId=2, visibleOnWarnRadar=false, expansionStage=0, clanId=0}
+>>AssetCreateCommand{modifier=[], invisible=false, clanRelation=ClanRelationModule{type=NONE}, type=AssetTypeModule{typeValue=STATION_TURRET_SMALL_HOME}, userName=StationTurret_Small_13, posX=20272, posY=3272, assetId=150000039, showBubble=true, designId=0, detectedByWarnRadar=true, clanTag=, factionId=2, visibleOnWarnRadar=false, expansionStage=0, clanId=0}
+>>AssetCreateCommand{modifier=[], invisible=false, clanRelation=ClanRelationModule{type=NONE}, type=AssetTypeModule{typeValue=STATION_TURRET_SMALL_HOME}, userName=StationTurret_Small_14, posX=19760, posY=3631, assetId=150000040, showBubble=true, designId=0, detectedByWarnRadar=true, clanTag=, factionId=2, visibleOnWarnRadar=false, expansionStage=0, clanId=0}
+>>AssetCreateCommand{modifier=[], invisible=false, clanRelation=ClanRelationModule{type=NONE}, type=AssetTypeModule{typeValue=STATION_TURRET_SMALL_HOME}, userName=StationTurret_Small_15, posX=19156, posY=3793, assetId=150000041, showBubble=true, designId=0, detectedByWarnRadar=true, clanTag=, factionId=2, visibleOnWarnRadar=false, expansionStage=0, clanId=0}
+>>AssetCreateCommand{modifier=[], invisible=false, clanRelation=ClanRelationModule{type=NONE}, type=AssetTypeModule{typeValue=STATION_TURRET_SMALL_HOME}, userName=StationTurret_Small_16, posX=18534, posY=3738, assetId=150000042, showBubble=true, designId=0, detectedByWarnRadar=true, clanTag=, factionId=2, visibleOnWarnRadar=false, expansionStage=0, clanId=0}
+>>AssetCreateCommand{modifier=[], invisible=false, clanRelation=ClanRelationModule{type=NONE}, type=AssetTypeModule{typeValue=COMPANY_HQ_HOME}, userName=HQ, posX=19000, posY=2000, assetId=150000043, showBubble=true, designId=0, detectedByWarnRadar=true, clanTag=, factionId=2, visibleOnWarnRadar=false, expansionStage=0, clanId=0}
+>>AssetCreateCommand{modifier=[], invisible=false, clanRelation=ClanRelationModule{type=NONE}, type=AssetTypeModule{typeValue=HANGAR_HOME}, userName=Hangar, posX=19000, posY=3080, assetId=150000044, showBubble=true, designId=0, detectedByWarnRadar=true, clanTag=, factionId=2, visibleOnWarnRadar=false, expansionStage=0, clanId=0}
+>>AssetCreateCommand{modifier=[], invisible=false, clanRelation=ClanRelationModule{type=NONE}, type=AssetTypeModule{typeValue=INSTANT_REPAIR_HOME}, userName=RepairDock, posX=20080, posY=2000, assetId=150000045, showBubble=true, designId=0, detectedByWarnRadar=true, clanTag=, factionId=2, visibleOnWarnRadar=false, expansionStage=0, clanId=0}
+>>AssetCreateCommand{modifier=[], invisible=false, clanRelation=ClanRelationModule{type=NONE}, type=AssetTypeModule{typeValue=ORE_TRADE_HOME}, userName=OreTrade, posX=19000, posY=920, assetId=150000046, showBubble=true, designId=0, detectedByWarnRadar=true, clanTag=, factionId=2, visibleOnWarnRadar=false, expansionStage=0, clanId=0}
+>>AssetCreateCommand{modifier=[], invisible=false, clanRelation=ClanRelationModule{type=NONE}, type=AssetTypeModule{typeValue=QUESTGIVER}, userName=Reginald Crowley, posX=17920, posY=1999, assetId=150000024, showBubble=true, designId=6, detectedByWarnRadar=true, clanTag=, factionId=0, visibleOnWarnRadar=false, expansionStage=0, clanId=0}
+>>AssetCreateCommand{modifier=[], invisible=false, clanRelation=ClanRelationModule{type=NONE}, type=AssetTypeModule{typeValue=STATION_TURRET_LARGE_HOME}, userName=StationTurret_Large_1, posX=17967, posY=3474, assetId=150000025, showBubble=true, designId=0, detectedByWarnRadar=true, clanTag=, factionId=2, visibleOnWarnRadar=false, expansionStage=0, clanId=0}
+>>AssetCreateCommand{modifier=[], invisible=false, clanRelation=ClanRelationModule{type=NONE}, type=AssetTypeModule{typeValue=STATION_TURRET_LARGE_HOME}, userName=StationTurret_Large_2, posX=17525, posY=3032, assetId=150000026, showBubble=true, designId=0, detectedByWarnRadar=true, clanTag=, factionId=2, visibleOnWarnRadar=false, expansionStage=0, clanId=0}
+>>AssetCreateCommand{modifier=[], invisible=false, clanRelation=ClanRelationModule{type=NONE}, type=AssetTypeModule{typeValue=STATION_TURRET_SMALL_HOME}, userName=StationTurret_Small_1, posX=17261, posY=2465, assetId=150000027, showBubble=true, designId=0, detectedByWarnRadar=true, clanTag=, factionId=2, visibleOnWarnRadar=false, expansionStage=0, clanId=0}
+>>AssetCreateCommand{modifier=[], invisible=false, clanRelation=ClanRelationModule{type=NONE}, type=AssetTypeModule{typeValue=STATION_TURRET_SMALL_HOME}, userName=StationTurret_Small_2, posX=17206, posY=1843, assetId=150000028, showBubble=true, designId=0, detectedByWarnRadar=true, clanTag=, factionId=2, visibleOnWarnRadar=false, expansionStage=0, clanId=0}
+>>AssetCreateCommand{modifier=[], invisible=false, clanRelation=ClanRelationModule{type=NONE}, type=AssetTypeModule{typeValue=STATION_TURRET_SMALL_HOME}, userName=StationTurret_Small_3, posX=17368, posY=1239, assetId=150000029, showBubble=true, designId=0, detectedByWarnRadar=true, clanTag=, factionId=2, visibleOnWarnRadar=false, expansionStage=0, clanId=0}
+>>AssetCreateCommand{modifier=[], invisible=false, clanRelation=ClanRelationModule{type=NONE}, type=AssetTypeModule{typeValue=STATION_TURRET_SMALL_HOME}, userName=StationTurret_Small_4, posX=17727, posY=727, assetId=150000030, showBubble=true, designId=0, detectedByWarnRadar=true, clanTag=, factionId=2, visibleOnWarnRadar=false, expansionStage=0, clanId=0}
+>>AssetCreateCommand{modifier=[], invisible=false, clanRelation=ClanRelationModule{type=NONE}, type=AssetTypeModule{typeValue=STATION_TURRET_SMALL_HOME}, userName=StationTurret_Small_5, posX=18239, posY=368, assetId=150000031, showBubble=true, designId=0, detectedByWarnRadar=true, clanTag=, factionId=2, visibleOnWarnRadar=false, expansionStage=0, clanId=0}
+>>QuestGiversAvailableCommand{questGivers=[QuestGiverModule{toolTip=MessageKeyListWildcardCommand{commandList=[MessageKeyListWildcardModule{wildCardReplacements=[], baseKey=ttip_quest_giver_company, baseKeyType=ReplacementTypeModule{typeValue=LOCALIZED}, textStyle=STANDARD}]}, mapObjectId=150000024, questGiverId=1}]}
+>>EquipReadyCommand{ready=true}
+>>PetInitializationCommand{petIsAlive=false, hasPet=true, hasFuel=true}
+>>PetUIRepairButtonCommand{enabled=true, repairCosts=70}
+>>ShipCreateCommand{warnBox=false, npc=false, useSystemFont=true, modifier=[VisualModifierCommand{additionalAttribute=, modifier=LASERS_CHARGED, count=1, attribute=0, userId=40661774, activated=true}], specialNpcType=, userName=-»　Ꝺtɑƞ　«-, userId=40661774, designSet=, cloaked=false, motherShipId=0, dailyRank=11, clanDiplomacy=ClanRelationModule{type=NONE}, minimapStrategyModule=MinimapStrategyModule{minimapStrategy=DEFAULT}, x=18058, y=2991, typeId=ship_goliath-plus_design_goliath-plus-dreadwing, clanTag=, factionId=2, galaxyGatesDone=127, positionIndex=0, expansionStage=3, clanId=0}
+>>LegacyModule{message=0|n|t|40661774|15|portal_guard}
+>>LegacyModule{message=0|n|d|40661774|14|2|6|2|142|2|6|2|142|2|6|2|142|2|6|2|142|4|6|2|142|2|6|2|142|3|6|2|142|2|6|2|142|2|6|2|142|2|6|2|142}
+>>InvitationBlockModule{active=false}
+>>ShipUpgradeModuleUpdateCommand{moduleTypeIds=[4, 3, 1, 2], uid=40661774, max=4}
+>>ShipCreateCommand{warnBox=false, npc=false, useSystemFont=true, modifier=[], specialNpcType=, userName=.nyx., userId=173303152, designSet=, cloaked=false, motherShipId=0, dailyRank=1, clanDiplomacy=ClanRelationModule{type=NONE}, minimapStrategyModule=MinimapStrategyModule{minimapStrategy=DEFAULT}, x=17766, y=2245, typeId=ship_diminisher_design_diminisher-expo2016, clanTag=, factionId=2, galaxyGatesDone=0, positionIndex=0, expansionStage=3, clanId=0}
+>>LegacyModule{message=0|n|t|173303152|325|title_achievement_collect_credits-1}
+>>LegacyModule{message=0|n|d|173303152|15|2|6|0|169|2|5|0|0|2|6|0|0|2|5|0|0|2|5|0|0}
+>>ShipUpgradeModuleUpdateCommand{moduleTypeIds=[], uid=173303152, max=3}
+>>PetActivationCommand{petFactionId=2, petId=110062459, isVisible=true, ownerId=173303152, petLevel=6, petName=Whiskey, isInIdleMode=false, clanRelationship=ClanRelationModule{type=NONE}, minimapStrategyModule=MinimapStrategyModule{minimapStrategy=DEFAULT}, x=17860, y=1964, petSpeed=464, clanTag=, expansionStage=3, petDesignId=379, petClanID=0}
+>>PetStatusCommand{petCurrentFuel=5006, petId=110062459, petExperiencePointsUntilNextLevel=2744000, petHitPointsMax=70000, petShieldEnergyNow=21200, petLevel=6, petHitPoints=3500, petName=Whiskey, petShieldEnergyMax=21200, petExperiencePoints=1736714, petMaxFuel=100000, petLootId=pet_designs_pet-diminisher-phantasm, petSpeed=464}
+>>ShipCreateCommand{warnBox=false, npc=false, useSystemFont=true, modifier=[VisualModifierCommand{additionalAttribute=, modifier=LASERS_CHARGED, count=1, attribute=0, userId=172532446, activated=true}], specialNpcType=, userName=CortezzPOLAND, userId=172532446, designSet=, cloaked=false, motherShipId=0, dailyRank=10, clanDiplomacy=ClanRelationModule{type=NONE}, minimapStrategyModule=MinimapStrategyModule{minimapStrategy=DEFAULT}, x=18465, y=1471, typeId=ship_solace-plus_design_solace-plus-enigma, clanTag=, factionId=2, galaxyGatesDone=127, positionIndex=0, expansionStage=3, clanId=0}
+>>LegacyModule{message=0|n|t|172532446|552|title_achievement_event_prosperous-gg_1}
+>>LegacyModule{message=0|n|d|172532446|15|2|6|1|182|2|6|1|182|2|6|1|182|2|6|1|182|2|6|1|182|2|6|1|182|3|6|1|182|2|6|1|182|4|6|1|182|2|6|1|182}
+>>ShipUpgradeModuleUpdateCommand{moduleTypeIds=[2, 1, 3, 4], uid=172532446, max=4}
+>>ShipCreateCommand{warnBox=false, npc=false, useSystemFont=true, modifier=[], specialNpcType=, userName=kupko05, userId=173303485, designSet=, cloaked=false, motherShipId=0, dailyRank=2, clanDiplomacy=ClanRelationModule{type=NONE}, minimapStrategyModule=MinimapStrategyModule{minimapStrategy=DEFAULT}, x=17853, y=1933, typeId=ship_g-enforcer, clanTag=, factionId=2, galaxyGatesDone=0, positionIndex=0, expansionStage=3, clanId=0}
+>>LegacyModule{message=0|n|t|173303485|321|title_achievement_destroy_aliens-1}
+>>LegacyModule{message=0|n|d|173303485|15|2|6|0|0|1|6|0|131|2|6|0|0|1|6|183|0|2|6|0|0|1|6|0|0|2|6|0|0}
+>>ShipUpgradeModuleUpdateCommand{moduleTypeIds=[], uid=173303485, max=3}
+>>HeroMoveCommand{x=18275, y=2050}
+>>AttributeOreCountUpdateCommand{oreCountList=[OreCountModule{count=11421, oreType=OreTypeModule{typeValue=XENOMIT}}]}
+>>AttributeOreCountUpdateCommand{oreCountList=[OreCountModule{count=11421, oreType=OreTypeModule{typeValue=XENOMIT}}]}
+>>LabUpdateItemCommand{itemsUpdatedInfo=[]}
+>>LegacyModule{message=0|8}
+>>EventUpdateCommand{utcTimeOffset=7200, activeCommands=[EventModule{id=24961, lang=all, type=PirateBootyGold, timeLeft=33224}, EventModule{id=24969, lang=all, type=BE_chrominrushjul2021, timeLeft=551624}, EventModule{id=24970, lang=all, type=GGDrop_EasterApr2025, timeLeft=206024}, EventModule{id=24971, lang=all, type=AlienEggs, timeLeft=206024}, EventModule{id=24972, lang=all, type=LucentAlienEggBootyBox, timeLeft=206024}, EventModule{id=24973, lang=all, type=VIPMerchantExchange, timeLeft=206024}, EventModule{id=24974, lang=all, type=BE_captainDec2022, timeLeft=206024}, EventModule{id=13582, lang=all, type=HideStartButton, timeLeft=170590425}, EventModule{id=24975, lang=all, type=BE_alienEggsEaster2025, timeLeft=206024}, EventModule{id=13135, lang=all, type=BE_instagram, timeLeft=797123625}, EventModule{id=24976, lang=all, type=BE_VIPMerchantExchange202504, timeLeft=206024}, EventModule{id=24977, lang=all, type=BE_OdysseusLaser2024, timeLeft=292424}, EventModule{id=24978, lang=all, type=BE_alienTechAll, timeLeft=465224}, EventModule{id=24979, lang=all, type=SeasonPass, timeLeft=7377224}, EventModule{id=24980, lang=all, type=Expedition, timeLeft=2625224}, EventModule{id=24981, lang=all, type=BE_DSE202505, timeLeft=2625224}, EventModule{id=24982, lang=all, type=BE_SeasonPass202508, timeLeft=7377224}, EventModule{id=10966, lang=all, type=BE_uridiumBank, timeLeft=13169565}, EventModule{id=3929, lang=all, type=emailVerify, timeLeft=775476825}, EventModule{id=13018, lang=all, type=BE_monthlyDeluxePack102020, timeLeft=164366024}, EventModule{id=13019, lang=all, type=MonthlyDeluxePack, timeLeft=164366024}, EventModule{id=10715, lang=all, type=BE_discord, timeLeft=428800425}, EventModule{id=24924, lang=all, type=ReturnOfHero, timeLeft=465224}, EventModule{id=17308, lang=all, type=RogueLiteJumpGate, timeLeft=218711624}, EventModule{id=24925, lang=all, type=BE_returnofhero202507, timeLeft=465224}, EventModule{id=11426, lang=all, type=NoDroneDamage, timeLeft=165095025}, EventModule{id=24932, lang=all, type=ChrominEvent, timeLeft=551624}, EventModule{id=10920, lang=all, type=UridiumBank, timeLeft=802087965}, EventModule{id=6761, lang=all, type=PixelatedRenderingSetting, timeLeft=778410825}, EventModule{id=24938, lang=all, type=DispatchDay, timeLeft=33224}, EventModule{id=19690, lang=all, type=NanoAurusEvent, timeLeft=245582024}, EventModule{id=2794, lang=all, type=SpecialCollectDistance, timeLeft=772366425}, EventModule{id=8114, lang=all, type=QuarantinZone, timeLeft=781607625}, EventModule{id=8116, lang=all, type=PlagueAlert2017SpawnPhase3, timeLeft=781607625}, EventModule{id=8117, lang=all, type=PlagueAlert2017SpawnPhase2, timeLeft=781607625}, EventModule{id=24950, lang=all, type=BE_dispatchDay, timeLeft=33224}, EventModule{id=24954, lang=all, type=deal_best-subscription, timeLeft=206024}, EventModule{id=24955, lang=all, type=BE_rnb_rework_202507, timeLeft=206024}, EventModule{id=24956, lang=all, type=PirateBootyRedAndBlue, timeLeft=206024}, EventModule{id=19708, lang=all, type=AllGatesSchism, timeLeft=245582024}, EventModule{id=10620, lang=all, type=Blacklight_TreasureNpc_Meta, timeLeft=802087965}], timestamp=1754052374070}
+>>PetGearSelectCommand{optionalParams=[0], gearType=PetGearTypeModule{typeValue=PASSIVE}}
+[Fri Aug 01 14:46:11 CEST 2025] Connected to 170.33.12.50:6004

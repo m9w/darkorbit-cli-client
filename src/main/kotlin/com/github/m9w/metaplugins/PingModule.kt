@@ -17,11 +17,15 @@ class PingModule {
     @Repeat(10_000, true)
     private suspend fun sendKeepAlive() {
         if (gameEngine.state.ordinal < 3 || gameEngine.state == GameEngine.State.STOPED) return
-        waitOnPackage<StayinAlive> (timeout = 15000) {
-            sentKeepAliveTime = System.currentTimeMillis()
-            gameEngine.send<KeepAlive> { MouseClick = Math.random() < 0.7 }
+        try {
+            waitOnPackage<StayinAlive>(timeout = 15000) {
+                sentKeepAliveTime = System.currentTimeMillis()
+                gameEngine.send<KeepAlive> { MouseClick = Math.random() < 0.7 }
+            }
+            pingList.add(System.currentTimeMillis() - sentKeepAliveTime)
+        } catch (e: Exception) {
+            println("[$timePrefix] Failed to receive a pong in time. (${e.message})")
         }
-        pingList.add(System.currentTimeMillis() - sentKeepAliveTime)
     }
 
     @Repeat(60_000)
@@ -30,7 +34,6 @@ class PingModule {
         if (gameEngine.state == GameEngine.State.STOPED) return
         if (ping != -1.0) return
         println("[$timePrefix] Watchdog restart - connection stuck")
-        gameEngine.connect()
     }
 
     override fun toString(): String = String.format("%.3f", ping)

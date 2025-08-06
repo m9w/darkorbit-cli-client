@@ -13,7 +13,7 @@ import com.github.m9w.protocol.Factory
 
 class GameEngine() {
     private val authentication: AuthenticationProvider by context
-    private val scheduler: Scheduler by context
+    val scheduler: Scheduler by context
     private val proxy: ProxyModule? by optionalContext
     val userIdAndSid get() = authentication.run { "$userID|$sessionID" }
     var network: NetworkLayer = NetworkLayer(); private set

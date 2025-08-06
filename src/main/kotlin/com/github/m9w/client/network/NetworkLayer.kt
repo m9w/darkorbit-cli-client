@@ -5,14 +5,17 @@ import com.github.m9w.protocol.ProtocolParser
 import com.github.m9w.feature.timePrefix
 import com.github.m9w.metaplugins.proxy.ProxyModule
 import io.netty.buffer.ByteBuf
+import io.netty.buffer.ByteBufUtil
 import io.netty.buffer.PooledByteBufAllocator
 import io.netty.buffer.Unpooled
 import java.io.Closeable
 import java.net.InetSocketAddress
 import java.nio.channels.AsynchronousSocketChannel
 import java.nio.channels.CompletionHandler
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+
 
 class NetworkLayer(address: InetSocketAddress = InetSocketAddress(0), proxyModule: ProxyModule? = null) : Closeable {
     private val client = AsynchronousSocketChannel.open()
@@ -84,8 +87,11 @@ class NetworkLayer(address: InetSocketAddress = InetSocketAddress(0), proxyModul
                     val parsed = ProtocolParser.deserialize(buf) ?: throw RuntimeException("Parsed object is null")
                     if (debug) println(">>$parsed")
                     onPackageHandler(parsed)
-                } catch (_: Exception) {
-                    close()
+                } catch (e: Exception) {
+                    if (debug) {
+                        buf.resetReaderIndex()
+                        println("!>Protocol parser cannot parse sequence (${buf.readableBytes()}) ${ByteBufUtil.hexDump(buf).uppercase()} by reason ${e.message}")
+                    }
                 } finally {
                     buf.release()
                 }

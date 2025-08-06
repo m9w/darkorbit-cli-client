@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="0e0aa288-f874-4881-b734-32e6e183cdb2" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/plugins/train.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/LICENSE" beforeDir="false" afterPath="$PROJECT_DIR$/LICENSE" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gradle.properties" beforeDir="false" afterPath="$PROJECT_DIR$/gradle.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.properties" beforeDir="false" afterPath="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gradlew" beforeDir="false" afterPath="$PROJECT_DIR$/gradlew" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gradlew.bat" beforeDir="false" afterPath="$PROJECT_DIR$/gradlew.bat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/Context.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/Context.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/EngineUtils.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/EngineUtils.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/Main.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/Main.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/PacketSniffer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/PacketSniffer.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/client/GameEngine.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/client/GameEngine.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/client/auth/AuthenticationProvider.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/client/auth/AuthenticationProvider.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/client/auth/ExternalAuthenticationProvider.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/client/auth/ExternalAuthenticationProvider.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/client/auth/LoginPasswordAuthenticationProvider.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/client/auth/LoginPasswordAuthenticationProvider.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/client/auth/ServerSidAuthenticationProvider.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/client/auth/ServerSidAuthenticationProvider.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/client/auth/StaticAuthenticationProvider.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/client/auth/StaticAuthenticationProvider.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/client/network/NetworkLayer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/client/network/NetworkLayer.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/feature/Classifier.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/feature/Classifier.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/feature/FeatureController.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/feature/FeatureController.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/feature/Future.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/feature/Future.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/feature/Http.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/feature/Http.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/feature/SchedulerEntity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/feature/SchedulerEntity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/feature/annotations/OnEvent.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/feature/annotations/OnEvent.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/feature/annotations/OnPackage.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/feature/annotations/OnPackage.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/feature/annotations/Repeat.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/feature/annotations/Repeat.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/feature/annotations/SystemEvents.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/feature/annotations/SystemEvents.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/feature/suspend/ExceptPacketException.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/feature/suspend/ExceptPacketException.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/feature/suspend/SuspendFlow.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/feature/suspend/SuspendFlow.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/AmmoBuy.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/BasicRepairModule.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/BasicRepairModule.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/EntitiesDebugUiModule.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/EntitiesDebugUiModule.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/EntitiesModule.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/EntitiesModule.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/LoginModule.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/LoginModule.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/MapModule.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/MapModule.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/MoveModule.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/MoveModule.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/PathTracerModule.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/PathTracerModule.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/PingModule.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/PingModule.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/game/GameMap.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/game/GameMap.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/game/HealthHolder.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/game/HealthHolder.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/game/PositionImpl.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/game/PositionImpl.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/game/entities/AssetImpl.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/game/entities/AssetImpl.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/game/entities/BoxImpl.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/game/entities/BoxImpl.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/game/entities/EntityImpl.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/game/entities/EntityImpl.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/game/entities/HeroPet.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/game/entities/HeroPet.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/game/entities/HeroShip.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/game/entities/HeroShip.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/game/entities/JumpgateImpl.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/game/entities/JumpgateImpl.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/game/entities/PetImpl.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/game/entities/PetImpl.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/game/entities/PoiImpl.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/game/entities/PoiImpl.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/game/entities/ShipImpl.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/game/entities/ShipImpl.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/proxy/HttpProxyModule.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/proxy/HttpProxyModule.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/proxy/ProxyModule.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/proxy/ProxyModule.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/proxy/ProxyPool.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/metaplugins/proxy/ProxyPool.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/monitor/UdpServer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/monitor/UdpServer.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/plugins/BasicBoxCollector.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/plugins/BasicBoxCollector.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/protocol/Factory.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/protocol/Factory.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/protocol/ProtocolParser.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/protocol/ProtocolParser.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/protocol/ProtocolStruct.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/protocol/ProtocolStruct.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/util/ProcessIdentifier.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/com/github/m9w/util/ProcessIdentifier.kt" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ExternalProjectsData">
+    <projectState path="$PROJECT_DIR$">
+      <ProjectState />
+    </projectState>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Kotlin Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;Tinoxy&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/Tinoxy/darkorbit-cli-client.git&quot;,
+    &quot;accountId&quot;: &quot;07d384ff-5dc7-4e86-afea-f8014cf8ebc5&quot;
+  }
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 1
+}</component>
+  <component name="ProjectId" id="30VYDmyqAEmHLY0FNbn5moEiDAB" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Gradle.Build darkorbit-cli-client.executor": "Run",
+    "Gradle.Download Sources.executor": "Run",
+    "Kotlin.MainKt.executor": "Run",
+    "Kotlin.PacketSnifferKt.executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "main",
+    "ignore.virus.scanning.warn.message": "true",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\SSpit\IdeaProjects\darkorbit-cli-client" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="MainKt" type="JetRunConfigurationType" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="com.github.m9w.MainKt" />
+      <module name="darkorbit-cli-client.main" />
+      <shortenClasspath name="NONE" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="JetRunConfigurationType">
+      <module name="darkorbit-cli-client" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
+      <module name="darkorbit-cli-client" />
+      <option name="filePath" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Kotlin.MainKt" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="0e0aa288-f874-4881-b734-32e6e183cdb2" name="Changes" comment="" />
+      <created>1753714090036</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1753714090036</updated>
+    </task>
+    <servers />
+  </component>
+</project>

@@ -15,6 +15,8 @@ class EntitiesModule(private val entities: MutableMap<Long, EntityImpl> = HashMa
     val pathTracer: PathTracerModule by context
     lateinit var hero: HeroShip; private set
 
+    fun isHeroInitialized(): Boolean = this::hero.isInitialized
+
     @OnPackage
     private fun onBoxCreate(box: AddBoxCommand) { BoxImpl(this, box).let { entities[it.id] = it } }
 

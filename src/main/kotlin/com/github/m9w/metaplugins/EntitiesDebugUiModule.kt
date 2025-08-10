@@ -17,9 +17,11 @@ import com.github.m9w.metaplugins.game.entities.*
 import java.awt.*
 import java.awt.event.*
 import java.util.*
+import com.github.m9w.plugins.NpcKiller
+import com.github.m9w.plugins.NpcKillerConfigDialog
 import javax.swing.*
 
-class EntitiesDebugUiModule(private val block: (AuthenticationProvider, Any) -> Unit) : JPanel(), Runnable {
+class EntitiesDebugUiModule(private val npcKiller: NpcKiller, private val block: (AuthenticationProvider, Any) -> Unit) : JPanel(), Runnable {
     private val instances: MutableSet<InnerModule> = HashSet()
     private val instance: InnerModule? get() = instances.run { find { it.selected } ?: firstOrNull() }
     private val instanceSelector = JComboBox<InnerModule>()
@@ -201,6 +203,7 @@ class EntitiesDebugUiModule(private val block: (AuthenticationProvider, Any) -> 
             button("Toggle network debug") { NetworkLayer.debug = !NetworkLayer.debug }
             button("Toggle config") { entities.hero.shipConfig = when (entities.hero.shipConfig) { 1 -> 2; 2 -> 1; else -> 1 } }
             button("Toggle PET") { entities.hero.pet?.deactivate() ?: entities.hero.enablePet() }
+            
             button("Set Normal Mode") { entities.gameEngine.state = GameEngine.State.NORMAL }
             button("Set Escaping Mode") { entities.gameEngine.state = GameEngine.State.ESCAPING }
             button("Set Traveling Mode") { entities.gameEngine.state = GameEngine.State.TRAVELING }
@@ -208,6 +211,15 @@ class EntitiesDebugUiModule(private val block: (AuthenticationProvider, Any) -> 
             buttonI("Set Escaping Mode for All") { instances.forEach { it.entities.gameEngine.state = GameEngine.State.ESCAPING } }
             buttonI("Set Traveling Mode for All") { instances.forEach { it.entities.gameEngine.state = GameEngine.State.TRAVELING } }
             buttonI("Show / Hide entity canvas") { entityCanvas.isVisible = !entityCanvas.isVisible }
+
+            val destinationMapField = JTextField(10)
+            panel.addWithPadding(JLabel("Destination Map:").center)
+            panel.addWithPadding(destinationMapField.center)
+            button("Start Map Travel") { mapTraveler.startTravel(destinationMapField.text) }
+            button("Stop Map Travel") { mapTraveler.stopTravel() }
+
+            buttonI("NPC Killer Config") { NpcKillerConfigDialog(frame, npcKiller).isVisible = true }
+
             panel.add(Box.createRigidArea(Dimension(0, 12000)))
             frame.contentPane = panel
             frame.isVisible = true
@@ -231,6 +243,8 @@ class EntitiesDebugUiModule(private val block: (AuthenticationProvider, Any) -> 
         val entities: EntitiesModule by context
         val scheduler: Scheduler by context
         val map: MapModule by context
+        val mapTraveler: com.github.m9w.plugins.MapTraveler by context
+        
         val key: String get() = "${auth.address}|${map.map.id}"
         var selected: Boolean = false; private set
         private var name = "Loading..."

@@ -1,6 +1,7 @@
 package com.github.m9w
 
 import com.github.m9w.feature.Classifier
+import com.github.m9w.plugins.NpcKiller
 import kotlin.reflect.KClass
 import kotlin.reflect.KClassifier
 import kotlin.reflect.KProperty
@@ -33,8 +34,10 @@ class Context() {
         private val ctx = ThreadLocal.withInitial { mutableMapOf<KClassifier, Any>() }
         fun findInContext(classifier: KClassifier): Any = ctx.get()[classifier] ?: throw ClassNotFoundException(classifier.toString())
         fun apply(context: Set<Any>) {
-            ctx.get().putAll(context.associateBy { (if (it is Classifier<*>) it.classifier else it::class) })
-            context.map { module -> module::class.declaredMemberProperties.filter { d -> context.any { (d.returnType.classifier as KClass<*>).isInstance(it) } }.map { it.apply { isAccessible = true }.getter.call(module) } }
+            val mutableContext = context.toMutableSet()
+            mutableContext.add(NpcKiller())
+            ctx.get().putAll(mutableContext.associateBy { (if (it is Classifier<*>) it.classifier else it::class) })
+            mutableContext.map { module -> module::class.declaredMemberProperties.filter { d -> mutableContext.any { (d.returnType.classifier as KClass<*>).isInstance(it) } }.map { it.apply { isAccessible = true }.getter.call(module) } }
         }
         inline fun <reified T : Any> get(): T = findInContext(T::class) as T
         fun clear() = ctx.remove()

@@ -18,6 +18,7 @@ import java.util.Locale
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
+
 class NetworkLayer(address: InetSocketAddress = InetSocketAddress(0), proxyModule: ProxyModule? = null) : Closeable {
     private val client = AsynchronousSocketChannel.open()
     private var isDisconnected = AtomicBoolean(false)

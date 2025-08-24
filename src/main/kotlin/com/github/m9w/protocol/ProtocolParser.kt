@@ -18,34 +18,31 @@ object ProtocolParser {
     fun getClass(name: String) = struct.getClass(name)
 
     fun deserialize(buffer: ByteBuf): ProtocolPacket? {
-        fun parseField(field: ProtocolStruct.ProtocolClass.ProtocolField): Any? {
+        fun ByteBuf.parseField(field: ProtocolStruct.ProtocolClass.ProtocolField): Any? {
             return when {
                 field.isList -> {
-                    val len = if (field.listLengthSize == 2) buffer.readUnsignedShort() else buffer.readUnsignedByte().toInt()
+                    val len = if (field.listLengthSize == 2) readUnsignedShort() else readUnsignedByte().toInt()
                     List(len) { parseField(field.getSubType(it)) }
                 }
-                field.isBoolean -> buffer.readByte() != 0.toByte()
-                field.isEnum -> field.getEnum(buffer.readUnsignedShort())
-                field.isFloat -> buffer.readFloat()
-                field.isDouble -> buffer.readDouble()
-                field.isString -> {
-                    val x= buffer.readBytes(buffer.readUnsignedShort())
-                    try { x.toString(Charsets.UTF_8) } finally { x.release() }
-                }
+                field.isBoolean -> readByte() != 0.toByte()
+                field.isEnum -> field.getEnum(readUnsignedShort())
+                field.isFloat -> readFloat()
+                field.isDouble -> readDouble()
+                field.isString -> readCharSequence(readUnsignedShort(), Charsets.UTF_8).toString()
                 field.isInt -> when (field.intLength) {
-                    8 -> buffer.readByte().rotateRight(field.intShift)
-                    16 -> buffer.readShort().rotateRight(field.intShift)
-                    32 -> buffer.readInt().rotateRight(field.intShift)
-                    64 -> buffer.readDouble().toLong()
+                    8 -> readByte().rotateRight(field.intShift)
+                    16 -> readShort().rotateRight(field.intShift)
+                    32 -> readInt().rotateRight(field.intShift)
+                    64 -> readDouble().toLong()
                     else -> throw IllegalArgumentException("Invalid int length: ${field.intLength}")
                 }
-                else -> deserialize(buffer)
+                else -> deserialize(this)
             }
         }
         val id = buffer.readUnsignedShort()
         if (id == 0) return null
         val cls = struct.getClass(id) ?: throw IllegalArgumentException("#$id not found")
-        val map = cls.associate { it.name to parseField(it) }.toMutableMap()
+        val map = cls.associate { it.name to buffer.parseField(it) }.toMutableMap()
         map.remove("super")?.let { map.putAll(Factory.getData(it)) }
         return Factory.build(cls.getClass(), map)
     }
@@ -79,7 +76,7 @@ object ProtocolParser {
         }
         else if (field.isString) {
             val bytes = ((value as String?) ?: "").toByteArray()
-            if (bytes.size > 0xFFFF) throw IllegalArgumentException("String is too long ${bytes.size} bytes")
+            if (bytes.size > 0xFFFF) throw IllegalArgumentException("String is too long: ${bytes.size} bytes")
             byteBuffer(bytes.size + 2) { putShort(bytes.size.toShort()).put(bytes) }
         }
         else if (field.isBoolean) { ByteArray(1).also { it[0] = if (value == true) 1 else 0 } }

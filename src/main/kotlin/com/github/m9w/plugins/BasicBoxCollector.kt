@@ -3,7 +3,7 @@ package com.github.m9w.plugins
 import com.darkorbit.*
 import com.github.m9w.client.GameEngine
 import com.github.m9w.collectRequest
-import com.github.m9w.context
+import com.github.m9w.context.context
 import com.github.m9w.feature.annotations.OnPackage
 import com.github.m9w.feature.annotations.Repeat
 import com.github.m9w.metaplugins.EntitiesModule

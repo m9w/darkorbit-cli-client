@@ -1,11 +1,10 @@
 package com.github.m9w.metaplugins
 
 import com.github.m9w.client.GameEngine
-import com.github.m9w.context
+import com.github.m9w.context.context
 import com.github.m9w.feature.annotations.OnEvent
 import com.github.m9w.feature.annotations.SystemEvents
 import com.github.m9w.feature.waitMs
-import com.github.m9w.metaplugins.PathTracerModule
 import com.github.m9w.metaplugins.game.Point
 import com.github.m9w.metaplugins.game.PositionImpl.Companion.distanceTo
 import com.github.m9w.metaplugins.game.PositionImpl.Companion.x

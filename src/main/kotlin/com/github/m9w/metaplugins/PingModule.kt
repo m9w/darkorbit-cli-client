@@ -3,7 +3,7 @@ package com.github.m9w.metaplugins
 import com.darkorbit.KeepAlive
 import com.darkorbit.StayinAlive
 import com.github.m9w.client.GameEngine
-import com.github.m9w.context
+import com.github.m9w.context.context
 import com.github.m9w.feature.annotations.Repeat
 import com.github.m9w.feature.timePrefix
 import com.github.m9w.feature.waitOnPackage

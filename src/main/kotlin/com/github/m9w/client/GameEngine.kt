@@ -4,11 +4,11 @@ import com.darkorbit.ProtocolPacket
 import com.github.m9w.Scheduler
 import com.github.m9w.client.auth.AuthenticationProvider
 import com.github.m9w.client.network.NetworkLayer
-import com.github.m9w.context
+import com.github.m9w.context.context
 import com.github.m9w.feature.annotations.SystemEvents
 import com.github.m9w.feature.waitMs
 import com.github.m9w.metaplugins.proxy.ProxyModule
-import com.github.m9w.optionalContext
+import com.github.m9w.context.optionalContext
 import com.github.m9w.protocol.Factory
 
 class GameEngine() {

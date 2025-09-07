@@ -7,7 +7,7 @@ import com.github.m9w.Scheduler
 import com.github.m9w.client.GameEngine
 import com.github.m9w.client.auth.AuthenticationProvider
 import com.github.m9w.client.network.NetworkLayer
-import com.github.m9w.context
+import com.github.m9w.context.context
 import com.github.m9w.feature.annotations.OnPackage
 import com.github.m9w.feature.waitMs
 import com.github.m9w.metaplugins.game.PositionImpl

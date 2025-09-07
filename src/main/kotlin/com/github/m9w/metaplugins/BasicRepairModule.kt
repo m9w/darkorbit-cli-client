@@ -4,7 +4,7 @@ import com.darkorbit.KillScreenPostCommand
 import com.darkorbit.KillScreenRepairRequest
 import com.github.m9w.client.GameEngine
 import com.github.m9w.client.auth.AuthenticationProvider
-import com.github.m9w.context
+import com.github.m9w.context.context
 import com.github.m9w.feature.annotations.OnPackage
 import com.github.m9w.feature.waitMs
 

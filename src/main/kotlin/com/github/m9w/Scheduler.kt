@@ -2,6 +2,8 @@ package com.github.m9w
 
 import com.darkorbit.ProtocolPacket
 import com.github.m9w.client.GameEngine
+import com.github.m9w.context.Context
+import com.github.m9w.context.context
 import com.github.m9w.feature.Future
 import com.github.m9w.feature.SchedulerEntity
 import com.github.m9w.feature.annotations.OnEvent

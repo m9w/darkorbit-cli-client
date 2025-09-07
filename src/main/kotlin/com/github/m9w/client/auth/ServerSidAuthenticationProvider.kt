@@ -1,6 +1,6 @@
 package com.github.m9w.client.auth
 
-import com.github.m9w.context
+import com.github.m9w.context.context
 import com.github.m9w.metaplugins.LoginModule
 import com.github.m9w.util.Http
 import com.github.m9w.util.Http.Companion.asJson

@@ -8,7 +8,7 @@ import com.github.m9w.metaplugins.game.GameMap
 import com.github.m9w.metaplugins.game.entities.JumpgateImpl
 import com.github.m9w.util.Http
 import com.github.m9w.util.Http.Companion.content
-import com.github.m9w.context
+import com.github.m9w.context.context
 import com.github.m9w.metaplugins.game.Point
 import com.github.m9w.metaplugins.game.PositionImpl.Companion.x
 import com.github.m9w.metaplugins.game.PositionImpl.Companion.y

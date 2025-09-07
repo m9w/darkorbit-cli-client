@@ -3,7 +3,7 @@ package com.github.m9w.metaplugins
 import com.darkorbit.*
 import com.github.m9w.client.GameEngine
 import com.github.m9w.client.auth.AuthenticationProvider
-import com.github.m9w.context
+import com.github.m9w.context.context
 import com.github.m9w.feature.annotations.OnEvent
 import com.github.m9w.feature.annotations.OnPackage
 import com.github.m9w.feature.annotations.SystemEvents
@@ -11,7 +11,7 @@ import com.github.m9w.feature.waitMs
 import com.github.m9w.protocol.ProtocolParser
 import com.github.m9w.feature.waitOnPackage
 import com.github.m9w.metaplugins.proxy.ProxyModule
-import com.github.m9w.optionalContext
+import com.github.m9w.context.optionalContext
 import java.io.InterruptedIOException
 
 @Suppress("unused")

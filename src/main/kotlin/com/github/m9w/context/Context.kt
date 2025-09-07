@@ -1,11 +1,10 @@
-package com.github.m9w
+package com.github.m9w.context
 
 import com.github.m9w.feature.Classifier
 import kotlin.reflect.KClass
 import kotlin.reflect.KClassifier
 import kotlin.reflect.KProperty
 import kotlin.reflect.full.declaredMemberProperties
-import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
 
 val context get() = Context()
@@ -31,10 +30,11 @@ class Context() {
 
     companion object {
         private val ctx = ThreadLocal.withInitial { mutableMapOf<KClassifier, Any>() }
-        fun findInContext(classifier: KClassifier): Any = ctx.get()[classifier] ?: throw ClassNotFoundException(classifier.toString())
+        fun findInContext(classifier: KClassifier): Any = ctx.get()[classifier] ?: throw ClassNotFoundException("Cannot found module in context that can classified as $classifier")
         fun apply(context: Set<Any>) {
             ctx.get().putAll(context.associateBy { (if (it is Classifier<*>) it.classifier else it::class) })
             context.map { module -> module::class.declaredMemberProperties.filter { d -> context.any { (d.returnType.classifier as KClass<*>).isInstance(it) } }.map { it.apply { isAccessible = true }.getter.call(module) } }
+            context.filterIsInstance<ContextCreate>().forEach { it.contextCreated(context::forEach) }
         }
         inline fun <reified T : Any> get(): T = findInContext(T::class) as T
         fun clear() = ctx.remove()

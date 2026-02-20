@@ -5,5 +5,6 @@ class StaticAuthenticationProvider(
     override val host: String,
     override val sessionID: String,
     override val instanceId: Int,
-    override var mapId: Int = 1
+    override var mapId: Int = 1,
+    override val type: ClientType = ClientType.FLASH
 ) : AuthenticationProvider

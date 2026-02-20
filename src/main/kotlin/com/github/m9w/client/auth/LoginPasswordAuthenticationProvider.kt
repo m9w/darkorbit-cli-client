@@ -4,7 +4,7 @@ import com.github.m9w.util.Http
 import com.github.m9w.util.Http.Companion.content
 import kotlin.lazy
 
-class LoginPasswordAuthenticationProvider(private val login: String, private val password: String) : ServerSidAuthenticationProvider("", "") {
+class LoginPasswordAuthenticationProvider(private val login: String, private val password: String, override val type: ClientType) : ServerSidAuthenticationProvider("", "", type) {
     private val serverSidPair by lazy { login() }
     override val server get() = serverSidPair.first
     override val sid get() = serverSidPair.second

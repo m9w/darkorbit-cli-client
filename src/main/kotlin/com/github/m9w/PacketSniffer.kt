@@ -162,5 +162,6 @@ fun toClient(filePath: Path, buf: ByteBuf) {
 }
 
 fun printPacket(filePath: Path, s: String) {
-    Files.writeString(filePath, s, StandardOpenOption.APPEND, StandardOpenOption.CREATE);
+    Files.writeString(filePath, s, StandardOpenOption.APPEND, StandardOpenOption.CREATE)
+    print(s)
 }

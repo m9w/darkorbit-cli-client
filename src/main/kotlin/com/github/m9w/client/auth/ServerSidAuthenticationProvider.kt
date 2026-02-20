@@ -1,21 +1,18 @@
 package com.github.m9w.client.auth
 
-import com.github.m9w.context.context
-import com.github.m9w.metaplugins.LoginModule
 import com.github.m9w.util.Http
 import com.github.m9w.util.Http.Companion.asJson
 import com.github.m9w.util.Http.Companion.content
 import com.google.gson.Gson
 
-open class ServerSidAuthenticationProvider(protected open val server: String, protected open val sid: String) : AuthenticationProvider {
-    protected val loginModule: LoginModule by context
-    protected val loginParams: Map<String, Any> by lazy { when (loginModule.type) {
-        LoginModule.Type.UNITY -> getUnityLoginParams()
-        LoginModule.Type.FLASH -> getFlashLoginParams()
+open class ServerSidAuthenticationProvider(protected open val server: String, protected open val sid: String, override val type: ClientType) : AuthenticationProvider {
+    protected val loginParams: Map<String, Any> by lazy { when (type) {
+        ClientType.UNITY -> getUnityLoginParams()
+        ClientType.FLASH -> getFlashLoginParams()
     } }
-    val userAgent by lazy { when (loginModule.type) {
-        LoginModule.Type.UNITY -> "DarkOrbit Unity Client $getLastUnityVersion"
-        LoginModule.Type.FLASH -> "BigpointClient/$getLastFlashVersion"
+    val userAgent by lazy { when (type) {
+        ClientType.UNITY -> "DarkOrbit Unity Client $getLastUnityVersion"
+        ClientType.FLASH -> "BigpointClient/$getLastFlashVersion"
     } }
 
     final override val host get() = loginParams["host"]?.toString() ?: "https://$server.darkorbit.com"

@@ -14,7 +14,7 @@ class PingModule {
     private val pingList = ArrayList<Long>()
     var ping: Double = -1.0; private set
 
-    @Repeat(10_000, true)
+    @Repeat(15_000, true)
     private suspend fun sendKeepAlive() {
         if (gameEngine.state.ordinal < 3 || gameEngine.state == GameEngine.State.STOPED) return
         waitOnPackage<StayinAlive> (timeout = 15000) {

@@ -1,7 +1,6 @@
 package com.github.m9w
 
 import com.github.m9w.client.GameEngine
-import com.github.m9w.client.auth.AuthenticationProvider
 import com.github.m9w.metaplugins.*
 import com.github.m9w.metaplugins.PathTracerModule
 import com.github.m9w.metaplugins.proxy.HttpProxyModule
@@ -13,7 +12,7 @@ fun main() {
         Scheduler(GameEngine(),
             auth,
             cont,
-            LoginModule(LoginModule.Type.UNITY),
+            LoginModule(),
             //HttpProxyModule(),
             BasicRepairModule(),
             PingModule(),

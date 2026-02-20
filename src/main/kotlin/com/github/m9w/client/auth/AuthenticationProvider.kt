@@ -11,16 +11,17 @@ interface AuthenticationProvider : Classifier<AuthenticationProvider> {
     val instanceId: Int
     var mapId: Int
     val address: InetSocketAddress get() = getMapAddress(host, mapId)
+    val type: ClientType
 
     companion object {
         //Map<Server, <creation time, <MapId, IP>>>
         private val cache = HashMap<String, Pair<Long, Map<Int, InetSocketAddress>>>()
         private val mapRegex = Regex("""<map\s+id="(\d+)">.*?<gameserverIP>([^<]+)</gameserverIP>.*?</map>""", RegexOption.DOT_MATCHES_ALL)
-        fun byServerSid(server: String, sessionID: String) = ServerSidAuthenticationProvider(server, sessionID)
-        fun byLoginPassword(login: String, password: String) = LoginPasswordAuthenticationProvider(login, password)
+        fun byServerSid(server: String, sessionID: String, clientType: ClientType) = ServerSidAuthenticationProvider(server, sessionID, clientType)
+        fun byLoginPassword(login: String, password: String, clientType: ClientType) = LoginPasswordAuthenticationProvider(login, password, clientType)
         fun byLoginExternal(login: String) = ExternalAuthenticationProvider(login)
-        fun byStatic(userID: Int, server: String, sessionID: String, instanceId: Int, mapId: Int = 1) =
-            StaticAuthenticationProvider(userID, server, sessionID, instanceId, mapId)
+        fun byStatic(userID: Int, server: String, sessionID: String, instanceId: Int, mapId: Int = 1, clientType: ClientType) =
+            StaticAuthenticationProvider(userID, server, sessionID, instanceId, mapId, clientType)
 
         @Synchronized
         fun getMapAddress(host: String, mapId: Int): InetSocketAddress {

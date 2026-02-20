@@ -12,9 +12,10 @@ class ExternalAuthenticationProvider(private val login: String) : Authentication
             .connect.asJson<Map<String, Any>>()
     }
 
-    override val host get() = loginParams["host"]?.toString() ?: throw RuntimeException("host is null")
-    override val sessionID get() = loginParams["sessionID"]?.toString() ?: throw RuntimeException("SessionID is null")
-    override val userID: Int get() = loginParams["userID"]?.toString()?.toInt() ?: throw RuntimeException("User is null")
-    override val instanceId: Int get() = loginParams["pid"]?.toString()?.toInt() ?: throw RuntimeException("InstanceId is null")
+    override val host get() = loginParams["host"]?.toString() ?: throw RuntimeException("host is null, $loginParams")
+    override val sessionID get() = loginParams["sessionID"]?.toString() ?: throw RuntimeException("SessionID is null, $loginParams")
+    override val userID: Int get() = loginParams["userID"]?.toString()?.toInt() ?: throw RuntimeException("User is null, $loginParams")
+    override val instanceId: Int get() = loginParams["pid"]?.toString()?.toInt() ?: throw RuntimeException("InstanceId is null, $loginParams")
+    override val type: ClientType get() = loginParams["type"]?.toString()?.let(ClientType::valueOf) ?: ClientType.FLASH
     override var mapId: Int = -1; get() = if (field == -1) loginParams["mapID"]?.toString()?.toInt() ?: 1 else field
 }

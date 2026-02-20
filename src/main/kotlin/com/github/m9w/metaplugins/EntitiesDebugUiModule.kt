@@ -6,6 +6,7 @@ import com.darkorbit.ShipInitializationCommand
 import com.github.m9w.Scheduler
 import com.github.m9w.client.GameEngine
 import com.github.m9w.client.auth.AuthenticationProvider
+import com.github.m9w.client.auth.ClientType
 import com.github.m9w.client.network.NetworkLayer
 import com.github.m9w.context.context
 import com.github.m9w.feature.annotations.OnPackage
@@ -15,8 +16,9 @@ import com.github.m9w.metaplugins.game.PositionImpl.Companion.x
 import com.github.m9w.metaplugins.game.PositionImpl.Companion.y
 import com.github.m9w.metaplugins.game.entities.*
 import java.awt.*
-import java.awt.event.*
-import java.util.*
+import java.awt.event.KeyEvent
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import javax.swing.*
 
 class EntitiesDebugUiModule(private val block: (AuthenticationProvider, Any) -> Unit) : JPanel(), Runnable {
@@ -182,12 +184,12 @@ class EntitiesDebugUiModule(private val block: (AuthenticationProvider, Any) -> 
             fun JPanel.addWithPadding(comp: Component) = add(comp).let { add(Box.createRigidArea(Dimension(0, 5))) }
             fun button(name: String, block: InnerModule.() -> Unit) = panel.addWithPadding(JButton(name).center.apply { addActionListener { instance?.apply(block) } })
             fun buttonI(name: String, block: () -> Unit) = panel.addWithPadding(JButton(name).center.apply { addActionListener { block() } })
-
-            buttonI("Login + Password") { InputDialog(frame, "Login", "Password") {
-                block(AuthenticationProvider.byLoginPassword(this["Login"]!!, this["Password"]!!), InnerModule() )
+            val clientTypes = ClientType.entries.joinToString()
+            buttonI("Login + Password") { InputDialog(frame, "Client type($clientTypes)", "Login", "Password") {
+                block(AuthenticationProvider.byLoginPassword(this["Login"]!!, this["Password"]!!, ClientType.valueOf(this["Client type"]!!)), InnerModule() )
             } }
-            buttonI("Server + SID") { InputDialog(frame, "Server", "SID") {
-                block(AuthenticationProvider.byServerSid(this["Server"]!!, this["SID"]!!), InnerModule())
+            buttonI("Server + SID") { InputDialog(frame, "Client type($clientTypes)", "Server", "SID") {
+                block(AuthenticationProvider.byServerSid(this["Server"]!!, this["SID"]!!, ClientType.valueOf(this["Client type"]!!)), InnerModule())
             } }
             buttonI("External login") { InputDialog(frame, "Login") {
                 block(AuthenticationProvider.byLoginExternal(this["Login"]!!), InnerModule())
@@ -200,6 +202,7 @@ class EntitiesDebugUiModule(private val block: (AuthenticationProvider, Any) -> 
             } } })
             button("Toggle network debug") { NetworkLayer.debug = !NetworkLayer.debug }
             button("Toggle config") { entities.hero.shipConfig = when (entities.hero.shipConfig) { 1 -> 2; 2 -> 1; else -> 1 } }
+            button("Toggle config for All") { instances.forEach { it.entities.hero.shipConfig = when (it.entities.hero.shipConfig) { 1 -> 2; 2 -> 1; else -> 1 } } }
             button("Toggle PET") { entities.hero.pet?.deactivate() ?: entities.hero.enablePet() }
             button("Set Normal Mode") { entities.gameEngine.state = GameEngine.State.NORMAL }
             button("Set Escaping Mode") { entities.gameEngine.state = GameEngine.State.ESCAPING }
@@ -247,17 +250,28 @@ class EntitiesDebugUiModule(private val block: (AuthenticationProvider, Any) -> 
     }
 
     private class InputDialog(owner: Frame?, vararg fields: String, private val block: Map<String, String>.() -> Unit) : JDialog(owner, "Input Dialog", true) {
-        private var jFields: MutableMap<String, JTextField> = mutableMapOf()
+        private var jFields: MutableMap<String, () -> String> = mutableMapOf()
         private var okButton: JButton = JButton("OK")
         private var cancelButton: JButton = JButton("Cancel")
 
         init {
             val inputPanel = JPanel(GridLayout(fields.size, 2, 5, 5)).apply {
                 setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10))
-                fields.forEach { label -> add(JLabel(label)); add(JTextField(20).also { jFields.put(label, it) }) }
+                fields.forEach { label ->
+                    if (label.contains("(")) {
+                        val nameParts = label.split("(", limit = 2)
+                        add(JLabel(nameParts[0]))
+                        add(JComboBox<String>()
+                            .apply { nameParts[1].removeSuffix(")").split(",").map(String::trim).forEach (this::addItem) }
+                            .also { jFields[nameParts[0]] = { it.selectedItem?.toString() ?: "" } })
+                    } else {
+                        add(JLabel(label))
+                        add(JTextField(20).also { jFields[label] = it::getText })
+                    }
+                }
             }
             val buttonPanel = JPanel(FlowLayout(FlowLayout.RIGHT)).apply { add(okButton); add(cancelButton) }
-            okButton.addActionListener { isVisible = false; block.invoke(jFields.entries.associate { (k, v) -> k to v.getText() }) }
+            okButton.addActionListener { isVisible = false; block.invoke(jFields.entries.associate { (k, v) -> k to v.invoke() }) }
             cancelButton.addActionListener { isVisible = false }
             getRootPane().registerKeyboardAction({ isVisible = false }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), WHEN_IN_FOCUSED_WINDOW)
             getRootPane().setDefaultButton(okButton)

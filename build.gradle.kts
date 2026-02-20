@@ -6,9 +6,12 @@ plugins {
     id("org.gradle.application")
     id("io.ktor.plugin") version "3.2.1"
 }
+
 version = "1.0.0-Beta"
+
 val ktorVersion = "3.2.0"
 val kotlinVersion = "2.2.0"
+
 application {
     applicationName = "darkorbit-cli-client"
     mainClass.set("com.github.m9w.MainKt")
@@ -20,7 +23,7 @@ repositories {
 }
 
 dependencies {
-    api("com.github.m9w", "darkorbit-protocol", "1.1.57")
+    api("com.github.m9w", "darkorbit-protocol", "1.1.89")
 
     testImplementation(kotlin("test"))
     implementation("com.google.code.gson", "gson","2.12.1")

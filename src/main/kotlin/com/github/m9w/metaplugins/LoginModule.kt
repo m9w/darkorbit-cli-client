@@ -15,13 +15,11 @@ import com.github.m9w.context.optionalContext
 import java.io.InterruptedIOException
 
 @Suppress("unused")
-class LoginModule(val type: Type = Type.UNITY) {
+class LoginModule {
     private var unsuccessfulLoginCount = 0
     private val gameEngine: GameEngine by context
     private val authentication: AuthenticationProvider by context
     private val proxy: ProxyModule? by optionalContext
-
-    enum class Type { UNITY, FLASH }
 
     @OnEvent(SystemEvents.ON_CONNECT)
     suspend fun onConnect(body: String) {

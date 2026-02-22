@@ -12,6 +12,7 @@ import com.github.m9w.metaplugins.game.PositionImpl.Companion.x
 import com.github.m9w.metaplugins.game.PositionImpl.Companion.y
 import com.github.m9w.metaplugins.game.entities.BoxImpl
 import com.github.m9w.metaplugins.game.entities.BoxImpl.Companion.name
+import io.ktor.util.date.getTimeMillis
 
 @Suppress("unused")
 open class BasicBoxCollector {
@@ -19,6 +20,7 @@ open class BasicBoxCollector {
     protected val targetNames = mutableSetOf("BONUS_BOX", "SOLAR_CLASH")
     private val targets: MutableMap<String, AddBoxCommand> = HashMap()
     private var best: AddBoxCommand? = null
+    private var lastCollect = 0L
 
     @OnPackage
     private fun onHeroInit(init: ShipInitializationCommand) { targets.clear(); best = null }
@@ -35,13 +37,17 @@ open class BasicBoxCollector {
         best = targets.values.minByOrNull { entities.hero.position.distanceTo(it.x to it.y) }
         if (best == null && !entities.hero.isMoving) entities.hero.moveRandom()
         val best = best ?: return
-        if (entities.hero.destination.position.run { x == best.x && y == best.y } ) return
-        entities.hero.moveTo(best.x to best.y) {
-            entities[best.hash.toLong(36)+Int.MAX_VALUE]?.let {
-                entities.gameEngine.collectRequest(entities.hero, it as BoxImpl)
-                calcBest()
-            } ?: removeHash(best.hash)
-        }
+        if (entities.hero.destination.position.run { x == best.x && y == best.y } ) {
+            if (lastCollect + 1500 < getTimeMillis()) collect(best)
+        } else entities.hero.moveTo(best.x to best.y) { collect(best) }
+    }
+
+    private fun collect(box: AddBoxCommand) {
+        entities[box.hash.toLong(36)+Int.MAX_VALUE]?.let {
+            entities.gameEngine.collectRequest(entities.hero, it as BoxImpl)
+            lastCollect = getTimeMillis()
+            calcBest()
+        } ?: removeHash(box.hash)
     }
 
     private fun removeHash(hash: String) {

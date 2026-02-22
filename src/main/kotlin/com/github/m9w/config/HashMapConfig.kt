@@ -1,8 +1,6 @@
 package com.github.m9w.config
 
-import kotlin.reflect.KClass
 import kotlin.reflect.KType
-import kotlin.reflect.full.isSubclassOf
 
 open class HashMapConfig : ConfigModule {
     protected val map = HashMap<String, Any?>()
@@ -16,10 +14,5 @@ open class HashMapConfig : ConfigModule {
 
     override fun <T> writeProperty(key: String, type: KType, value: T) {
         map[key] = value
-    }
-
-    companion object {
-        val Any?.isComplex get() = this != null && this::class.javaPrimitiveType == null && this !is String && this !is Enum<*>
-        val KType.isComplexType get() = (this.classifier as KClass<*>).javaPrimitiveType == null && this.classifier != String::class && !(this.classifier as KClass<*>).isSubclassOf(Enum::class)
     }
 }

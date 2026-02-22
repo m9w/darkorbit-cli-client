@@ -38,6 +38,8 @@ dependencies {
     implementation("org.jetbrains.kotlin", "kotlin-scripting-jvm", kotlinVersion)
     implementation("org.jetbrains.kotlin", "kotlin-scripting-jvm-host", kotlinVersion)
     implementation("org.jetbrains.kotlin", "kotlin-scripting-common", kotlinVersion)
+    implementation("com.fasterxml.jackson.dataformat", "jackson-dataformat-yaml", "2.18.2")
+    implementation("com.fasterxml.jackson.module", "jackson-module-kotlin", "2.18.2")
 }
 
 tasks.test {

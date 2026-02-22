@@ -1,15 +1,19 @@
 package com.github.m9w.config
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.github.m9w.client.auth.AuthenticationProvider
 import com.github.m9w.context.context
 import kotlin.properties.PropertyDelegateProvider
 import kotlin.properties.ReadWriteProperty
-import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.KType
+import kotlin.reflect.jvm.javaType
 
 private typealias rwProp<T> = ReadWriteProperty<Any, T>
 private typealias Factory<T> = PropertyDelegateProvider<Any, rwProp<T>>
+
+private val mapper: ObjectMapper = ObjectMapper().registerKotlinModule()
 
 /**
  * Supported types (`x` - mean anyone from this list):
@@ -34,15 +38,14 @@ private enum class Types(val builder: (String, KType, Any?, Boolean) -> rwProp<A
 private class DelegatorFactory<T>(val type: Types, val default: T, val persist: Boolean) : Factory<T> {
     @Suppress("UNCHECKED_CAST")
     override fun provideDelegate(thisRef: Any, property: KProperty<*>): rwProp<T> {
-        val key = thisRef::class.qualifiedName!! + "#" + property.name + "%" + (property.returnType.classifier as? KClass<*>)?.simpleName
+        val key = thisRef::class.qualifiedName!! + "#" + property.name
         return type.builder(key, property.returnType, default, persist) as rwProp<T>
     }
 }
 
-private abstract class AbstractConfig<T> : rwProp<T> {
+private abstract class AbstractConfig<T>(val default: T) : rwProp<T> {
     protected val config : ConfigModule by context
     abstract val type: KType
-    abstract val default: T
     abstract val key: String
     private var prevKey = ""
     private var local: T = default
@@ -50,23 +53,31 @@ private abstract class AbstractConfig<T> : rwProp<T> {
     override fun getValue(thisRef: Any, property: KProperty<*>): T {
         if (key == prevKey) {
             if (config.hasUpdates(key)) config.readProperty<T>(key, type).onSuccess { local = it }
-        } else config.readProperty<T>(key, type).onSuccess { local = it }.also { prevKey = key }
+        } else {
+            config.readProperty<T>(key, type).onSuccess { local = it }
+                .onFailure {
+                    local = default.clone(type)
+                    config.writeProperty(key, type, local)
+                }
+                .also { prevKey = key }
+        }
         return local
     }
 
-    override fun setValue(thisRef: Any, property: KProperty<*>, value: T) =
-        config.writeProperty(key, type, value.also { local = it })
+    override fun setValue(thisRef: Any, property: KProperty<*>, value: T) = config.writeProperty(key, type, value.also { local = it })
+
+    private fun T.clone(type: KType): T = mapper.convertValue(this, mapper.typeFactory.constructType(type.javaType))
 }
 
-private class Config<T>(val cls: String, override val type: KType, override val default: T, val persist: Boolean) : AbstractConfig<T>() {
+private class Config<T>(val cls: String, override val type: KType, default: T, val persist: Boolean) : AbstractConfig<T>(default) {
     override val key: String get() = "${if (persist) "" else "!"}CONFIG.${config.configName}.$cls"
 }
 
-private class AccountConfig<T>(val cls: String, override val type: KType, override val default: T, val persist: Boolean) : AbstractConfig<T>() {
+private class AccountConfig<T>(val cls: String, override val type: KType, default: T, val persist: Boolean) : AbstractConfig<T>(default) {
     val auth: AuthenticationProvider by context
     override val key: String get() = "${if (persist) "" else "!"}ACCOUNT.${auth.userID}.$cls"
 }
 
-private class StaticConfig<T>(val cls: String, override val type: KType, override val default: T, val persist: Boolean) : AbstractConfig<T>() {
+private class StaticConfig<T>(val cls: String, override val type: KType, default: T, val persist: Boolean) : AbstractConfig<T>(default) {
     override val key: String get() = "${if (persist) "" else "!"}STATIC.$cls"
 }

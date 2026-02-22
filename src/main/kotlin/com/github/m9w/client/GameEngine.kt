@@ -10,8 +10,9 @@ import com.github.m9w.feature.waitMs
 import com.github.m9w.metaplugins.proxy.ProxyModule
 import com.github.m9w.context.optionalContext
 import com.github.m9w.protocol.Factory
+import java.awt.Color
 
-class GameEngine() {
+class GameEngine {
     private val authentication: AuthenticationProvider by context
     private val scheduler: Scheduler by context
     private val proxy: ProxyModule? by optionalContext
@@ -19,8 +20,15 @@ class GameEngine() {
     var network: NetworkLayer = NetworkLayer(); private set
     var state: State = State.NOT_CONNECTED
 
-    enum class State {
-        NOT_CONNECTED, NO_LOGIN, DESTROYED, NORMAL, REPAIRING, TRAVELING, ESCAPING, STOPED
+    enum class State(val color: Color = Color.cyan) {
+        NOT_CONNECTED(Color.gray),
+        NO_LOGIN(Color.lightGray),
+        DESTROYED(Color.darkGray),
+        NORMAL(Color.green),
+        REPAIRING(Color.magenta),
+        TRAVELING(Color.cyan),
+        ESCAPING(Color.orange),
+        STOPPED(Color.black),
     }
 
     fun connect() {
@@ -41,7 +49,7 @@ class GameEngine() {
     fun disconnect() {
         proxy?.releaseProxy()
         network.close()
-        state = State.STOPED
+        state = State.STOPPED
     }
 
     suspend fun reconnect(reconnectInMs: Long = 0, keepProxy: Boolean = false) {
@@ -49,7 +57,7 @@ class GameEngine() {
         if (reconnectInMs > 0) {
             if (!keepProxy) proxy?.releaseProxy()
             network.close()
-            state = State.STOPED
+            state = State.STOPPED
             waitMs(reconnectInMs)
         }
         state = State.NOT_CONNECTED

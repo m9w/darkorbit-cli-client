@@ -16,7 +16,7 @@ class PingModule {
 
     @Repeat(15_000, true)
     private suspend fun sendKeepAlive() {
-        if (gameEngine.state.ordinal < 3 || gameEngine.state == GameEngine.State.STOPED) return
+        if (gameEngine.state.ordinal < 3 || gameEngine.state == GameEngine.State.STOPPED) return
         waitOnPackage<StayinAlive> (timeout = 15000) {
             sentKeepAliveTime = System.currentTimeMillis()
             gameEngine.send<KeepAlive> { MouseClick = Math.random() < 0.7 }
@@ -27,7 +27,7 @@ class PingModule {
     @Repeat(60_000)
     private fun watchdog() {
         ping = if (pingList.isEmpty()) -1.0 else pingList.average().apply { pingList.clear() }
-        if (gameEngine.state == GameEngine.State.STOPED) return
+        if (gameEngine.state == GameEngine.State.STOPPED) return
         if (ping != -1.0) return
         println("[$timePrefix] Watchdog restart - connection stuck")
         gameEngine.connect()

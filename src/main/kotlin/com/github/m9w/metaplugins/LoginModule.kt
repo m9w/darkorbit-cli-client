@@ -80,7 +80,7 @@ class LoginModule {
 
     @OnEvent(SystemEvents.ON_DISCONNECT)
     private suspend fun onDisconnect(body: String) {
-        if (gameEngine.state == GameEngine.State.STOPED) return
+        if (gameEngine.state == GameEngine.State.STOPPED) return
         if (unsuccessfulLoginCount in 5..10) {
             println("Unsuccessful attempts > 5, wait 10 sec to next connect")
             waitMs(10000)

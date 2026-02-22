@@ -31,7 +31,7 @@ open class ServerSidAuthenticationProvider(protected open val server: String, pr
                 .let { Gson().fromJson<Map<String, Any>>(it["data"], Map::class.java) }
     }
 
-    private val getLastFlashVersion get() = Http("http://darkorbit-22-client.bpsecure.com/bpflashclient/windows.x64/repository/Updates.xml").connect.content.substringAfter("<Version>").substringBefore("</Version>")
+    private val getLastFlashVersion get() = Http("https://darkorbit-22-client.bpsecure.com/bpflashclient/windows.x64/repository/Updates.xml").connect.content.substringAfter("<Version>").substringBefore("</Version>")
 
     private fun getFlashLoginParams(): Map<String, Any> {
         val content = Http("https://${server}.darkorbit.com/indexInternal.es?action=internalMapRevolution")

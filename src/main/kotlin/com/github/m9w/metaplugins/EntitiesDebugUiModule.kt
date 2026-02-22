@@ -228,7 +228,7 @@ class EntitiesDebugUiModule(private val block: (AuthenticationProvider, Any) -> 
         }
     } }
 
-    private inner class InnerModule() {
+    private inner class InnerModule {
         val auth: AuthenticationProvider by context
         val pathTracer: PathTracerModule by context
         val entities: EntitiesModule by context

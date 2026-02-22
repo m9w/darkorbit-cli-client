@@ -11,16 +11,16 @@ val context get() = Context()
 val optionalContext get() = Context().Optional()
 
 @Suppress("unchecked_cast")
-class Context() {
+class Context {
     private lateinit var classifier: KClassifier
-    val instance: Any by lazy { findInContext(classifier) }
+    val instance: Any by lazy { findInContext(classifier) } //todo make weak reference
 
     operator fun <T> getValue(thisRef: Any?, property: KProperty<*>): T {
         if (!this::classifier.isInitialized) classifier = property.returnType.classifier ?: throw RuntimeException("Property type unknown")
         return instance as T
     }
 
-    inner class Optional() {
+    inner class Optional {
         private var isEmpty = false
         operator fun <T> getValue(thisRef: Any?, property: KProperty<*>): T? {
             if (isEmpty) return null
@@ -33,7 +33,7 @@ class Context() {
         fun findInContext(classifier: KClassifier): Any = ctx.get()[classifier] ?: throw ClassNotFoundException("Cannot found module in context that can classified as $classifier")
         fun apply(context: Set<Any>) {
             ctx.get().putAll(context.associateBy { (if (it is Classifier<*>) it.classifier else it::class) })
-            context.map { module -> module::class.declaredMemberProperties.filter { d -> context.any { (d.returnType.classifier as KClass<*>).isInstance(it) } }.map { it.apply { isAccessible = true }.getter.call(module) } }
+            context.forEach { module -> module::class.declaredMemberProperties.filter { d -> context.any { (d.returnType.classifier as KClass<*>).isInstance(it) } }.map { it.apply { isAccessible = true }.getter.call(module) } }
             context.filterIsInstance<ContextCreate>().forEach { it.contextCreated(context::forEach) }
         }
         inline fun <reified T : Any> get(): T = findInContext(T::class) as T

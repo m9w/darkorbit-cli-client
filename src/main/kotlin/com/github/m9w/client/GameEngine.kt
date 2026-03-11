@@ -42,7 +42,7 @@ class GameEngine {
             handleEvent(SystemEvents.ON_CONNECT)
         } catch (e: Exception) {
             e.printStackTrace()
-            handleEvent(SystemEvents.ON_DISCONNECT)
+            handleEvent(SystemEvents.ON_DISCONNECT, async = true)
         }
     }
 
@@ -63,7 +63,7 @@ class GameEngine {
         state = State.NOT_CONNECTED
     }
 
-    fun handleEvent(event: String, body: String = "") = scheduler.handleEvent(event, body)
+    fun handleEvent(event: String, body: String = "", async: Boolean = false) = scheduler.handleEvent(event, body, async)
 
     fun cancelWaitMs(interruptKey: String, body: (()->Exception)?=null) = scheduler.cancelWaitMs(interruptKey, body)
 

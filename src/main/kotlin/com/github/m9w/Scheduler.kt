@@ -82,12 +82,13 @@ class Scheduler(vararg ctx: Any) : Runnable, Closeable {
         synchronized(lock) { lock.notifyAll() }
     }
 
-    fun handleEvent(event: String, body: String = "") {
-        if (thread == Thread.currentThread()) {
+    fun handleEvent(event: String, body: String = "", async: Boolean = false) {
+        val sameThread = thread == Thread.currentThread()
+        if (!async && sameThread) {
             eventHandlers["@$event"]?.forEach { it.perform(body) }
         } else {
             eventQueue.add(event to body)
-            synchronized(lock) { lock.notifyAll() }
+            if (!sameThread) synchronized(lock) { lock.notifyAll() }
         }
     }
 

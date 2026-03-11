@@ -4,6 +4,7 @@ import com.darkorbit.ProtocolPacket
 import com.github.m9w.Scheduler
 import com.github.m9w.client.auth.AuthenticationProvider
 import com.github.m9w.client.network.NetworkLayer
+import com.github.m9w.config.accountConfig
 import com.github.m9w.context.context
 import com.github.m9w.feature.annotations.SystemEvents
 import com.github.m9w.feature.waitMs
@@ -18,7 +19,8 @@ class GameEngine {
     private val proxy: ProxyModule? by optionalContext
     val userIdAndSid get() = authentication.run { "$userID|$sessionID" }
     var network: NetworkLayer = NetworkLayer(); private set
-    var state: State = State.NOT_CONNECTED
+    var initState: State by accountConfig(State.NORMAL)
+    var state: State by accountConfig(State.NOT_CONNECTED, false)
 
     enum class State(val color: Color = Color.cyan) {
         NOT_CONNECTED(Color.gray),
@@ -28,6 +30,7 @@ class GameEngine {
         REPAIRING(Color.magenta),
         TRAVELING(Color.cyan),
         ESCAPING(Color.orange),
+        IDLE(Color.yellow),
         STOPPED(Color.black),
     }
 

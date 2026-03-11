@@ -75,7 +75,7 @@ class LoginModule {
     private fun onInit(init: ShipInitializationCommand){
         gameEngine.send<ReadyRequest> { readyType = ReadyMessage.MAP_LOADED_2D }
         gameEngine.send<ReadyRequest> { readyType = ReadyMessage.UI_READY }
-        gameEngine.state = GameEngine.State.REPAIRING
+        gameEngine.state = gameEngine.initState
     }
 
     @OnEvent(SystemEvents.ON_DISCONNECT)

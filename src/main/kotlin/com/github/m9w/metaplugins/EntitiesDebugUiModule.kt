@@ -204,9 +204,11 @@ class EntitiesDebugUiModule(private val block: (AuthenticationProvider, Any) -> 
             button("Toggle config") { entities.hero.shipConfig = when (entities.hero.shipConfig) { 1 -> 2; 2 -> 1; else -> 1 } }
             button("Toggle config for All") { instances.forEach { it.entities.hero.shipConfig = when (it.entities.hero.shipConfig) { 1 -> 2; 2 -> 1; else -> 1 } } }
             button("Toggle PET") { entities.hero.pet?.deactivate() ?: entities.hero.enablePet() }
+            button("Set IDLE Mode") { entities.gameEngine.state = GameEngine.State.IDLE }
             button("Set Normal Mode") { entities.gameEngine.state = GameEngine.State.NORMAL }
             button("Set Escaping Mode") { entities.gameEngine.state = GameEngine.State.ESCAPING }
             button("Set Traveling Mode") { entities.gameEngine.state = GameEngine.State.TRAVELING }
+            button("Set IDLE Mode for All") { instances.forEach { it.entities.gameEngine.state = GameEngine.State.IDLE } }
             button("Set Normal Mode for All") { instances.forEach { it.entities.gameEngine.state = GameEngine.State.NORMAL } }
             buttonI("Set Escaping Mode for All") { instances.forEach { it.entities.gameEngine.state = GameEngine.State.ESCAPING } }
             buttonI("Set Traveling Mode for All") { instances.forEach { it.entities.gameEngine.state = GameEngine.State.TRAVELING } }

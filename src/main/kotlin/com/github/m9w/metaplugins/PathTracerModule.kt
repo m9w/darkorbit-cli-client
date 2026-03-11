@@ -28,7 +28,7 @@ class PathTracerModule() {
     fun traceTo(destination: Point): List<Point> {
         val current = entities.hero.position.loc
         if (changed) {
-            areas = entities.values.filterIsInstance<PoiImpl>().filter { it.type == POIType.NO_ACCESS }
+            areas = entities.get<PoiImpl>().filter { it.type == POIType.NO_ACCESS }
             points = areas.flatMap { it.getPoints().map { it.loc } }.filter { !isOutOfMap(it) && canMove(it) }.toMutableSet()
             points.forEach { it.fillLineOfSight(this) }
             changed = false

@@ -1,5 +1,6 @@
 package com.github.m9w.metaplugins
 
+import com.github.m9w.Scheduler
 import com.github.m9w.client.GameEngine
 import com.github.m9w.context.context
 import com.github.m9w.feature.annotations.OnEvent
@@ -17,6 +18,7 @@ import kotlin.math.hypot
 
 @Suppress("unused")
 class MoveModule {
+    private val scheduler: Scheduler by context
     private val gameEngine: GameEngine by context
     private val pathTracer: PathTracerModule by context
     private val entities: EntitiesModule by context
@@ -28,11 +30,11 @@ class MoveModule {
     private var scheduledPoint: Point? = null
     val nextPoints: LinkedList<Point> = LinkedList()
 
-    fun destinationTimeUpdateEvent(time: Int) = gameEngine.handleEvent(SystemEvents.ON_HERO_MOVING_UPDATE, time.toString())
+    fun destinationTimeUpdateEvent(time: Int) = scheduler.handleEvent(SystemEvents.ON_HERO_MOVING_UPDATE, time.toString())
 
     @OnEvent(SystemEvents.ON_HERO_MOVING_UPDATE)
     suspend fun onHeroUpdateMovingTime(ms: String) {
-        gameEngine.cancelWaitMs(SystemEvents.ON_HERO_MOVING_UPDATE) { CancelledKeyException() }
+        scheduler.cancelWaitMs(SystemEvents.ON_HERO_MOVING_UPDATE) { CancelledKeyException() }
         try {
             waitMs(ms.toLong(), SystemEvents.ON_HERO_MOVING_UPDATE)
             entities.hero.position
@@ -69,7 +71,7 @@ class MoveModule {
 
     private fun moveRequestDelay(dest: Point) {
         if (lastMove + 100 > currentTimeMillis()) {
-            if (scheduledPoint == null) gameEngine.handleEvent("MoveModule_delay")
+            if (scheduledPoint == null) scheduler.handleEvent("MoveModule_delay")
             scheduledPoint = dest
         } else {
             gameEngine.moveRequest(entities.hero.position, dest)

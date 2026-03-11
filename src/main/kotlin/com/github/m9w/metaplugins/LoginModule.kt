@@ -1,6 +1,7 @@
 package com.github.m9w.metaplugins
 
 import com.darkorbit.*
+import com.github.m9w.Scheduler
 import com.github.m9w.client.GameEngine
 import com.github.m9w.client.auth.AuthenticationProvider
 import com.github.m9w.context.context
@@ -17,6 +18,8 @@ import java.io.InterruptedIOException
 @Suppress("unused")
 class LoginModule {
     private var unsuccessfulLoginCount = 0
+
+    private val scheduler: Scheduler by context
     private val gameEngine: GameEngine by context
     private val authentication: AuthenticationProvider by context
     private val proxy: ProxyModule? by optionalContext
@@ -45,7 +48,7 @@ class LoginModule {
     }
 
     private suspend fun gameLogin(delayBefore: Long = 0): LoginResponseStatus {
-        gameEngine.cancelWaitMs("LoginModule_gameLogin")
+        scheduler.cancelWaitMs("LoginModule_gameLogin")
         delayBefore.takeIf { it > 0 }?.let { waitMs(it, "LoginModule_gameLogin") }
         val loginResponse = waitOnPackage<LoginResponse>(timeout = 10000) {
             gameEngine.send<LoginRequest> {

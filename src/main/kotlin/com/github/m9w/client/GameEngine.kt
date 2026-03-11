@@ -41,11 +41,11 @@ class GameEngine {
             network.close()
             network = NetworkLayer(authentication.address, proxy)
             network.onPackageHandler = scheduler::handleEvent
-            network.onDisconnect = { handleEvent(SystemEvents.ON_DISCONNECT) }
-            handleEvent(SystemEvents.ON_CONNECT)
+            network.onDisconnect = { scheduler.handleEvent(SystemEvents.ON_DISCONNECT) }
+            scheduler.handleEvent(SystemEvents.ON_CONNECT)
         } catch (e: Exception) {
             e.printStackTrace()
-            handleEvent(SystemEvents.ON_DISCONNECT, async = true)
+            scheduler.handleEvent(SystemEvents.ON_DISCONNECT, async = true)
         }
     }
 
@@ -65,10 +65,6 @@ class GameEngine {
         }
         state = State.NOT_CONNECTED
     }
-
-    fun handleEvent(event: String, body: String = "", async: Boolean = false) = scheduler.handleEvent(event, body, async)
-
-    fun cancelWaitMs(interruptKey: String, body: (()->Exception)?=null) = scheduler.cancelWaitMs(interruptKey, body)
 
     inline fun <reified T : ProtocolPacket> send(noinline changes: T.() -> Unit) {
         val data = Factory.build(T::class).also { changes.invoke(it) }

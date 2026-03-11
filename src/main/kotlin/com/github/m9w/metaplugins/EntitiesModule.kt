@@ -12,7 +12,7 @@ class EntitiesModule(private val entities: MutableMap<Long, EntityImpl> = HashMa
     val gameEngine: GameEngine by context
     val mapModule: MapModule by context
     val moveModule: MoveModule by context
-    val pathTracer: PathTracerModule by context
+    private val pathTracer: PathTracerModule by context
     lateinit var hero: HeroShip; private set
 
     inline fun <reified R : EntityImpl> get() = values.filterIsInstance<R>()
@@ -157,6 +157,7 @@ class EntitiesModule(private val entities: MutableMap<Long, EntityImpl> = HashMa
             poiId = "Captcha zone"
             shape = ShapeType.CIRCLE
             inverted = true
+            active = true
             design = design.apply { designValue = POIDesign.NONE }
             poiType = poiType.apply { typeValue = POIType.FACTION_NO_ACCESS }
             poiTypeSpecification = "${event.type} [${event.blackBox}, ${event.redBox}] ${event.captchaTimer}"

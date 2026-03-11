@@ -32,8 +32,8 @@ open class ShipImpl(root: EntitiesModule, ship: ShipCreateCommand) : EntityImpl(
 
     override fun invoke(attack: Boolean): Boolean {
         return if (canInvoke()) {
-            if (root.hero.target != this) root.gameEngine.selectRequest(root.hero, this)
-            return if (root.hero.laserAttackTarget != this && attack) {
+            if (root.hero.target != this) root.gameEngine.selectRequest(root.hero, this, root.mapModule.getDisplayPoint(this))
+            if (root.hero.laserAttackTarget != this && attack) {
                 root.gameEngine.attackRequest(this)
                 true
             } else if (root.hero.laserAttackTarget == this && !attack) {

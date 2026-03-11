@@ -54,11 +54,11 @@ fun GameEngine.collectRequest(hero: HeroShip, box: BoxImpl) {
     }
 }
 
-fun GameEngine.selectRequest(hero: HeroShip, target: EntityImpl) {
+fun GameEngine.selectRequest(hero: HeroShip, target: EntityImpl, clickPoint: Point) {
     if (state.ordinal < 3) return
     val (hx, hy) = hero.position
     val (tx, ty) = target.position
-    val (dx, dy) = target.root.mapModule.getDisplayPoint(target)
+    val (dx, dy) = clickPoint
     send<ShipSelectRequest> {
         posX = hx; posY = hy
         targetX = tx; targetY = ty - (tx + ty + hx + hy) % 8

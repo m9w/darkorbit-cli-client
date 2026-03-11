@@ -10,7 +10,7 @@ import com.github.m9w.metaplugins.EntitiesModule
 import com.github.m9w.metaplugins.game.HealthHolder
 import com.github.m9w.metaplugins.game.PositionImpl
 
-abstract class EntityImpl(val root: EntitiesModule, val id: Long, val name: String, x: Int, y: Int, var isVisible: Boolean = true): PositionImpl(x,y) {
+sealed class EntityImpl(protected val root: EntitiesModule, val id: Long, val name: String, x: Int, y: Int, var isVisible: Boolean = true): PositionImpl(x,y) {
     val health: HealthHolder = HealthHolder()
     open val designId: Int = -1
     open val faction: Faction = Faction.NONE

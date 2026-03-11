@@ -74,7 +74,7 @@ class EntitiesDebugUiModule(private val block: (AuthenticationProvider, Any) -> 
         copy.filterIsInstance<AssetImpl>().forEach { g.drawAsset(it) }
         copy.filterIsInstance<ShipImpl>().forEach { g.drawShip(it) }
         copy.filterIsInstance<BoxImpl>().forEach { g.drawBox(it) }
-        if (entities.hero.isMoving && entities.moveModule.nextPoints.size > 1) g.color(Color.cyan) { g.drawLine(entities.moveModule.nextPoints) }
+        if (entities.hero.isMoving && moveModule.nextPoints.size > 1) g.color(Color.cyan) { g.drawLine(moveModule.nextPoints) }
         if (path.size > 1) g.color(Color.yellow) { g.drawLine(listOf(entities.hero.position) + path) }
         pointerEntity?.let { g.drawText(it.toString(), 5, 30) }
         entities.hero.target?.let { g.drawText(it.toString(), width - 5, 15, true) }
@@ -204,14 +204,14 @@ class EntitiesDebugUiModule(private val block: (AuthenticationProvider, Any) -> 
             button("Toggle config") { entities.hero.shipConfig = when (entities.hero.shipConfig) { 1 -> 2; 2 -> 1; else -> 1 } }
             button("Toggle config for All") { instances.forEach { it.entities.hero.shipConfig = when (it.entities.hero.shipConfig) { 1 -> 2; 2 -> 1; else -> 1 } } }
             button("Toggle PET") { entities.hero.pet?.deactivate() ?: entities.hero.enablePet() }
-            button("Set IDLE Mode") { entities.gameEngine.state = GameEngine.State.IDLE }
-            button("Set Normal Mode") { entities.gameEngine.state = GameEngine.State.NORMAL }
-            button("Set Escaping Mode") { entities.gameEngine.state = GameEngine.State.ESCAPING }
-            button("Set Traveling Mode") { entities.gameEngine.state = GameEngine.State.TRAVELING }
-            button("Set IDLE Mode for All") { instances.forEach { it.entities.gameEngine.state = GameEngine.State.IDLE } }
-            button("Set Normal Mode for All") { instances.forEach { it.entities.gameEngine.state = GameEngine.State.NORMAL } }
-            buttonI("Set Escaping Mode for All") { instances.forEach { it.entities.gameEngine.state = GameEngine.State.ESCAPING } }
-            buttonI("Set Traveling Mode for All") { instances.forEach { it.entities.gameEngine.state = GameEngine.State.TRAVELING } }
+            button("Set IDLE Mode") { engine.state = GameEngine.State.IDLE }
+            button("Set Normal Mode") { engine.state = GameEngine.State.NORMAL }
+            button("Set Escaping Mode") { engine.state = GameEngine.State.ESCAPING }
+            button("Set Traveling Mode") { engine.state = GameEngine.State.TRAVELING }
+            button("Set IDLE Mode for All") { instances.forEach { it.engine.state = GameEngine.State.IDLE } }
+            button("Set Normal Mode for All") { instances.forEach { it.engine.state = GameEngine.State.NORMAL } }
+            buttonI("Set Escaping Mode for All") { instances.forEach { it.engine.state = GameEngine.State.ESCAPING } }
+            buttonI("Set Traveling Mode for All") { instances.forEach { it.engine.state = GameEngine.State.TRAVELING } }
             buttonI("Show / Hide entity canvas") { entityCanvas.isVisible = !entityCanvas.isVisible }
             panel.add(Box.createRigidArea(Dimension(0, 12000)))
             frame.contentPane = panel
@@ -233,7 +233,9 @@ class EntitiesDebugUiModule(private val block: (AuthenticationProvider, Any) -> 
     private inner class InnerModule {
         val auth: AuthenticationProvider by context
         val pathTracer: PathTracerModule by context
+        val moveModule: MoveModule by context
         val entities: EntitiesModule by context
+        val engine: GameEngine by context
         val scheduler: Scheduler by context
         val map: MapModule by context
         val key: String get() = "${auth.address}|${map.map.id}"

@@ -13,7 +13,8 @@ import com.github.m9w.feature.waitOnPackage
 import com.github.m9w.metaplugins.EntitiesModule
 import java.io.InterruptedIOException
 
-class BasicRepairModule {
+class ManualRepairRobotModule {
+    private val syncEventName = ManualRepairRobotModule::class.simpleName!!
     private val entities: EntitiesModule by context
     private val engine: GameEngine by context
     private var repairRobotActive: Boolean = false
@@ -25,8 +26,8 @@ class BasicRepairModule {
         if (!repairBotSkilled) return
         if (attack.victimId.toLong() != entities.hero.id) return
         if (attack.victimHitpoints >= entities.hero.health.healthMax * 0.9) return
-        engine.cancelWaitMs("BasicRepairModule")
-        waitMs(10000, "BasicRepairModule")
+        engine.cancelWaitMs(syncEventName)
+        waitMs(10000, syncEventName)
         if (repairRobotActive) return
         if (repairRobotLootId.isEmpty()) return
         try {

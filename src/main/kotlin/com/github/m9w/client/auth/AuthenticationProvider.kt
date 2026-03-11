@@ -1,6 +1,7 @@
 package com.github.m9w.client.auth
 
 import com.github.m9w.feature.Classifier
+import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.URI
 
@@ -29,13 +30,22 @@ interface AuthenticationProvider : Classifier<AuthenticationProvider> {
                 val xml = String(URI("$host/spacemap/xml/maps.php").toURL().readBytes())
                 System.currentTimeMillis() to mapRegex.findAll(xml).associate { match ->
                     val (host, port) = match.groupValues[2].split(":")
-                    match.groupValues[1].toInt() to InetSocketAddress(host, port.toInt())
+                    match.groupValues[1].toInt() to findReachableIp(host, port.toInt())
                 }
             }
 
-            return if (records.first + 30*60*60 < System.currentTimeMillis())
+            return if (records.first + 15*60*1000 < System.currentTimeMillis()) //TTL 15 min
                 cache.remove(host).let { getMapAddress(host, mapId) }
             else records.second[mapId] ?: throw IllegalArgumentException("Map $mapId not found")
+        }
+
+        fun findReachableIp(host: String, port: Int): InetSocketAddress {
+            InetAddress.getAllByName(host).forEach {
+                if (it.isReachable(15000))
+                    return InetSocketAddress(host, port)
+                else println("A record ${it.hostAddress} of $host is not reachable")
+            }
+            throw IllegalArgumentException("Host $host is unreachable")
         }
     }
 }

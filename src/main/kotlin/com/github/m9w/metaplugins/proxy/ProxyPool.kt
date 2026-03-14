@@ -11,19 +11,17 @@ import java.util.concurrent.atomic.AtomicInteger
 object ProxyPool {
     private val executor = Executors.newFixedThreadPool(32)
     private const val DEGRADATION_THRESHOLD: Int = 10
-    private val proxies: MutableMap<InetSocketAddress, Metadata> = ConcurrentHashMap()
-    private val connections: MutableMap<String, AtomicInteger> = ConcurrentHashMap()
-
-    init {
-        System.getenv("proxy_list")
+    private val proxies: MutableMap<InetSocketAddress, Metadata> by lazy { ConcurrentHashMap<InetSocketAddress, Metadata>().apply {
+        (System.getenv("proxy_list") ?: "")
             .split(",|;|\\s".toRegex())
             .mapNotNull { it.takeIf {it.isNotEmpty()} ?.split(":") }
             .map { InetSocketAddress(it[0], it[1].toInt())}
-            .map { Callable { getRealIp(it) to it } }
+            .map { Callable { getRealIp(it) to it }}
             .let { executor.invokeAll(it) }
             .map { it.get() }
-            .forEach { (ip, address) -> proxies[address] = Metadata(ip) }
-    }
+            .forEach { (ip, address) -> this[address] = Metadata(ip) }
+    } }
+    private val connections: MutableMap<String, AtomicInteger> = ConcurrentHashMap()
 
     fun addProxy(address: InetSocketAddress) {
         proxies[address] = Metadata(getRealIp(address))

@@ -23,7 +23,7 @@ repositories {
 }
 
 dependencies {
-    api("com.github.m9w", "darkorbit-protocol", "1.1.89")
+    api("com.github.m9w", "darkorbit-protocol", "1.1.92")
 
     testImplementation(kotlin("test"))
     implementation("com.google.code.gson", "gson","2.12.1")

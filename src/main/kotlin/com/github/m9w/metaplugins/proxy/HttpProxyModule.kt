@@ -1,14 +1,14 @@
 package com.github.m9w.metaplugins.proxy
 
+import kotlinx.io.IOException
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousSocketChannel
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.TimeUnit
 
-class HttpProxyModule() : ProxyModule {
+class HttpProxyModule(private var proxy: InetSocketAddress? = null) : ProxyModule {
     private val InetSocketAddress.socket: String get() = "$hostName:$port"
-    private var proxy: InetSocketAddress? = null
 
     override fun performConnect(channel: AsynchronousSocketChannel, address: InetSocketAddress) {
         try {
@@ -43,4 +43,26 @@ class HttpProxyModule() : ProxyModule {
     override fun ipRestricted() = ProxyPool.ipRestricted(proxy).also { proxy = null }
     override fun releaseProxy() = proxy?.let(ProxyPool::releaseProxy).also { proxy = null } ?: Unit
     override fun toString(): String = proxy?.run { "HTTP $socket" } ?: ""
+
+    companion object {
+        fun getRealIp(proxy: InetSocketAddress): String = AsynchronousSocketChannel.open().use { client ->
+            try {
+                HttpProxyModule(proxy).performConnect(client, InetSocketAddress("api.ipify.org", 80))
+                client.write(ByteBuffer.wrap("GET / HTTP/1.1\r\nHost: api.ipify.org\r\n\r\n".toByteArray()))
+                val result = ByteBuffer.allocate(1024)
+                val rawResponse = StringBuilder()
+                while (true) {
+                    val bytesRead = client.read(result).get()
+                    if (bytesRead == -1) return "-"
+                    result.flip()
+                    rawResponse.append(StandardCharsets.UTF_8.decode(result))
+                    result.clear()
+                    if ("\r\n\r\n" in rawResponse) break
+                }
+                rawResponse.split("\r\n\r\n")[1].trim()
+            } catch (_: IOException) {
+                "-"
+            }
+        }
+    }
 }

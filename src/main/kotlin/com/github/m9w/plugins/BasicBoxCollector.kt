@@ -18,11 +18,11 @@ import java.util.concurrent.ConcurrentHashMap
 
 @Suppress("unused")
 class BasicBoxCollector {
-    val targetNames by config(mutableSetOf<String>())
+    val targetNames by config(mutableSetOf("BONUS_BOX"))
 
     private val entities: EntitiesModule by context
     private val engine: GameEngine by context
-    private val targets: MutableMap<String, AddBoxCommand> = HashMap()
+    private val targets: MutableMap<String, AddBoxCommand> = ConcurrentHashMap()
     private var best: AddBoxCommand? = null
     private var lastCollect = 0L
     private var timeout = 0L

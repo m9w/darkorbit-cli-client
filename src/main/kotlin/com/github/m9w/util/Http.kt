@@ -1,5 +1,8 @@
 package com.github.m9w.util
 
+import com.github.m9w.metaplugins.proxy.Proxy
+import com.github.m9w.metaplugins.proxy.ProxyType
+
 import com.google.gson.Gson
 import java.io.ByteArrayOutputStream
 import java.io.OutputStreamWriter
@@ -124,7 +127,7 @@ class Http(private val baseUrl: String, val method: String = "GET", private val 
      * **Creates new connection on each call**
      * @return HttpResponse<ByteArray>
      */
-    fun getConnection(httpProxy: InetSocketAddress? = null, proxyUser: String = "", proxyPassword: String = "", ignoreSSL: Boolean = false, followRedirects: Boolean = true): HttpResponse<ByteArray> {
+    fun getConnection(proxy: Proxy? = null, ignoreSSL: Boolean = false, followRedirects: Boolean = true): HttpResponse<ByteArray> {
         val cookieManager = cookies ?: CookieManager().apply { setCookiePolicy(CookiePolicy.ACCEPT_ALL) }
         val clientBuilder = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(30))
@@ -132,13 +135,13 @@ class Http(private val baseUrl: String, val method: String = "GET", private val 
             .followRedirects(if (followRedirects) HttpClient.Redirect.ALWAYS else HttpClient.Redirect.NEVER)
 
         if (ignoreSSL) clientBuilder.sslContext(mockedSslContext)
-        if (httpProxy != null) {
-            clientBuilder
-                .proxy(ProxySelector.of(httpProxy))
-                .authenticator(object : Authenticator() {
+        if (proxy != null && (proxy.type == ProxyType.HTTP || proxy.type == ProxyType.HTTPS)) {
+            clientBuilder.proxy(ProxySelector.of(proxy.socket))
+            if (proxy.user != null)
+                clientBuilder.authenticator(object : Authenticator() {
                 override fun getPasswordAuthentication(): PasswordAuthentication {
                     return if (requestorType == RequestorType.PROXY)
-                        PasswordAuthentication(proxyUser, proxyPassword.toCharArray())
+                        PasswordAuthentication(proxy.user, (proxy.pass).toCharArray())
                     else
                         super.getPasswordAuthentication()
                 }

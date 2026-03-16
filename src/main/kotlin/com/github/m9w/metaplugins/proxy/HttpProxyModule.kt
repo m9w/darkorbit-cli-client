@@ -7,14 +7,17 @@ import java.nio.channels.AsynchronousSocketChannel
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.TimeUnit
 
-class HttpProxyModule(private var proxy: InetSocketAddress? = null) : ProxyModule {
+class HttpProxyModule(val pool: ProxyPoolInterface) : ProxyModule {
     private val InetSocketAddress.socket: String get() = "$hostName:$port"
+    private var proxy: Proxy? = null
+    constructor(proxy: Proxy) : this (object : ProxyPoolInterface { override fun getProxy(): Proxy = proxy })
 
-    override fun performConnect(channel: AsynchronousSocketChannel, address: InetSocketAddress) {
+    override fun performConnect(dest: InetSocketAddress): AsynchronousSocketChannel {
         try {
-            if (proxy == null) proxy = ProxyPool.getProxy()
-            channel.connect(proxy).get(5, TimeUnit.SECONDS)
-            val connectRequest = "CONNECT ${address.socket} HTTP/1.1\r\nHost: ${address.socket}\r\nProxy-Connection: Keep-Alive\r\n\r\n"
+            val proxy = proxy ?: pool.getProxy().also { proxy = it }
+            val channel = AsynchronousSocketChannel.open()
+            channel.connect(proxy.socket).get(5, TimeUnit.SECONDS)
+            val connectRequest = "CONNECT ${dest.socket} HTTP/1.1\r\nHost: ${dest.hostName}\r\nProxy-Connection: Keep-Alive\r\n\r\n"
             channel.write(ByteBuffer.wrap(connectRequest.toByteArray(StandardCharsets.UTF_8))).get()
             val responseBuf = ByteBuffer.allocate(1024)
             val rawResponse = StringBuilder()
@@ -30,6 +33,7 @@ class HttpProxyModule(private var proxy: InetSocketAddress? = null) : ProxyModul
 
             val statusLine = rawResponse.lineSequence().firstOrNull() ?: throw RuntimeException("Invalid proxy response: no status line")
             if (!statusLine.contains("200")) throw RuntimeException("Proxy CONNECT failed: $statusLine")
+            return channel
         } catch (t: Throwable) {
             degradationReport()
             throw t
@@ -37,17 +41,16 @@ class HttpProxyModule(private var proxy: InetSocketAddress? = null) : ProxyModul
     }
 
     override fun degradationReport() {
-        proxy?.let { if (ProxyPool.degradationReport(it)) proxy = null }
+        proxy?.let { if (pool.degradationReport(it)) proxy = null }
     }
 
-    override fun ipRestricted() = ProxyPool.ipRestricted(proxy).also { proxy = null }
-    override fun releaseProxy() = proxy?.let(ProxyPool::releaseProxy).also { proxy = null } ?: Unit
+    override fun ipRestricted() = pool.ipRestricted(proxy).also { proxy = null }
+    override fun releaseProxy() = proxy?.let(pool::releaseProxy).also { proxy = null } ?: Unit
     override fun toString(): String = proxy?.run { "HTTP $socket" } ?: ""
 
     companion object {
-        fun getRealIp(proxy: InetSocketAddress): String = AsynchronousSocketChannel.open().use { client ->
+        fun getRealIp(proxy: Proxy): String = HttpProxyModule(proxy).performConnect(InetSocketAddress("api.ipify.org", 80)).use { client ->
             try {
-                HttpProxyModule(proxy).performConnect(client, InetSocketAddress("api.ipify.org", 80))
                 client.write(ByteBuffer.wrap("GET / HTTP/1.1\r\nHost: api.ipify.org\r\n\r\n".toByteArray()))
                 val result = ByteBuffer.allocate(1024)
                 val rawResponse = StringBuilder()

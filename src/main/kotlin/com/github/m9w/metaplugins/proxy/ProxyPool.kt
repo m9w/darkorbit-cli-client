@@ -2,20 +2,19 @@ package com.github.m9w.metaplugins.proxy
 
 import com.github.m9w.metaplugins.proxy.HttpProxyModule.Companion.getRealIp
 import java.lang.System.currentTimeMillis
-import java.net.InetSocketAddress
 import java.util.concurrent.Callable
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
 
-object ProxyPool {
+object ProxyPool : ProxyPoolInterface {
     private val executor = Executors.newFixedThreadPool(32)
     private const val DEGRADATION_THRESHOLD: Int = 10
-    private val proxies: MutableMap<InetSocketAddress, Metadata> by lazy { ConcurrentHashMap<InetSocketAddress, Metadata>().apply {
+    private val proxies: MutableMap<Proxy, Metadata> by lazy { ConcurrentHashMap<Proxy, Metadata>().apply {
         (System.getenv("proxy_list") ?: "")
             .split(",|;|\\s".toRegex())
             .mapNotNull { it.takeIf {it.isNotEmpty()} ?.split(":") }
-            .map { InetSocketAddress(it[0], it[1].toInt())}
+            .map { Proxy(it[0], it[1].toInt())}
             .map { Callable { getRealIp(it) to it }}
             .let { executor.invokeAll(it) }
             .map { it.get() }
@@ -23,15 +22,15 @@ object ProxyPool {
     } }
     private val connections: MutableMap<String, AtomicInteger> = ConcurrentHashMap()
 
-    fun addProxy(address: InetSocketAddress) {
+    fun addProxy(address: Proxy) {
         proxies[address] = Metadata(getRealIp(address))
     }
 
-    fun removeProxy(address: InetSocketAddress) {
+    fun removeProxy(address: Proxy) {
         proxies.remove(address)
     }
 
-    fun getProxy(): InetSocketAddress {
+    override fun getProxy(): Proxy {
         proxies.values.forEach {
             while (it.degradationLevel > 0 && it.decreaseAfter < currentTimeMillis()) {
                 it.decreaseAfter += 60_000
@@ -44,11 +43,11 @@ object ProxyPool {
             ?.key ?: throw RuntimeException("No available proxy")
     }
 
-    fun releaseProxy(address: InetSocketAddress) {
-        proxies[address]?.run { connections.decrementAndGet() }
+    override fun releaseProxy(proxy: Proxy) {
+        proxies[proxy]?.run { connections.decrementAndGet() }
     }
 
-    fun degradationReport(address: InetSocketAddress?): Boolean = proxies[address]?.run {
+    override fun degradationReport(address: Proxy?): Boolean = proxies[address]?.run {
         degradationLevel++
         decreaseAfter = currentTimeMillis() + 60_000
         if (degradationLevel >= DEGRADATION_THRESHOLD) {
@@ -57,7 +56,7 @@ object ProxyPool {
         } else false
     } ?: false
 
-    fun ipRestricted(address: InetSocketAddress?): Unit = proxies[address]?.run {
+    override fun ipRestricted(address: Proxy?): Unit = proxies[address]?.run {
         degradationLevel = 10
         decreaseAfter = currentTimeMillis() + 600_000
         connections.decrementAndGet()

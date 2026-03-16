@@ -19,7 +19,7 @@ class GameEngine {
     private val proxy: ProxyModule? by optionalContext
     val userIdAndSid get() = authentication.run { "$userID|$sessionID" }
     var network: NetworkLayer = NetworkLayer(); private set
-    var initState: State by accountConfig(State.NORMAL)
+    var initState: State by accountConfig(State.IDLE)
     var state: State by accountConfig(State.NOT_CONNECTED, false)
 
     enum class State(val color: Color = Color.cyan) {
@@ -39,8 +39,7 @@ class GameEngine {
             state = State.NOT_CONNECTED
             network.onDisconnect = {}
             network.close()
-            network = NetworkLayer(authentication.address, proxy)
-            network.onPackageHandler = scheduler::handleEvent
+            network = NetworkLayer(authentication.address, proxy, scheduler::handleEvent)
             network.onDisconnect = { scheduler.handleEvent(SystemEvents.ON_DISCONNECT) }
             scheduler.handleEvent(SystemEvents.ON_CONNECT)
         } catch (e: Exception) {

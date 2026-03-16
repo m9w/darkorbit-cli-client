@@ -4,6 +4,7 @@ import com.github.m9w.client.GameEngine
 import com.github.m9w.config.PersistYamlConfig
 import com.github.m9w.metaplugins.*
 import com.github.m9w.metaplugins.PathTracerModule
+import com.github.m9w.metaplugins.proxy.ProxyPool
 import com.github.m9w.metaplugins.proxy.HttpProxyModule
 import com.github.m9w.util.ProcessIdentifier
 
@@ -14,7 +15,7 @@ fun main() {
             auth,
             cont,
             LoginModule(),
-            //HttpProxyModule(),
+            //HttpProxyModule(ProxyPool),
             BasicRepairModule(),
             PingModule(),
             EntitiesModule(),

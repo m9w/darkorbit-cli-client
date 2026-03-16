@@ -10,25 +10,25 @@ import io.netty.buffer.PooledByteBufAllocator
 import io.netty.buffer.Unpooled
 import java.io.Closeable
 import java.net.InetSocketAddress
+import java.nio.channels.AsynchronousByteChannel
 import java.nio.channels.AsynchronousSocketChannel
 import java.nio.channels.CompletionHandler
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
-class NetworkLayer(address: InetSocketAddress = InetSocketAddress(0), proxyModule: ProxyModule? = null) : Closeable {
-    private val client = AsynchronousSocketChannel.open()
+class NetworkLayer(address: InetSocketAddress = InetSocketAddress(0), proxyModule: ProxyModule? = null, val handle: (ProtocolPacket)->Unit = {}) : Closeable {
+    private val client: AsynchronousByteChannel
     private var isDisconnected = AtomicBoolean(false)
     var onConnectHandler: () -> Unit = {}
     var onDisconnect: () -> Unit = {}
-    var onPackageHandler: (ProtocolPacket)->Unit = {}
 
     init {
         if (address.port != 0) {
-            proxyModule?.performConnect(client, address) ?: client.connect(address).get(5, TimeUnit.SECONDS)
+            client = proxyModule?.performConnect(address) ?: AsynchronousSocketChannel.open().apply { connect(address).get(5, TimeUnit.SECONDS) }
             println("[$timePrefix] Connected to ${address.hostName}:${address.port}${if(proxyModule == null) "" else " over $proxyModule"}")
             onConnectHandler.invoke()
             onRead()
-        }
+        } else client = AsynchronousSocketChannel.open()
     }
 
     private var isFirst = true
@@ -84,7 +84,7 @@ class NetworkLayer(address: InetSocketAddress = InetSocketAddress(0), proxyModul
                 try {
                     val parsed = ProtocolParser.deserialize(buf) ?: throw RuntimeException("Parsed object is null")
                     if (debug) println(">>$parsed")
-                    onPackageHandler(parsed)
+                    handle(parsed)
                 } catch (e: Exception) {
                     if (debug) {
                         buf.resetReaderIndex()
@@ -103,7 +103,7 @@ class NetworkLayer(address: InetSocketAddress = InetSocketAddress(0), proxyModul
         })
     }
 
-    fun isAlive(): Boolean = try { client.isOpen && client.remoteAddress != null } catch (_: Exception) { false }
+    fun isAlive(): Boolean = try { client.isOpen } catch (_: Exception) { false }
 
     override fun close() {
         try { client.close() } catch (_: Exception) {}

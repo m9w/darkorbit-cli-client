@@ -1,7 +1,8 @@
 package com.github.m9w.util
 
 import com.google.gson.Gson
-import java.io.*
+import java.io.ByteArrayOutputStream
+import java.io.OutputStreamWriter
 import java.net.*
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -10,14 +11,15 @@ import java.nio.charset.StandardCharsets
 import java.security.cert.X509Certificate
 import java.time.Duration
 import java.util.*
-import javax.net.ssl.*
+import javax.net.ssl.SSLContext
+import javax.net.ssl.X509TrustManager
 
 
 /**
  * Utility for HTTP connections.
  * Use it like builder, just one time for instance
  */
-class Http(private val baseUrl: String, val method: String = "GET", private val followRedirects: Boolean = true) {
+class Http(private val baseUrl: String, val method: String = "GET", private val cookies: CookieManager? = null) {
     private val bodyHolder = BodyHolder()
     private var userAgent = defaultUserAgent
     private var suppliers = ArrayList<() -> Unit>()
@@ -122,22 +124,33 @@ class Http(private val baseUrl: String, val method: String = "GET", private val 
      * **Creates new connection on each call**
      * @return HttpResponse<ByteArray>
      */
-    fun getConnection(httpProxy: InetSocketAddress? = null, ignoreSSL: Boolean = false, followRedirects: Boolean = true): HttpResponse<ByteArray> {
-        val cookieManager = CookieManager().apply { setCookiePolicy(CookiePolicy.ACCEPT_ALL) }
+    fun getConnection(httpProxy: InetSocketAddress? = null, proxyUser: String = "", proxyPassword: String = "", ignoreSSL: Boolean = false, followRedirects: Boolean = true): HttpResponse<ByteArray> {
+        val cookieManager = cookies ?: CookieManager().apply { setCookiePolicy(CookiePolicy.ACCEPT_ALL) }
         val clientBuilder = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(30))
             .cookieHandler(cookieManager)
             .followRedirects(if (followRedirects) HttpClient.Redirect.ALWAYS else HttpClient.Redirect.NEVER)
 
         if (ignoreSSL) clientBuilder.sslContext(mockedSslContext)
-        if (httpProxy != null) clientBuilder.proxy(ProxySelector.of(httpProxy))
+        if (httpProxy != null) {
+            clientBuilder
+                .proxy(ProxySelector.of(httpProxy))
+                .authenticator(object : Authenticator() {
+                override fun getPasswordAuthentication(): PasswordAuthentication {
+                    return if (requestorType == RequestorType.PROXY)
+                        PasswordAuthentication(proxyUser, proxyPassword.toCharArray())
+                    else
+                        super.getPasswordAuthentication()
+                }
+            })
+        }
         val client = clientBuilder.build()
         val requestBuilder = HttpRequest.newBuilder().uri(url.toURI()).timeout(Duration.ofSeconds(30))
         if (!headers.containsKey("User-Agent")) headers["User-Agent"] = userAgent
         for ((key, value) in headers) requestBuilder.header(key, value)
 
         if (method.uppercase() == "POST" && bodyHolder.isValid) {
-            val data = bodyHolder.bytes
+            val data = requestBody
             val contentType = if (bodyHolder.hasParams()) { "application/x-www-form-urlencoded" } else { "application/octet-stream" }
             requestBuilder.header("Content-Type", contentType).POST(HttpRequest.BodyPublishers.ofByteArray(data))
         }
@@ -149,6 +162,8 @@ class Http(private val baseUrl: String, val method: String = "GET", private val 
     }
 
     val connect get() = getConnection()
+
+    val requestBody get() = bodyHolder.bytes
 
     private class ParamBuilder {
         /**
@@ -227,7 +242,10 @@ class Http(private val baseUrl: String, val method: String = "GET", private val 
     companion object {
         val gson: Gson = Gson()
         private var defaultUserAgent: String = "DarkOrbit Unity Client 1.1.46"
-        init { System.setProperty("sun.net.http.allowRestrictedHeaders", "true") }
+        init {
+            System.setProperty("sun.net.http.allowRestrictedHeaders", "true")
+            System.setProperty("jdk.http.auth.tunneling.disabledSchemes", "")
+        }
         /**
          * Checks if Objects is instance of String
          * and encodes it via [URLEncoder.encode] in UTF-8

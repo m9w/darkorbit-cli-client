@@ -7,6 +7,7 @@ import com.github.m9w.Scheduler
 import com.github.m9w.client.GameEngine
 import com.github.m9w.client.auth.AuthenticationProvider
 import com.github.m9w.client.auth.ClientType
+import com.github.m9w.client.auth.ExternalAuthenticationProvider
 import com.github.m9w.client.network.NetworkLayer
 import com.github.m9w.context.context
 import com.github.m9w.feature.annotations.OnPackage
@@ -19,6 +20,7 @@ import java.awt.*
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import java.util.concurrent.Executors
 import javax.swing.*
 
 class EntitiesDebugUiModule(private val block: (AuthenticationProvider, Any) -> Unit) : JPanel(), Runnable {
@@ -29,6 +31,7 @@ class EntitiesDebugUiModule(private val block: (AuthenticationProvider, Any) -> 
     private var copy = HashSet<EntityImpl>()
     private var path = listOf<Pair<Int, Int>>()
     private val entityCanvas = JFrame("Entities canvas")
+    private val exec = Executors.newFixedThreadPool(10)
 
     override fun paintComponent(g: Graphics) {
         super.paintComponent(g)
@@ -186,14 +189,23 @@ class EntitiesDebugUiModule(private val block: (AuthenticationProvider, Any) -> 
             fun buttonI(name: String, block: () -> Unit) = panel.addWithPadding(JButton(name).center.apply { addActionListener { block() } })
             val clientTypes = ClientType.entries.joinToString()
             buttonI("Login + Password") { InputDialog(frame, "Client type($clientTypes)", "Login", "Password") {
-                block(AuthenticationProvider.byLoginPassword(this["Login"]!!, this["Password"]!!, ClientType.valueOf(this["Client type"]!!)), InnerModule() )
+                block(AuthenticationProvider.byLoginPassword(this["Login"]!!, this["Password"]!!, ClientType.valueOf(this["Client type"]!!)).duplicateCheck, InnerModule())
             } }
             buttonI("Server + SID") { InputDialog(frame, "Client type($clientTypes)", "Server", "SID") {
-                block(AuthenticationProvider.byServerSid(this["Server"]!!, this["SID"]!!, ClientType.valueOf(this["Client type"]!!)), InnerModule())
+                block(AuthenticationProvider.byServerSid(this["Server"]!!, this["SID"]!!, ClientType.valueOf(this["Client type"]!!)).duplicateCheck, InnerModule())
             } }
             buttonI("External login") { InputDialog(frame, "Login") {
-                block(AuthenticationProvider.byLoginExternal(this["Login"]!!), InnerModule())
+                block(AuthenticationProvider.byLoginExternal(this["Login"]!!).duplicateCheck, InnerModule())
             } }
+            buttonI("Login all External") {
+                ExternalAuthenticationProvider.getAccounts().forEach { account -> exec.submit {
+                    try {
+                        block(AuthenticationProvider.byLoginExternal(account).duplicateCheck, InnerModule())
+                    } catch (t: Throwable) {
+                        println("Authorization fail for $account because ${t.message}")
+                    }
+                } }
+            }
             panel.addWithPadding(instanceSelector.center)
             panel.addWithPadding(JButton("Disconnect selected").center.apply { addActionListener { (instanceSelector.selectedItem as? InnerModule)?.apply {
                 scheduler.close()
@@ -217,6 +229,11 @@ class EntitiesDebugUiModule(private val block: (AuthenticationProvider, Any) -> 
             frame.contentPane = panel
             frame.isVisible = true
         }
+    }
+
+    private val AuthenticationProvider.duplicateCheck: AuthenticationProvider get() {
+        if (instances.any { it.auth.userID == userID }) throw RuntimeException("Account $userID already exist")
+        return this
     }
 
     private val Point.mapPosition: PositionImpl get() = PositionImpl((x.toDouble() / width * instance!!.map.map.width).toInt(), (y.toDouble() / height * instance!!.map.map.height).toInt())

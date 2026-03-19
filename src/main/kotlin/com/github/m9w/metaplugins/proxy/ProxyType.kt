@@ -1,5 +1,7 @@
 package com.github.m9w.metaplugins.proxy
 
+import kotlinx.io.bytestring.ByteString
+import kotlinx.io.bytestring.putByteString
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousByteChannel
@@ -58,5 +60,35 @@ private fun httpTunnel(channel: AsynchronousByteChannel, proxy: Proxy, dest: Ine
 }
 
 private fun socks5Tunnel(channel: AsynchronousByteChannel, proxy: Proxy, dest: InetSocketAddress) {
-    TODO()
+    fun write(buf: ByteBuffer) { while (buf.hasRemaining()) channel.write(buf).get().takeIf { it >= 0 } ?: throw RuntimeException("Channel closed on write") }
+    fun read(len: Int): ByteArray = ByteBuffer.allocate(len).also { buf -> while (buf.hasRemaining()) channel.read(buf).get().takeIf { it >= 0 } ?: throw RuntimeException("Channel closed on read") }.array()
+    fun readByte(): Int = read(1)[0].toInt() and 0xFF
+    write(ByteBuffer.wrap(if (proxy.user != null) byteArrayOf(0x05, 0x02, 0x00, 0x02) else byteArrayOf(0x05, 0x01, 0x00)))
+    val methodResp = read(2).takeIf { it[0] == 0x05.toByte() } ?: throw RuntimeException("Invalid SOCKS version")
+    val method = methodResp[1].toInt() and 0xFF
+    if (method == 0x02) {
+        val user = proxy.user ?: throw RuntimeException("Proxy requires auth")
+        val userBytes = user.toByteArray(Charsets.UTF_8)
+        val passBytes = proxy.pass.toByteArray(Charsets.UTF_8)
+        val buf = ByteBuffer.allocate(3 + userBytes.size + passBytes.size)
+        buf.putByteString(ByteString(0x01, userBytes.size.toByte(), *userBytes, passBytes.size.toByte(), *passBytes))
+        write(buf.flip())
+        val authResp = read(2)
+        if (authResp[1].toInt() != 0x00) throw RuntimeException("SOCKS5 auth failed")
+    } else if (method != 0x00) throw RuntimeException("Unsupported auth method: $method")
+    val hostBytes = dest.hostString.toByteArray(Charsets.UTF_8)
+    val req = ByteBuffer.allocate(hostBytes.size + 7)
+    req.putByteString(ByteString(0x05, 0x01, 0x00, 0x03, hostBytes.size.toByte(), *hostBytes))
+    req.putShort(dest.port.toShort())
+    write(req.flip())
+    val header = read(4)
+    if (header[0] != 0x05.toByte()) throw RuntimeException("Invalid response version")
+    if (header[1] != 0x00.toByte()) throw RuntimeException("SOCKS5 connect failed: ${header[1]}")
+    when (val atyp = header[3].toInt() and 0xFF) {
+        0x01 -> read(4)
+        0x03 -> read(readByte())
+        0x04 -> read(16)
+        else -> throw RuntimeException("Unknown ATYP: $atyp")
+    }
+    read(2)
 }

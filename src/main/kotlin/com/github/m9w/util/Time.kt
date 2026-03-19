@@ -1,12 +1,21 @@
 package com.github.m9w.util
 
-fun ms(days: Int = 0,
+fun ms(from: Long = 0,
+       days: Int = 0,
        hours: Int = 0,
-       minutes: Int = 0,
-       seconds: Int = 0,
+       min: Int = 0,
+       sec: Int = 0,
        ms: Int = 0
-): Long =
+): Long = from +
     days.toLong()*24*60*60*1000 +
     hours.toLong()*60*60*1000 +
-    minutes.toLong()*60*1000 +
-    seconds.toLong()*1000 + ms
+    min.toLong()*60*1000 +
+    sec.toLong()*1000 + ms
+
+fun isTimeout(from: Long = 0,
+       days: Int = 0,
+       hours: Int = 0,
+       min: Int = 0,
+       sec: Int = 0,
+       ms: Int = 0
+): Boolean = ms(from, days, hours, min, sec, ms) < System.currentTimeMillis()

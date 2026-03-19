@@ -13,7 +13,7 @@ data class Proxy(val host: String, val port: Int, val user: String? = null, val 
     constructor(proxy: Proxy) : this(proxy.host, proxy.port, proxy.user, proxy.pass, proxy.type)
     constructor(uri: String) : this(parse(uri))
 
-    val socket get() = InetSocketAddress(host, port)
+    val socket = InetSocketAddress(host, port)
     val publicIp by lazy { this.requestPublicIp() }
 
     fun openTunnel(dest: InetSocketAddress): AsynchronousByteChannel {

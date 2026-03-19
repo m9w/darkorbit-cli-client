@@ -141,9 +141,11 @@ fun pipe(source: AsynchronousSocketChannel, dest: AsynchronousSocketChannel, isC
     loop()
 }
 
+private val offset = System.currentTimeMillis()
+
 fun fromClient(filePath: Path, buf: ByteBuf) {
     try {
-        printPacket(filePath, "<<[${System.currentTimeMillis()}]${ProtocolParser.deserialize(buf)}\n")
+        printPacket(filePath, "<<[${System.currentTimeMillis() - offset}]${ProtocolParser.deserialize(buf)}\n")
     } catch (e: Exception) {
         e.printStackTrace()
     } finally {
@@ -153,7 +155,7 @@ fun fromClient(filePath: Path, buf: ByteBuf) {
 
 fun toClient(filePath: Path, buf: ByteBuf) {
     try {
-        printPacket(filePath, ">>[${System.currentTimeMillis()}]${ProtocolParser.deserialize(buf)}\n")
+        printPacket(filePath, ">>[${System.currentTimeMillis() - offset}]${ProtocolParser.deserialize(buf)}\n")
     } catch (e: Exception) {
         e.printStackTrace()
     } finally {

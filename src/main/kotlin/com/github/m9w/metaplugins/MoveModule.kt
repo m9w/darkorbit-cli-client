@@ -11,6 +11,7 @@ import com.github.m9w.metaplugins.game.PositionImpl.Companion.distanceTo
 import com.github.m9w.metaplugins.game.PositionImpl.Companion.x
 import com.github.m9w.metaplugins.game.PositionImpl.Companion.y
 import com.github.m9w.moveRequest
+import com.github.m9w.util.isTimeout
 import java.lang.System.currentTimeMillis
 import java.nio.channels.CancelledKeyException
 import java.util.*
@@ -70,12 +71,12 @@ class MoveModule {
     }
 
     private fun moveRequestDelay(dest: Point) {
-        if (lastMove + 100 > currentTimeMillis()) {
-            if (scheduledPoint == null) scheduler.handleEvent("MoveModule_delay")
-            scheduledPoint = dest
-        } else {
+        if (isTimeout(lastMove, ms = 100)) {
             gameEngine.moveRequest(entities.hero.position, dest)
             lastMove = currentTimeMillis()
+        } else {
+            if (scheduledPoint == null) scheduler.handleEvent("MoveModule_delay")
+            scheduledPoint = dest
         }
     }
 

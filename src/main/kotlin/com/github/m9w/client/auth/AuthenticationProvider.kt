@@ -1,6 +1,7 @@
 package com.github.m9w.client.auth
 
 import com.github.m9w.feature.Classifier
+import com.github.m9w.util.isTimeout
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.URI
@@ -34,7 +35,7 @@ interface AuthenticationProvider : Classifier<AuthenticationProvider> {
                 }
             }
 
-            return if (records.first + 15*60*1000 < System.currentTimeMillis()) //TTL 15 min
+            return if (isTimeout(records.first, min = 15))
                 cache.remove(host).let { getMapAddress(host, mapId) }
             else records.second[mapId] ?: throw IllegalArgumentException("Map $mapId not found")
         }

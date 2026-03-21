@@ -10,9 +10,6 @@ import kotlin.reflect.KProperty
 import kotlin.reflect.KType
 import kotlin.reflect.jvm.javaType
 
-private typealias rwProp<T> = ReadWriteProperty<Any, T>
-private typealias Factory<T> = PropertyDelegateProvider<Any, rwProp<T>>
-
 private val mapper: ObjectMapper = ObjectMapper().registerKotlinModule()
 
 /**
@@ -22,28 +19,35 @@ private val mapper: ObjectMapper = ObjectMapper().registerKotlinModule()
  *
  * Cycle references is restricted
  */
-fun <T> config(default: T, persist: Boolean = true): Factory<T> = DelegatorFactory(Types.CONFIG, default, persist)
-fun <T> accountConfig(default: T, persist: Boolean = true): Factory<T> = DelegatorFactory(Types.ACCOUNT_CONFIG, default, persist)
-fun <T> staticConfig(default: T, persist: Boolean = true): Factory<T> = DelegatorFactory(Types.STATIC_CONFIG, default, persist)
+fun <T> config(default: T, persist: Boolean = true): FactoryC<T> = DelegatorFactoryC(default, persist)
+fun <T> accountConfig(default: T, persist: Boolean = true): FactoryA<T> = DelegatorFactoryA(default, persist) as FactoryA<T>
+fun <T> staticConfig(default: T, persist: Boolean = true): FactoryS<T> = DelegatorFactoryS(default, persist) as FactoryS<T>
 
-private enum class Types(val builder: (String, KType, Any?, Boolean) -> rwProp<Any?>) {
-    CONFIG(::Config),
-    ACCOUNT_CONFIG(::AccountConfig),
-    STATIC_CONFIG ({ cls, type, default, persist -> staticDelegators.computeIfAbsent(cls) { StaticConfig(cls, type, default, persist) } });
-    companion object {
-        private val staticDelegators = mutableMapOf<String, rwProp<Any?>>()
-    }
+interface RwPropC<T> : ReadWriteProperty<Any, T>
+interface RwPropA<T> : ReadWriteProperty<Any, T>
+interface RwPropS<T> : ReadWriteProperty<Any, T>
+
+interface FactoryC<T> :  PropertyDelegateProvider<Any, RwPropC<T>>
+interface FactoryA<T> :  PropertyDelegateProvider<Any, RwPropA<T>>
+interface FactoryS<T> :  PropertyDelegateProvider<Any, RwPropS<T>>
+
+private abstract class DelegatorFactory<T, R>(val builder: (String, KType, T, Boolean) -> R) {
+    abstract val default: T
+    abstract val persist: Boolean
+    fun provideDelegate(thisRef: Any, property: KProperty<*>): R = builder(thisRef::class.qualifiedName!! + "#" + property.name, property.returnType, default, persist)
 }
 
-private class DelegatorFactory<T>(val type: Types, val default: T, val persist: Boolean) : Factory<T> {
+private val staticDelegators = mutableMapOf<String, RwPropS<Any?>>()
+private fun <T> getStaticDelegator(cls: String, type: KType, default: T, persist: Boolean): StaticConfig<T> {
     @Suppress("UNCHECKED_CAST")
-    override fun provideDelegate(thisRef: Any, property: KProperty<*>): rwProp<T> {
-        val key = thisRef::class.qualifiedName!! + "#" + property.name
-        return type.builder(key, property.returnType, default, persist) as rwProp<T>
-    }
+    return staticDelegators.computeIfAbsent(cls) { StaticConfig(cls, type, default, persist) } as StaticConfig<T>
 }
 
-private abstract class AbstractConfig<T>(val default: T) : rwProp<T> {
+private class DelegatorFactoryC<T>(override val default: T, override val persist: Boolean) : DelegatorFactory<T, RwPropC<T>>(::Config), FactoryC<T>
+private class DelegatorFactoryA<T>(override val default: T, override val persist: Boolean) : DelegatorFactory<T, RwPropA<T>>(::AccountConfig), FactoryA<T>
+private class DelegatorFactoryS<T>(override val default: T, override val persist: Boolean) : DelegatorFactory<T, RwPropS<T>>(::getStaticDelegator), FactoryS<T>
+
+private abstract class AbstractConfig<T>(val default: T) : ReadWriteProperty<Any, T> {
     protected val config : ConfigModule by context
     abstract val type: KType
     abstract val key: String
@@ -69,15 +73,15 @@ private abstract class AbstractConfig<T>(val default: T) : rwProp<T> {
     private fun T.clone(type: KType): T = mapper.convertValue(this, mapper.typeFactory.constructType(type.javaType))
 }
 
-private class Config<T>(val cls: String, override val type: KType, default: T, val persist: Boolean) : AbstractConfig<T>(default) {
+private class Config<T>(val cls: String, override val type: KType, default: T, val persist: Boolean) : AbstractConfig<T>(default), RwPropC<T> {
     override val key: String get() = "${if (persist) "" else "!"}CONFIG.${config.configName}.$cls"
 }
 
-private class AccountConfig<T>(val cls: String, override val type: KType, default: T, val persist: Boolean) : AbstractConfig<T>(default) {
+private class AccountConfig<T>(val cls: String, override val type: KType, default: T, val persist: Boolean) : AbstractConfig<T>(default), RwPropA<T> {
     val auth: AuthenticationProvider by context
     override val key: String get() = "${if (persist) "" else "!"}ACCOUNT.${auth.userID}.$cls"
 }
 
-private class StaticConfig<T>(val cls: String, override val type: KType, default: T, val persist: Boolean) : AbstractConfig<T>(default) {
+private class StaticConfig<T>(val cls: String, override val type: KType, default: T, val persist: Boolean) : AbstractConfig<T>(default), RwPropS<T> {
     override val key: String get() = "${if (persist) "" else "!"}STATIC.$cls"
 }

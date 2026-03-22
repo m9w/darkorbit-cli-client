@@ -1,4 +1,6 @@
 package com.github.m9w.feature.suspend
 
-class ExceptPacketException(val packet: Any) : RuntimeException("Received except packet") {
+import com.darkorbit.ProtocolPacket
+
+class ExceptPacketException(val packet: ProtocolPacket) : RuntimeException("Received except packet") {
 }

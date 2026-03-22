@@ -33,7 +33,7 @@ class Context {
         private val ctx = ThreadLocal.withInitial { mutableMapOf<KClassifier, Any>().also { ctxNav[Thread.currentThread()] = it } }
         fun findInContext(classifier: KClassifier): Any = ctx.get()[classifier] ?: throw ClassNotFoundException("Cannot found module in context that can classified as $classifier")
 
-        fun apply(newContext: Set<Any>): Set<Any> {
+        fun add(newContext: Set<Any>): Set<Any> {
             val removed = ctx.get()?.let { context -> newContext.mapNotNull { newItem -> context.put((newItem as? Classifier<*>)?.classifier ?: newItem::class, newItem) } }?.toSet() ?: emptySet()
             newContext.filterIsInstance<ContextEvents>().forEach { it.addedToContext(newContext::forEach) }
             removed.filterIsInstance<ContextEvents>().forEach { it.removedFromContext(removed::forEach) }

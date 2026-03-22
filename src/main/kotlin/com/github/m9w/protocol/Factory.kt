@@ -36,10 +36,10 @@ object Factory {
 
     private fun storeMethodMapping(packetType: KClass<*>) {
         packetType.memberProperties.forEach {
-            getters.put(it.javaGetter!!, it.name)
-            if (it is KMutableProperty<*>) setters.put(it.javaSetter!!, it.name)
+            getters[it.javaGetter!!] = it.name
+            if (it is KMutableProperty<*>) setters[it.javaSetter!!] = it.name
         }
-        packetTypes.put(packetType, Unit)
+        packetTypes[packetType] = Unit
     }
 
     private fun default(returnType: Class<*>): Any? {
@@ -60,11 +60,11 @@ object Factory {
 
     fun getData(proxy: Any): Map<String, Any> = if (proxy is Metadata) proxy.map() else emptyMap()
 
-    fun getClassName(proxy: Any) = if (proxy is Metadata) proxy.cls() else ""
+    val ProtocolPacket.className get() = (this as Metadata).cls()
 
-    fun getClass(proxy: Any) = if (proxy is Metadata) ProtocolParser.getClass(getClassName(proxy)) else null
+    fun getClass(proxy: Any) = if (proxy is Metadata) ProtocolParser.getClass(proxy.className) else null
 
-    private interface Metadata {
+    private interface Metadata : ProtocolPacket {
         fun map(): Map<String, Any>
         fun cls(): String
     }

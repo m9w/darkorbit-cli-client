@@ -12,10 +12,11 @@ import com.github.m9w.feature.annotations.OnEvent
 import com.github.m9w.feature.annotations.OnPackage
 import com.github.m9w.feature.annotations.Repeat
 import com.github.m9w.feature.suspend.ExceptPacketException
-import com.github.m9w.protocol.Factory
+import com.github.m9w.protocol.Factory.className
 import java.io.Closeable
 import java.lang.RuntimeException
 import java.util.*
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.callSuspend
@@ -26,36 +27,47 @@ import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.jvmErasure
 
 
-class Scheduler(vararg ctx: Any) : Runnable, Closeable, Classifier<Scheduler> {
-    private val eventPacketQueue = LinkedList<ProtocolPacket>()
-    private val eventQueue = LinkedList<Pair<String, String>>()
+class Scheduler : Runnable, Closeable, Classifier<Scheduler> {
+    private val eventPacketQueue = ConcurrentLinkedQueue<ProtocolPacket>()
+    private val eventQueue = ConcurrentLinkedQueue<Pair<String, String>>()
     private val eventHandlers: MutableMap<String, MutableSet<PendingFuture>> = HashMap()
     private val timerQueue = TreeMap<Long, MutableList<() -> Unit>>()
     private val timerCancellationKeys = HashMap<String, MutableList<((()->Exception)?)->Unit>>()
     private val lock = Object()
     private val hasEvents get() = !eventPacketQueue.isEmpty() || !eventQueue.isEmpty()
-    private lateinit var thread: Thread
-    @Volatile private var isRun = true
     private val engine: GameEngine by context
-    private val rawContext: Set<Any> = mutableSetOf<Any>(this).apply { addAll(ctx) }
+    private val modules = mutableSetOf<Any>()
+    private val thread: Thread = Thread(this, "Scheduler instance")
+    private var isClosed = false
 
-    fun performTimer() {
-        if (timerQueue.isEmpty()) return
-        System.currentTimeMillis().let { currentTime ->
-            if (timerQueue.firstKey() <= currentTime) timerQueue.pollFirstEntry().value.forEach { it() }
-        }
+    fun init(context: Set<Any>) {
+        modules.addAll(context)
+        thread.start()
     }
 
-    fun performHandler() {
-        while (hasEvents) {
-            synchronized(eventPacketQueue) { eventPacketQueue.toList().also { eventPacketQueue.clear() } }.forEach { packet ->
-                eventHandlers[Factory.getClassName(packet)]?.iterator()?.apply {
-                    while (hasNext()) next().apply { if(!persist) remove() }.perform(packet)
+    private fun performTimer(): Long {
+        if (timerQueue.isEmpty()) return Long.MAX_VALUE
+        val key = timerQueue.firstKey() - System.currentTimeMillis()
+        if (key <= 0) timerQueue.pollFirstEntry().value.forEach { it() }
+        return key
+    }
+
+    private fun performHandler() {
+        while (true) {
+            val packet = eventPacketQueue.poll() ?: break
+            eventHandlers[packet.className]?.let { handlerSet ->
+                synchronized(handlerSet) {
+                    handlerSet.removeIf { handler ->
+                        handler.perform(packet)
+                        !handler.persist
+                    }
                 }
             }
-            synchronized(eventQueue) { eventQueue.toList().also { eventQueue.clear() } }.forEach { (event, body) ->
-                eventHandlers["@$event"]?.forEach { it.perform(body) }
-            }
+        }
+
+        while (true) {
+            val (event, body) = eventQueue.poll() ?: break
+            eventHandlers["@$event"]?.forEach { it.perform(body) }
         }
     }
 
@@ -78,35 +90,45 @@ class Scheduler(vararg ctx: Any) : Runnable, Closeable, Classifier<Scheduler> {
     fun interruptIn(future: Future<*>, ms: Long, block: () -> Exception) = schedule(ms) { future.interrupt(block) }
 
     fun sendEvent(packet: ProtocolPacket) {
-        synchronized(eventPacketQueue) {
-            eventPacketQueue.addLast(packet)
-        }
+        if (isClosed) return
+        eventPacketQueue.offer(packet)
         synchronized(lock) { lock.notifyAll() }
     }
 
     fun sendEvent(event: String, body: String = "", async: Boolean = false) {
+        if (isClosed) return
         val sameThread = thread == Thread.currentThread()
         if (!async && sameThread) {
             eventHandlers["@$event"]?.forEach { it.perform(body) }
         } else {
-            eventQueue.add(event to body)
+            eventQueue.offer(event to body)
             if (!sameThread) synchronized(lock) { lock.notifyAll() }
         }
     }
 
     fun addPendingFuture(future: Future<*>, waitFor: Set<String>, exceptOn: Set<String> = emptySet()) : PendingFuture {
-        val pendingFuture = PendingFuture( waitFor::contains, future::resume,
-            { future.interrupt { ExceptPacketException(it) } })
-        (waitFor + exceptOn).forEach { eventHandlers.getOrPut(it) { mutableSetOf() }.add(pendingFuture) }
+        val pendingFuture = PendingFuture( waitFor::contains, future::resume, { future.interrupt { ExceptPacketException(it) } })
+        (waitFor + exceptOn).forEach { addHandler(it, pendingFuture) }
         return pendingFuture
     }
 
+    private fun addHandler(key: String, handler: PendingFuture) {
+        val handlers = eventHandlers[key]
+        if (handlers != null) synchronized(handlers) {
+            handlers.add(handler)
+        } else {
+            eventHandlers[key] = mutableSetOf(handler)
+        }
+    }
+
     fun remove(pendingFuture: PendingFuture) {
-        eventHandlers.values.forEach { it.remove(pendingFuture) }
+        eventHandlers.values
+            .filter { it.contains(pendingFuture) }
+            .forEach { synchronized(it) { it.remove(pendingFuture) } }
     }
 
     private fun loadContextTasks() {
-        rawContext.flatMap { instance ->
+        modules.flatMap { instance ->
             instance::class.memberFunctions.mapNotNull { method ->
                 if (method.hasAnnotation<OnPackage>()) {
                     if (method.parameters.size != 2) throw IllegalArgumentException("Unexpected argument count in $method")
@@ -124,24 +146,24 @@ class Scheduler(vararg ctx: Any) : Runnable, Closeable, Classifier<Scheduler> {
     }
 
     override fun run() {
-        Context.apply(rawContext)
+        Context.add(modules)
         loadContextTasks()
-        engine.connect()
-        val delay = 50
-        var last = System.currentTimeMillis()
-        var delta = 0L
-        while (isRun) {
+        while (!isClosed) {
             try {
-                while (hasEvents || (delay - (System.currentTimeMillis() - last)).also { delta = it } > 0) {
-                    performHandler()
-                    synchronized(lock) { if(!hasEvents && delta > 0) lock.wait(delta) }
+                while (hasEvents) performHandler()
+                val nextIteration = performTimer()
+                if (nextIteration > 0) {
+                    val delta = if (nextIteration > 10000) 5000
+                    else if (nextIteration > 100) nextIteration
+                    else nextIteration/2 + 5
+                    synchronized(lock) { lock.wait(delta) }
                 }
-                performTimer()
-                last = System.currentTimeMillis()
+            } catch (_: InterruptedException) {
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
+        runCatching { engine.disconnect() }
         Context.close()
     }
 
@@ -150,37 +172,33 @@ class Scheduler(vararg ctx: Any) : Runnable, Closeable, Classifier<Scheduler> {
         if (delay == 0L) synchronized(lock) { lock.notifyAll() }
     }
 
-    fun start() {
-        thread = Thread(this, "Scheduler instance")
-        thread.start()
-    }
-
     fun <T> runWithContext(block: () -> T): T = thread.enterToContext(block)
 
     override fun close() {
-        isRun = false
-        engine.disconnect()
+        isClosed = true
         thread.interrupt()
     }
 
-    data class PendingFuture(private val isSuccess: (String) -> Boolean = { true },
-                             private val onSuccess: (Any) -> Unit,
-                             private val onException: (Any) -> Unit = {},
-                             val persist: Boolean = false) {
-        fun perform(packet: Any) {
-            if (isSuccess(Factory.getClassName(packet))) onSuccess(packet)
-            else onException(packet)
+    class PendingFuture(private val isSuccess: ((String) -> Boolean)? = null,
+                        private val onSuccess: (Any) -> Unit,
+                        private val onException: ((ProtocolPacket) -> Unit)? = null,
+                        val persist: Boolean = false) {
+        fun perform(packet: ProtocolPacket) {
+            if (isSuccess?.invoke(packet.className) ?: true) onSuccess(packet)
+            else onException?.invoke(packet)
         }
+
+        fun perform(body: String) = onSuccess(body)
     }
 
-    private inner class Repeatable(private val ms: Long, private val method: KFunction<*>, private val instance: Any, private var noInitDelay: Boolean = false) : SchedulerEntity(this, method.isSuspend) {
+    private inner class Repeatable(private val interval: Long, private val method: KFunction<*>, private val instance: Any, private var noDelay: Boolean = false) : SchedulerEntity(this, method.isSuspend) {
         init { method.isAccessible = true }
         override fun postAction() = schedule()
-        override fun schedule(){
-            schedule(if (noInitDelay) 0 else ms) {
+        override fun schedule() {
+            schedule(if (noDelay) 0 else interval) {
                 run({ method.callSuspend(instance) }, { method.call(instance) })
             }
-            noInitDelay = false
+            noDelay = false
         }
     }
 
@@ -190,7 +208,7 @@ class Scheduler(vararg ctx: Any) : Runnable, Closeable, Classifier<Scheduler> {
             val pf = PendingFuture(onSuccess = {
                 run({ method.callSuspend(instance, it) }, { method.call(instance, it) })
             }, persist = true)
-            eventHandlers.getOrPut(packetType) { mutableSetOf() }.add(pf)
+            addHandler(packetType, pf)
         }
     }
 }

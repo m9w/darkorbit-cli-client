@@ -1,11 +1,11 @@
 package com.github.m9w.context
 
 import com.github.m9w.feature.Classifier
-import kotlin.reflect.KClass
+import java.io.Closeable
+import java.util.WeakHashMap
+import kotlin.collections.set
 import kotlin.reflect.KClassifier
 import kotlin.reflect.KProperty
-import kotlin.reflect.full.declaredMemberProperties
-import kotlin.reflect.jvm.isAccessible
 
 val context get() = Context()
 val optionalContext get() = Context().Optional()
@@ -28,15 +28,31 @@ class Context {
         }
     }
 
-    companion object {
-        private val ctx = ThreadLocal.withInitial { mutableMapOf<KClassifier, Any>() }
+    companion object : Closeable {
+        private val ctxNav = WeakHashMap<Thread, MutableMap<KClassifier, Any>>()
+        private val ctx = ThreadLocal.withInitial { mutableMapOf<KClassifier, Any>().also { ctxNav[Thread.currentThread()] = it } }
         fun findInContext(classifier: KClassifier): Any = ctx.get()[classifier] ?: throw ClassNotFoundException("Cannot found module in context that can classified as $classifier")
-        fun apply(context: Set<Any>) {
-            ctx.get().putAll(context.associateBy { (if (it is Classifier<*>) it.classifier else it::class) })
-            context.forEach { module -> module::class.declaredMemberProperties.filter { d -> context.any { (d.returnType.classifier as KClass<*>).isInstance(it) } }.map { it.apply { isAccessible = true }.getter.call(module) } }
-            context.filterIsInstance<ContextCreate>().forEach { it.contextCreated(context::forEach) }
+
+        fun apply(newContext: Set<Any>): Set<Any> {
+            val removed = ctx.get()?.let { context -> newContext.mapNotNull { newItem -> context.put((newItem as? Classifier<*>)?.classifier ?: newItem::class, newItem) } }?.toSet() ?: emptySet()
+            newContext.filterIsInstance<ContextEvents>().forEach { it.addedToContext(newContext::forEach) }
+            removed.filterIsInstance<ContextEvents>().forEach { it.removedFromContext(removed::forEach) }
+            return removed
         }
+
+        fun <T> Thread.enterToContext(block: () -> T): T {
+            ctx.get().let { prev ->
+                ctx.set(ctxNav[this])
+                try { return block() }
+                finally { ctx.set(prev) }
+            }
+        }
+
         inline fun <reified T : Any> get(): T = findInContext(T::class) as T
-        fun clear() = ctx.remove()
+
+        override fun close() {
+            ctx.remove()
+            ctxNav.remove(Thread.currentThread())
+        }
     }
 }

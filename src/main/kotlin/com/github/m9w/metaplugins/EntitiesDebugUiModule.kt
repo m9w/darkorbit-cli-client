@@ -36,7 +36,7 @@ class EntitiesDebugUiModule(private val block: (AuthenticationProvider, Any) -> 
     override fun paintComponent(g: Graphics) {
         super.paintComponent(g)
         background = Color.black
-        instance?.draw(g)
+        instance?.use { draw(g) }
     }
 
     private fun InnerModule.draw(g: Graphics) {
@@ -62,14 +62,16 @@ class EntitiesDebugUiModule(private val block: (AuthenticationProvider, Any) -> 
         }
 
         try {
-            val heroIds = instances.mapTo(HashSet()) { it.entities.hero.id }
+            val heroIds = instances.mapTo(HashSet()) { it.use { entities.hero.id } }
             copy.clear()
             copy.add(entities.hero)
             copy.addAll(entities.values.filter { !heroIds.contains(it.id) })
-            instances.filter { it.key == key && it.entities.hero != entities.hero }.forEach { container ->
-                copy.add(container.entities.hero)
-                copy.addAll(container.entities.values.filter { !heroIds.contains(it.id) })
-            }
+            val hero = entities.hero
+            val currentKey = key
+            instances.filter { it.use { key == currentKey && entities.hero != hero } }.forEach { it.use {
+                copy.add(entities.hero)
+                copy.addAll(entities.values.filter { !heroIds.contains(it.id) })
+            } }
         } catch (_: ConcurrentModificationException) { return }
 
         copy.filterIsInstance<PoiImpl>().forEach { g.drawPoi(it) }
@@ -97,7 +99,7 @@ class EntitiesDebugUiModule(private val block: (AuthenticationProvider, Any) -> 
 
     private fun Graphics.drawShip(ship: ShipImpl) = ship.windowPosition.let { pos ->
         if (ship.isMoving) color(Color.cyan) { line(pos, ship.destination.windowPosition) }
-        if (ship.id == instance!!.entities.hero.id) return
+        if (ship.id == instance!!.use { entities.hero.id }) return
         color(if (ship is HeroPet || ship is HeroShip) Color.white else if (ship.isSafe) Color.blue else Color.red) {
             rect(pos, when(ship) { is HeroShip -> 5; is PetImpl -> 2; else -> 4 }, ship is HeroShip)
         }
@@ -128,8 +130,8 @@ class EntitiesDebugUiModule(private val block: (AuthenticationProvider, Any) -> 
         }
     }
 
-    private val Int.xWindow get() = (this.toDouble() / instance!!.map.map.width * width).toInt()
-    private val Int.yWindow get() = (this.toDouble() / instance!!.map.map.height * height).toInt()
+    private val Int.xWindow get() = instance!!.use { (toDouble() / map.map.width * width).toInt() }
+    private val Int.yWindow get() = instance!!.use { (toDouble() / map.map.height * height).toInt() }
     private val Pair<Int, Int>.windowPosition: Pair<Int, Int> get() = first.xWindow to second.yWindow
     private val PositionImpl.windowPosition: Pair<Int, Int> get() = position.windowPosition
 
@@ -146,7 +148,7 @@ class EntitiesDebugUiModule(private val block: (AuthenticationProvider, Any) -> 
 
         addMouseMotionListener(object : MouseAdapter() {
             override fun mouseMoved(e: MouseEvent) {
-                instance?.apply {
+                instance?.use {
                     val pointer = e.point.mapPosition
                     pointerEntity = copy.filter { it !is PoiImpl && it != entities.hero }.minByOrNull { it.distanceTo(pointer) }
                         ?.takeIf { it.distanceTo(pointer) < 125 }
@@ -158,10 +160,10 @@ class EntitiesDebugUiModule(private val block: (AuthenticationProvider, Any) -> 
 
         addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent) {
-                instance?.apply {
+                instance?.use {
                     if (e.button == 1) entities.hero.moveTo(e.point.mapPosition.position)
                     if (e.button == 3) pointerEntity?.let {
-                        if (it is HeroShip && it != entities.hero) instances.find { instance -> instance.entities.hero == it }?.selectContainer()
+                        if (it is HeroShip && it != entities.hero) instances.find { instance -> instance.use { entities.hero == it } }?.selectContainer()
                         else entities[it.id]?.invoke()
                     }
                 }
@@ -185,7 +187,7 @@ class EntitiesDebugUiModule(private val block: (AuthenticationProvider, Any) -> 
             panel.setLayout(BoxLayout(panel, BoxLayout.Y_AXIS))
             panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10))
             fun JPanel.addWithPadding(comp: Component) = add(comp).let { add(Box.createRigidArea(Dimension(0, 5))) }
-            fun button(name: String, block: InnerModule.() -> Unit) = panel.addWithPadding(JButton(name).center.apply { addActionListener { instance?.apply(block) } })
+            fun button(name: String, block: InnerModule.() -> Unit) = panel.addWithPadding(JButton(name).center.apply { addActionListener { instance?.use(block) } })
             fun buttonI(name: String, block: () -> Unit) = panel.addWithPadding(JButton(name).center.apply { addActionListener { block() } })
             val clientTypes = ClientType.entries.joinToString()
             buttonI("Login + Password") { InputDialog(frame, "Client type($clientTypes)", "Login", "Password") {
@@ -199,11 +201,8 @@ class EntitiesDebugUiModule(private val block: (AuthenticationProvider, Any) -> 
             } }
             buttonI("Login all External") {
                 ExternalAuthenticationProvider.getAccounts().forEach { account -> exec.submit {
-                    try {
-                        block(AuthenticationProvider.byLoginExternal(account).duplicateCheck, InnerModule())
-                    } catch (t: Throwable) {
-                        println("Authorization fail for $account because ${t.message}")
-                    }
+                    runCatching { block(AuthenticationProvider.byLoginExternal(account).duplicateCheck, InnerModule()) }
+                        .onFailure { println("Authorization fail for $account because ${it.message}") }
                 } }
             }
             panel.addWithPadding(instanceSelector.center)
@@ -214,16 +213,16 @@ class EntitiesDebugUiModule(private val block: (AuthenticationProvider, Any) -> 
             } } })
             button("Toggle network debug") { NetworkLayer.debug = !NetworkLayer.debug }
             button("Toggle config") { entities.hero.shipConfig = when (entities.hero.shipConfig) { 1 -> 2; 2 -> 1; else -> 1 } }
-            button("Toggle config for All") { instances.forEach { it.entities.hero.shipConfig = when (it.entities.hero.shipConfig) { 1 -> 2; 2 -> 1; else -> 1 } } }
+            button("Toggle config for All") { instances.forEach { it.use { entities.hero.shipConfig = when (entities.hero.shipConfig) { 1 -> 2; 2 -> 1; else -> 1 } } } }
             button("Toggle PET") { entities.hero.pet?.deactivate() ?: entities.hero.enablePet() }
             button("Set IDLE Mode") { engine.state = GameEngine.State.IDLE }
             button("Set Normal Mode") { engine.state = GameEngine.State.NORMAL }
             button("Set Escaping Mode") { engine.state = GameEngine.State.ESCAPING }
             button("Set Traveling Mode") { engine.state = GameEngine.State.TRAVELING }
-            button("Set IDLE Mode for All") { instances.forEach { it.engine.state = GameEngine.State.IDLE } }
-            button("Set Normal Mode for All") { instances.forEach { it.engine.state = GameEngine.State.NORMAL } }
-            buttonI("Set Escaping Mode for All") { instances.forEach { it.engine.state = GameEngine.State.ESCAPING } }
-            buttonI("Set Traveling Mode for All") { instances.forEach { it.engine.state = GameEngine.State.TRAVELING } }
+            button("Set IDLE Mode for All") { instances.forEach { it.use { engine.state = GameEngine.State.IDLE } } }
+            button("Set Normal Mode for All") { instances.forEach { it.use { engine.state = GameEngine.State.NORMAL } } }
+            buttonI("Set Escaping Mode for All") { instances.forEach { it.use { engine.state = GameEngine.State.ESCAPING } } }
+            buttonI("Set Traveling Mode for All") { instances.forEach { it.use { engine.state = GameEngine.State.TRAVELING } } }
             buttonI("Show / Hide entity canvas") { entityCanvas.isVisible = !entityCanvas.isVisible }
             panel.add(Box.createRigidArea(Dimension(0, 12000)))
             frame.contentPane = panel
@@ -236,7 +235,7 @@ class EntitiesDebugUiModule(private val block: (AuthenticationProvider, Any) -> 
         return this
     }
 
-    private val Point.mapPosition: PositionImpl get() = PositionImpl((x.toDouble() / width * instance!!.map.map.width).toInt(), (y.toDouble() / height * instance!!.map.map.height).toInt())
+    private val Point.mapPosition: PositionImpl get() = instance!!.use { PositionImpl((x.toDouble() / width * map.map.width).toInt(), (y.toDouble() / height * map.map.height).toInt()) }
 
     override fun run() { while (true) {
         if (entityCanvas.isVisible) {
@@ -264,9 +263,11 @@ class EntitiesDebugUiModule(private val block: (AuthenticationProvider, Any) -> 
             waitMs(0)
             name = "${map.map.name} - ${init.userName}"
             instanceSelector.repaint()
+            scheduler
             instances.add(this)
         }
         fun selectContainer() = instances.forEach { it.selected = false }.also { selected = true }
+        fun <T> use(block: InnerModule.() -> T): T = scheduler.runWithContext { block() }
         override fun toString() = name
     }
 

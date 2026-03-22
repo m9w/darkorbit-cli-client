@@ -3,7 +3,9 @@ package com.github.m9w
 import com.darkorbit.ProtocolPacket
 import com.github.m9w.client.GameEngine
 import com.github.m9w.context.Context
+import com.github.m9w.context.Context.Companion.enterToContext
 import com.github.m9w.context.context
+import com.github.m9w.feature.Classifier
 import com.github.m9w.feature.Future
 import com.github.m9w.feature.SchedulerEntity
 import com.github.m9w.feature.annotations.OnEvent
@@ -24,7 +26,7 @@ import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.jvmErasure
 
 
-class Scheduler(vararg ctx: Any) : Runnable, Closeable {
+class Scheduler(vararg ctx: Any) : Runnable, Closeable, Classifier<Scheduler> {
     private val eventPacketQueue = LinkedList<ProtocolPacket>()
     private val eventQueue = LinkedList<Pair<String, String>>()
     private val eventHandlers: MutableMap<String, MutableSet<PendingFuture>> = HashMap()
@@ -140,7 +142,7 @@ class Scheduler(vararg ctx: Any) : Runnable, Closeable {
                 e.printStackTrace()
             }
         }
-        Context.clear()
+        Context.close()
     }
 
     fun schedule(delay: Long = 0, callback: () -> Unit) {
@@ -152,6 +154,8 @@ class Scheduler(vararg ctx: Any) : Runnable, Closeable {
         thread = Thread(this, "Scheduler instance")
         thread.start()
     }
+
+    fun <T> runWithContext(block: () -> T): T = thread.enterToContext(block)
 
     override fun close() {
         isRun = false

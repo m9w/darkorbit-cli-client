@@ -1,5 +1,3 @@
-package com.github.m9w.plugins
-
 import com.darkorbit.AttackHitCommand
 import com.darkorbit.BeaconCommand
 import com.darkorbit.MenuActionRequest
@@ -42,7 +40,7 @@ class ManualRepairRobotModule {
                     sourceType = SourceType.ITEM_BAR
                 }
             }.takeIf { !it.repairRobotActive }?.let { onAttackEvent(attack) }
-        } catch (e: InterruptedIOException) {
+        } catch (_: InterruptedIOException) {
             onAttackEvent(attack)
         }
     }

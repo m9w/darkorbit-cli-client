@@ -1,5 +1,3 @@
-package com.github.m9w.plugins
-
 import com.darkorbit.*
 import com.github.m9w.client.GameEngine
 import com.github.m9w.collectRequest

@@ -11,12 +11,12 @@ import com.github.m9w.metaplugins.game.entities.HeroShip
 
 
 fun GameEngine.setPetActive(isActive: Boolean) {
-    if (state.ordinal < 3) return
+    if (state.isNotConnected) return
     send<PetRequest> { this.petRequestType = if (isActive) PetRequestType.LAUNCH else PetRequestType.DEACTIVATE }
 }
 
 fun GameEngine.setPetGear(gearType: PetGearType, optional: Int) {
-    if (state.ordinal < 3 || gearType == PetGearType.BEHAVIOR || gearType == PetGearType.ADMIN) return
+    if (state.isNotConnected || gearType == PetGearType.BEHAVIOR || gearType == PetGearType.ADMIN) return
     send<PetGearActivationRequest> {
         gearTypeToActivate = gearTypeToActivate.apply { typeValue = gearType }
         optParam = optional.toShort()
@@ -24,27 +24,27 @@ fun GameEngine.setPetGear(gearType: PetGearType, optional: Int) {
 }
 
 fun GameEngine.buyPetFuel() {
-    if (state.ordinal < 3) return
+    if (state.isNotConnected) return
     send<PetRequest> { this.petRequestType = PetRequestType.HOTKEY_BUY_FUEL }
 }
 
 fun GameEngine.changeConfig(config: Int) {
-    if (state.ordinal < 3) return
+    if (state.isNotConnected) return
     send<LegacyModule>{ message = "S|CFG|$config|$userIdAndSid" }
 }
 
 fun GameEngine.jumpRequest() {
-    if (state.ordinal < 3) return
+    if (state.isNotConnected) return
     send<JumpRequest>{}
 }
 
 fun GameEngine.moveRequest(pos: Point, dest: Point) {
-    if (state.ordinal < 3) return
+    if (state.isNotConnected) return
     send<MoveRequest> { positionX = pos.x; positionY = pos.y; targetX = dest.x; targetY = dest.y }
 }
 
 fun GameEngine.collectRequest(hero: HeroShip, box: BoxImpl) {
-    if (state.ordinal < 3) return
+    if (state.isNotConnected) return
     val (hx, hy) = hero.position
     val (bx, by) = box.position
     send<CollectBoxRequest> {
@@ -55,7 +55,7 @@ fun GameEngine.collectRequest(hero: HeroShip, box: BoxImpl) {
 }
 
 fun GameEngine.selectRequest(hero: HeroShip, target: EntityImpl, clickPoint: Point) {
-    if (state.ordinal < 3) return
+    if (state.isNotConnected) return
     val (hx, hy) = hero.position
     val (tx, ty) = target.position
     val (dx, dy) = clickPoint
@@ -69,7 +69,7 @@ fun GameEngine.selectRequest(hero: HeroShip, target: EntityImpl, clickPoint: Poi
 }
 
 fun GameEngine.attackRequest(target: EntityImpl) {
-    if (state.ordinal < 3) return
+    if (state.isNotConnected) return
     val (tx, ty) = target.position
     send<AttackLaserRequest> {
         targetX = tx; targetY = ty
@@ -78,21 +78,21 @@ fun GameEngine.attackRequest(target: EntityImpl) {
 }
 
 fun GameEngine.abortAttackRequest() {
-    if (state.ordinal < 3) return
+    if (state.isNotConnected) return
     send<AttackAbortLaserRequest> {}
 }
 
 fun GameEngine.instantRepairActivate(id: Int) {
-    if (state.ordinal < 3) return
+    if (state.isNotConnected) return
     send<InstantRepairRequest> { repairAssetId = id }
 }
 
 fun GameEngine.questGiverActivate(id: Int) {
-    if (state.ordinal < 3) return
+    if (state.isNotConnected) return
     send<QuestGiverApproachedRequest> { questGiverId = id }
 }
 
 fun GameEngine.assetActivate(id: Int) {
-    if (state.ordinal < 3) return
+    if (state.isNotConnected) return
     send<MapAssetActivationRequest> { mapAssetId = id }
 }

@@ -77,14 +77,14 @@ class Scheduler(vararg ctx: Any) : Runnable, Closeable, Classifier<Scheduler> {
 
     fun interruptIn(future: Future<*>, ms: Long, block: () -> Exception) = schedule(ms) { future.interrupt(block) }
 
-    fun handleEvent(packet: ProtocolPacket) {
+    fun sendEvent(packet: ProtocolPacket) {
         synchronized(eventPacketQueue) {
             eventPacketQueue.addLast(packet)
         }
         synchronized(lock) { lock.notifyAll() }
     }
 
-    fun handleEvent(event: String, body: String = "", async: Boolean = false) {
+    fun sendEvent(event: String, body: String = "", async: Boolean = false) {
         val sameThread = thread == Thread.currentThread()
         if (!async && sameThread) {
             eventHandlers["@$event"]?.forEach { it.perform(body) }

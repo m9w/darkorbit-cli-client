@@ -16,7 +16,7 @@ class PingModule {
 
     @Repeat(15_000, true)
     private suspend fun sendKeepAlive() {
-        if (gameEngine.state.ordinal < 3 || gameEngine.state == GameEngine.State.STOPPED) return
+        if (gameEngine.state.isNotConnected || gameEngine.state == GameEngine.State.STOPPED) return
         waitOnPackage<StayinAlive> (timeout = 15000) {
             sentKeepAliveTime = System.currentTimeMillis()
             gameEngine.send<KeepAlive> { MouseClick = Math.random() < 0.7 }

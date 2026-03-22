@@ -31,7 +31,7 @@ class MoveModule {
     private var scheduledPoint: Point? = null
     val nextPoints: LinkedList<Point> = LinkedList()
 
-    fun destinationTimeUpdateEvent(time: Int) = scheduler.handleEvent(SystemEvents.ON_HERO_MOVING_UPDATE, time.toString())
+    fun destinationTimeUpdateEvent(time: Int) = scheduler.sendEvent(SystemEvents.ON_HERO_MOVING_UPDATE, time.toString())
 
     @OnEvent(SystemEvents.ON_HERO_MOVING_UPDATE)
     suspend fun onHeroUpdateMovingTime(ms: String) {
@@ -75,7 +75,7 @@ class MoveModule {
             gameEngine.moveRequest(entities.hero.position, dest)
             lastMove = currentTimeMillis()
         } else {
-            if (scheduledPoint == null) scheduler.handleEvent("MoveModule_delay")
+            if (scheduledPoint == null) scheduler.sendEvent("MoveModule_delay")
             scheduledPoint = dest
         }
     }

@@ -20,18 +20,21 @@ class GameEngine {
     val userIdAndSid get() = authentication.run { "$userID|$sessionID" }
     var network: NetworkLayer = NetworkLayer(); private set
     var initState: State by accountConfig(State.IDLE)
-    var state: State by accountConfig(State.NOT_CONNECTED, false)
+    var state: State by accountConfig(State.NO_AUTH, false)
 
-    enum class State(val color: Color = Color.cyan) {
+    enum class State(val color: Color) {
+        NO_AUTH(Color.darkGray),
         NOT_CONNECTED(Color.gray),
         NO_LOGIN(Color.lightGray),
-        DESTROYED(Color.darkGray),
+        DESTROYED(Color.red),
         NORMAL(Color.green),
         REPAIRING(Color.magenta),
         TRAVELING(Color.cyan),
         ESCAPING(Color.orange),
         IDLE(Color.yellow),
         STOPPED(Color.black),
+        ;
+        val isNotConnected: Boolean get() = this.ordinal < NORMAL.ordinal
     }
 
     fun connect() {
@@ -39,12 +42,12 @@ class GameEngine {
             state = State.NOT_CONNECTED
             network.onDisconnect = {}
             network.close()
-            network = NetworkLayer(authentication.address, proxy, scheduler::handleEvent)
-            network.onDisconnect = { scheduler.handleEvent(SystemEvents.ON_DISCONNECT) }
-            scheduler.handleEvent(SystemEvents.ON_CONNECT)
+            network = NetworkLayer(authentication.address, proxy, scheduler::sendEvent)
+            network.onDisconnect = { scheduler.sendEvent(SystemEvents.ON_DISCONNECT) }
+            scheduler.sendEvent(SystemEvents.ON_CONNECT)
         } catch (e: Exception) {
             e.printStackTrace()
-            scheduler.handleEvent(SystemEvents.ON_DISCONNECT, async = true)
+            scheduler.sendEvent(SystemEvents.ON_DISCONNECT, async = true)
         }
     }
 

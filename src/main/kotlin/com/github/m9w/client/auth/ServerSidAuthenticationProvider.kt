@@ -1,5 +1,7 @@
 package com.github.m9w.client.auth
 
+import com.github.m9w.client.auth.AuthenticationProvider.Companion.deserialize
+import com.github.m9w.client.auth.AuthenticationProvider.Companion.serialize
 import com.github.m9w.util.Http
 import com.github.m9w.util.Http.Companion.asJson
 import com.github.m9w.util.Http.Companion.content
@@ -20,6 +22,7 @@ open class ServerSidAuthenticationProvider(protected open val server: String, pr
     final override val userID: Int get() = loginParams["userID"]?.toString()?.toInt() ?: throw RuntimeException("User is null")
     final override val instanceId: Int get() = loginParams["pid"]?.toString()?.toDouble()?.toInt() ?: throw RuntimeException("InstanceId is null")
     final override var mapId: Int = -1; get() = if (field == -1) loginParams["mapID"]?.toString()?.toInt() ?: 1 else field
+    override val serialized: String = serialize("ServerSid", server, sid, type)
 
     private val getLastUnityVersion get() = Http("https://alicdn-oss-prod.darkorbit.com/vc/current.txt").connect.content
 
@@ -42,5 +45,12 @@ open class ServerSidAuthenticationProvider(protected open val server: String, pr
         else "userID\":\"(\\d+)\",\"instanceID\":\"(\\d+)".toRegex().find(content)
                 ?.let { mapOf("userID" to it.groupValues[1], "pid" to it.groupValues[2], "sessionID" to sid) }
                 ?: throw RuntimeException("Identifiers not found $content")
+    }
+
+    companion object {
+        fun deserialize(data: String): ServerSidAuthenticationProvider {
+            val (server, sid, type) = data.deserialize
+            return ServerSidAuthenticationProvider(server, sid, ClientType.valueOf(type))
+        }
     }
 }

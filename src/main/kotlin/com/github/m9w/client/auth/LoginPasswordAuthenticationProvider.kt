@@ -1,5 +1,7 @@
 package com.github.m9w.client.auth
 
+import com.github.m9w.client.auth.AuthenticationProvider.Companion.deserialize
+import com.github.m9w.client.auth.AuthenticationProvider.Companion.serialize
 import com.github.m9w.util.Http
 import com.github.m9w.util.Http.Companion.content
 import kotlin.lazy
@@ -24,5 +26,14 @@ class LoginPasswordAuthenticationProvider(private val login: String, private val
             ?.substring(6, 6+32) ?: throw RuntimeException("Unexpected sessionID length")
         val server = auth.uri().host.split(".")[0]
         return server to sessionID
+    }
+
+    override val serialized: String = serialize("LoginPassword", login, password, type)
+
+    companion object {
+        fun deserialize(data: String): LoginPasswordAuthenticationProvider {
+            val (login, pass, type) = data.deserialize
+            return LoginPasswordAuthenticationProvider(login, pass, ClientType.valueOf(type))
+        }
     }
 }

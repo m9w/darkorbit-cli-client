@@ -5,6 +5,8 @@ import com.github.m9w.util.isTimeout
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.URI
+import java.nio.charset.StandardCharsets
+import kotlin.io.encoding.Base64
 
 interface AuthenticationProvider : Classifier<AuthenticationProvider> {
     val userID: Int
@@ -14,6 +16,8 @@ interface AuthenticationProvider : Classifier<AuthenticationProvider> {
     var mapId: Int
     val address: InetSocketAddress get() = getMapAddress(host, mapId)
     val type: ClientType
+
+    val serialized: String
 
     companion object {
         //Map<Server, <creation time, <MapId, IP>>>
@@ -48,5 +52,11 @@ interface AuthenticationProvider : Classifier<AuthenticationProvider> {
             }
             throw IllegalArgumentException("Host $host is unreachable")
         }
+
+        fun serialize(method: String, vararg args: Any): String = method.toBase64 + ":" + args.joinToString(":") { it.toString().toBase64 }.toBase64
+
+        val String.toBase64: String get() = Base64.encode(toByteArray(StandardCharsets.UTF_8))
+
+        val String.deserialize get() = split(":").map { Base64.decode(it).toString(StandardCharsets.UTF_8) }
     }
 }

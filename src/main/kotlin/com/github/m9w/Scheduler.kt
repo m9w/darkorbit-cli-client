@@ -8,10 +8,8 @@ import com.github.m9w.context.context
 import com.github.m9w.feature.Classifier
 import com.github.m9w.feature.Future
 import com.github.m9w.feature.SchedulerEntity
-import com.github.m9w.feature.annotations.OnEvent
-import com.github.m9w.feature.annotations.OnPackage
-import com.github.m9w.feature.annotations.Repeat
 import com.github.m9w.feature.suspend.ExceptPacketException
+import com.github.m9w.plugins.dao.DynamicModuleInstance
 import com.github.m9w.protocol.Factory.className
 import java.io.Closeable
 import java.lang.RuntimeException
@@ -20,11 +18,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.callSuspend
-import kotlin.reflect.full.findAnnotation
-import kotlin.reflect.full.hasAnnotation
-import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.jvm.isAccessible
-import kotlin.reflect.jvm.jvmErasure
 
 
 class Scheduler : Runnable, Closeable, Classifier<Scheduler> {
@@ -36,11 +30,11 @@ class Scheduler : Runnable, Closeable, Classifier<Scheduler> {
     private val lock = Object()
     private val hasEvents get() = !eventPacketQueue.isEmpty() || !eventQueue.isEmpty()
     private val engine: GameEngine by context
-    private val modules = mutableSetOf<Any>()
+    private val modules = mutableSetOf<DynamicModuleInstance>()
     private val thread: Thread = Thread(this, "Scheduler instance")
     private var isClosed = false
 
-    fun init(context: Set<Any>) {
+    fun init(context: Set<DynamicModuleInstance>) {
         modules.addAll(context)
         thread.start()
     }
@@ -127,27 +121,15 @@ class Scheduler : Runnable, Closeable, Classifier<Scheduler> {
             .forEach { synchronized(it) { it.remove(pendingFuture) } }
     }
 
-    private fun loadContextTasks() {
-        modules.flatMap { instance ->
-            instance::class.memberFunctions.mapNotNull { method ->
-                if (method.hasAnnotation<OnPackage>()) {
-                    if (method.parameters.size != 2) throw IllegalArgumentException("Unexpected argument count in $method")
-                    val packetType = method.parameters[1].type.jvmErasure
-                    Handler(packetType.simpleName!!, method, instance)
-                } else if (method.hasAnnotation<Repeat>()) {
-                    if (method.parameters.size != 1) throw IllegalArgumentException("Unexpected argument count in $method")
-                    method.findAnnotation<Repeat>()?.let { Repeatable(it.ms, method, instance, it.noInitDelay) }
-                } else if (method.hasAnnotation<OnEvent>()) {
-                    if (method.parameters.size != 2) throw IllegalArgumentException("Unexpected argument count in $method")
-                    Handler("@"+method.findAnnotation<OnEvent>()!!.event, method, instance)
-                } else null
-            }
-        }.forEach(SchedulerEntity::schedule)
+    private fun DynamicModuleInstance.scheduleHandlers() {
+        module.onPackageHandlers.forEach { Handler(it.packet.simpleName!!, it.method, instance).schedule() }
+        module.repeatableHandlers.forEach { Repeatable(it.interval, it.method, instance, it.noDelay).schedule() }
+        module.onEventHandlers.forEach { Handler("@"+it.event, it.method, instance).schedule() }
     }
 
     override fun run() {
         Context.add(modules)
-        loadContextTasks()
+        modules.forEach { module -> module.scheduleHandlers() }
         while (!isClosed) {
             try {
                 while (hasEvents) performHandler()

@@ -16,6 +16,8 @@ import com.github.m9w.metaplugins.game.PositionImpl
 import com.github.m9w.metaplugins.game.PositionImpl.Companion.x
 import com.github.m9w.metaplugins.game.PositionImpl.Companion.y
 import com.github.m9w.metaplugins.game.entities.*
+import com.github.m9w.plugins.Loader
+import com.github.m9w.plugins.dao.DynamicModule
 import java.awt.*
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
@@ -23,7 +25,7 @@ import java.awt.event.MouseEvent
 import java.util.concurrent.Executors
 import javax.swing.*
 
-class EntitiesDebugUiModule(private val block: (AuthenticationProvider, Any) -> Unit) : JPanel(), Runnable {
+class EntitiesDebugUiModule(private val block: (AuthenticationProvider, DynamicModule) -> Unit) : JPanel(), Runnable {
     private val instances: MutableSet<InnerModule> = HashSet()
     private val instance: InnerModule? get() = instances.run { find { it.selected } ?: firstOrNull() }
     private val instanceSelector = JComboBox<InnerModule>()
@@ -191,17 +193,17 @@ class EntitiesDebugUiModule(private val block: (AuthenticationProvider, Any) -> 
             fun buttonI(name: String, block: () -> Unit) = panel.addWithPadding(JButton(name).center.apply { addActionListener { block() } })
             val clientTypes = ClientType.entries.joinToString()
             buttonI("Login + Password") { InputDialog(frame, "Client type($clientTypes)", "Login", "Password") {
-                block(AuthenticationProvider.byLoginPassword(this["Login"]!!, this["Password"]!!, ClientType.valueOf(this["Client type"]!!)).duplicateCheck, InnerModule())
+                block(AuthenticationProvider.byLoginPassword(this["Login"]!!, this["Password"]!!, ClientType.valueOf(this["Client type"]!!)).duplicateCheck, innerModule)
             } }
             buttonI("Server + SID") { InputDialog(frame, "Client type($clientTypes)", "Server", "SID") {
-                block(AuthenticationProvider.byServerSid(this["Server"]!!, this["SID"]!!, ClientType.valueOf(this["Client type"]!!)).duplicateCheck, InnerModule())
+                block(AuthenticationProvider.byServerSid(this["Server"]!!, this["SID"]!!, ClientType.valueOf(this["Client type"]!!)).duplicateCheck, innerModule)
             } }
             buttonI("External login") { InputDialog(frame, "Login") {
-                block(AuthenticationProvider.byLoginExternal(this["Login"]!!).duplicateCheck, InnerModule())
+                block(AuthenticationProvider.byLoginExternal(this["Login"]!!).duplicateCheck, innerModule)
             } }
             buttonI("Login all External") {
                 ExternalAuthenticationProvider.getAccounts().forEach { account -> exec.submit {
-                    runCatching { block(AuthenticationProvider.byLoginExternal(account).duplicateCheck, InnerModule()) }
+                    runCatching { block(AuthenticationProvider.byLoginExternal(account).duplicateCheck, innerModule) }
                         .onFailure { println("Authorization fail for $account because ${it.message}") }
                 } }
             }
@@ -245,6 +247,8 @@ class EntitiesDebugUiModule(private val block: (AuthenticationProvider, Any) -> 
             Thread.sleep(1000)
         }
     } }
+
+    val innerModule = Loader.dynamicModuleBuilder(InnerModule::class, mutableListOf()) { InnerModule() }!!
 
     private inner class InnerModule {
         val auth: AuthenticationProvider by context

@@ -13,25 +13,28 @@ val optionalContext get() = Context().Optional()
 @Suppress("unchecked_cast")
 class Context {
     private lateinit var classifier: KClassifier
-    val instance: Any by lazy { findInContext(classifier) } //todo make weak reference
+    var module: DynamicModuleInstance? = null
+        get() = field ?: findInContext(classifier).also { field = it; it.usedBy(this) }
 
     operator fun <T> getValue(thisRef: Any?, property: KProperty<*>): T {
         if (!this::classifier.isInitialized) classifier = property.returnType.classifier ?: throw RuntimeException("Property type unknown")
-        return instance as T
+        return module!!.instance as T
     }
 
     inner class Optional {
         private var isEmpty = false
         operator fun <T> getValue(thisRef: Any?, property: KProperty<*>): T? {
             if (isEmpty) return null
-            return try { this@Context.getValue(thisRef, property) } catch (_: Exception) { isEmpty = true; null }
+            return runCatching<T> { this@Context.getValue(thisRef, property) }.onFailure { isEmpty = true }.getOrNull()
         }
     }
 
     companion object : Closeable {
         private val ctxNav = WeakHashMap<Thread, MutableMap<KClass<*>, DynamicModuleInstance>>()
         private val ctx = ThreadLocal.withInitial { mutableMapOf<KClass<*>, DynamicModuleInstance>().also { ctxNav[Thread.currentThread()] = it } }
-        fun findInContext(classifier: KClassifier): Any = ctx.get()[classifier]?.instance ?: throw ClassNotFoundException("Cannot found module in context that can classified as $classifier")
+        fun findInContext(classifier: KClassifier): DynamicModuleInstance = ctx.get()[classifier] ?: throw ClassNotFoundException("Cannot found module in context that can classified as $classifier")
+
+        fun add(vararg value: DynamicModuleInstance) = add(setOf(*value))
 
         fun add(newContext: Set<DynamicModuleInstance>): Set<DynamicModuleInstance> {
             val removed = ctx.get()?.let { context -> newContext.mapNotNull { newItem -> context.put(newItem.module.abstraction, newItem) } }?.toSet() ?: emptySet()
@@ -48,7 +51,7 @@ class Context {
             }
         }
 
-        inline fun <reified T : Any> get(): T = findInContext(T::class) as T
+        inline fun <reified T : Any> get(): T = findInContext(T::class).instance as T
 
         override fun close() {
             ctx.remove()

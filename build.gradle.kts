@@ -53,6 +53,16 @@ kotlin {
     jvmToolchain(17)
 }
 
+tasks.processResources {
+    from("${project.rootDir}/src/main/kotlin-scripting") {
+        into("plugins")
+    }
+}
+
+tasks.build {
+    dependsOn("signPlugins")
+}
+
 tasks.jar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 

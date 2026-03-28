@@ -2,33 +2,36 @@ package com.github.m9w.plugins
 
 import com.github.m9w.Scheduler
 import com.github.m9w.client.GameEngine
+import com.github.m9w.config.ConfigModule
 import com.github.m9w.config.PersistYamlConfig
-import com.github.m9w.metaplugins.AuthModule
-import com.github.m9w.metaplugins.BasicRepairModule
-import com.github.m9w.metaplugins.EntitiesModule
-import com.github.m9w.metaplugins.LoginModule
-import com.github.m9w.metaplugins.MapModule
-import com.github.m9w.metaplugins.MoveModule
-import com.github.m9w.metaplugins.PathTracerModule
-import com.github.m9w.metaplugins.PingModule
+import com.github.m9w.config.staticConfig
+import com.github.m9w.context.Context
+import com.github.m9w.metaplugins.*
 import com.github.m9w.metaplugins.proxy.EnvProxyPool
 import com.github.m9w.metaplugins.proxy.ProxyModule
 import com.github.m9w.plugins.dao.Plugin
 import com.github.m9w.plugins.dao.PluginDefinition
+import com.github.m9w.plugins.validator.SignatureValidator.cert
+import com.github.m9w.plugins.validator.SignatureValidator.isTrusted
+import java.net.URI
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.stream.Stream
-import kotlin.io.path.extension
-import kotlin.io.path.isRegularFile
-import kotlin.io.path.readText
-import kotlin.io.path.toPath
+import kotlin.io.path.*
 import kotlin.script.experimental.api.ScriptDiagnostic
 
 
 object PluginRepo {
+    private const val IDE_PATH = "/src/main/kotlin-scripting"
+    private const val DEFAULT_PATH = "/plugins"
+
+    var plugins: MutableList<String> by staticConfig(mutableListOf())
+
     val coreClasses = listOf(Scheduler::class, AuthModule::class, GameEngine::class, LoginModule::class, ProxyModule::class, EnvProxyPool::class, BasicRepairModule::class, PingModule::class, EntitiesModule::class, MapModule::class, PathTracerModule::class, PersistYamlConfig::class, MoveModule::class)
+
+    inline fun <reified T>getCoreModule() = corePlugin.definition!!.modules.first { it.abstraction == T::class }
 
     val corePlugin: Plugin by lazy {
         Plugin("core", "", PluginType.CORE).apply {
@@ -39,24 +42,29 @@ object PluginRepo {
     }
 
     val builtinPlugins: List<Plugin> by lazy {
-        val path = "/plugins"
-        val uri = runCatching { PluginRepo::class.java.getResource(path)!!.toURI() }.getOrNull() ?: return@lazy emptyList()
-        fun walk(paths: Stream<Path>): List<Plugin> = paths.filter {
-            it.isRegularFile() && it.extension == "kts"
-        }.map {
-            Plugin(uri.toPath().relativize(it).toString().replace("\\", "/").removeSuffix(".kts"), it.readText(), PluginType.BUILTIN)
-        }.toList()
-
+        val uri = runCatching { PluginRepo::class.java.getResource(DEFAULT_PATH)!!.toURI() }.getOrNull() ?: return@lazy emptyList()
         if (uri.scheme == "jar") {
             FileSystems.newFileSystem(uri, mutableMapOf<String, Any>()).use { fileSystem ->
-                Files.walk(fileSystem.getPath(path), 50).use(::walk)
+                Files.walk(fileSystem.getPath(DEFAULT_PATH), 50).use { uri.walk(it, PluginType.BUILTIN) }
             }
         } else {
-            Files.walk(Paths.get(uri), 50).use(::walk)
+            Files.walk(Paths.get(uri), 50).use { uri.walk(it, PluginType.BUILTIN) }
         }
     }
 
-    val externalPlugins: List<Plugin> = listOf()
+    val externalPlugins: List<Plugin> get() {
+        val fromIDE = Paths.get(IDE_PATH.removePrefix("/")).toAbsolutePath().takeIf { it.isDirectory() }?.toAbsolutePath()?.toUri()?.let {
+                uri -> Files.walk(Paths.get(uri), 50).use { uri.walk(it, PluginType.EXTERNAL) }
+        } ?: listOf()
+        val default = Paths.get(DEFAULT_PATH.removePrefix("/")).takeIf { it.isDirectory() }?.toAbsolutePath()?.toUri()?.let {
+            uri -> Files.walk(Paths.get(uri), 50).use { uri.walk(it, PluginType.EXTERNAL) }
+        } ?: listOf()
+        return default + fromIDE
+    }
 
     val allPlugins: List<Plugin> get() = listOf(corePlugin) + builtinPlugins + externalPlugins
+
+    private fun URI.walk(paths: Stream<Path>, type: PluginType): List<Plugin> = paths.filter { it.isRegularFile() && it.extension == "kts" }.map {
+        Plugin(toPath().relativize(it).toString().replace("\\", "/").removeSuffix(".kts"), it.readText(), type)
+    }.toList()
 }

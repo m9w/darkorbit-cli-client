@@ -4,20 +4,25 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.github.m9w.feature.annotations.Repeat
+import com.github.m9w.util.isTimeout
 import io.ktor.util.date.*
 import java.io.File
 import java.util.concurrent.Executors
 import java.util.concurrent.locks.ReentrantLock
+import kotlin.collections.component1
+import kotlin.collections.component2
 import kotlin.reflect.KType
 import kotlin.reflect.jvm.javaType
-import kotlin.system.exitProcess
 
-class PersistYamlConfig(cfgFile: String = "config.yaml") : HashMapConfig() {
-    private val cfgFile = File(cfgFile)
+object PersistYamlConfig: HashMapConfig() {
+    private val cfgFile = File(System.getProperty("config_file") ?: "config.yaml")
     private val persistMap = HashMap<String, String>()
     private val scheduled = HashMap<String, KType>()
 
-    init { load() }
+    init {
+        load()
+        Runtime.getRuntime().addShutdownHook(Thread { persist() })
+    }
 
     override fun <T> readProperty(key: String, type: KType): Result<T> {
         val result = super.readProperty<T>(key, type)
@@ -51,14 +56,13 @@ class PersistYamlConfig(cfgFile: String = "config.yaml") : HashMapConfig() {
 
     @Repeat(1_000)
     fun serializeScheduled() {
-        val i = scheduled.iterator()
-        val startWhen = getTimeMillis() + 100
         if (mutex.tryLock()) try {
-            while (i.hasNext()) {
+            val startWhen = getTimeMillis()
+            val i = scheduled.iterator()
+            while (i.hasNext() && !isTimeout(startWhen, ms = 100)) {
                 val (key, type) = i.next()
                 i.remove()
                 persistMap[key] = serialize(map[key], type)
-                if (startWhen < getTimeMillis()) return
             }
         } finally {
             mutex.unlock()
@@ -72,14 +76,8 @@ class PersistYamlConfig(cfgFile: String = "config.yaml") : HashMapConfig() {
 
     fun save() {
         saver.submit {
-            mutex.lock()
-            try {
-                lastSaveTimestamp = getTimeMillis()
-                persistMap.map { (k, v) -> "$k:$v" }
-                    .joinToString("\n")
-                    .let(cfgFile::writeText)
-            } finally {
-                mutex.unlock()
+            mutex.atomic {
+                persist()
             }
         }
     }
@@ -96,10 +94,17 @@ class PersistYamlConfig(cfgFile: String = "config.yaml") : HashMapConfig() {
         return Result.success(mapper.readValue(data, javaType) as T)
     }
 
-    companion object {
-        private val mutex = ReentrantLock()
-        private val saver = Executors.newSingleThreadExecutor()
-        private var lastSaveTimestamp: Long = 0
-        val mapper: ObjectMapper = ObjectMapper(YAMLFactory()).registerKotlinModule()
+
+    private fun <T> ReentrantLock.atomic(block: () -> T): T = lock().run { runCatching { block() }.also { unlock() }.getOrThrow() }
+
+    private val mutex = ReentrantLock()
+    private val saver = Executors.newSingleThreadExecutor()
+    private var lastSaveTimestamp: Long = 0
+    private val mapper: ObjectMapper = ObjectMapper(YAMLFactory()).registerKotlinModule()
+
+    private fun persist() {
+        lastSaveTimestamp = getTimeMillis()
+        persistMap.toSortedMap { string, string1 -> string1.compareTo(string) }.map { (k, v) -> "$k:$v" }
+            .joinToString("\n").let(cfgFile::writeText)
     }
 }

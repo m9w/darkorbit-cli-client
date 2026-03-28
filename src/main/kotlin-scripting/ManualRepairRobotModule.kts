@@ -52,3 +52,12 @@ class ManualRepairRobotModule {
         repairBotSkilled = beacon.repairBotSkilled
     }
 }
+/** @m9w/darkorbit-cli-client
+ * lOIjWj36Wp/dpTWBNXH4VLDROqF0V/cnxN608akrRBS7DA1bGnUrxeUFUkrqjr4h23tMhoSdQzhA2xk4WG/e+lxski2gzg7Lwho6
+ * pckwyYvfpY9FYvi281Q1lOITq5S8XrkxkgOGplYKMAmJJ8fw0TN6hiub8GkOVS9GNJeKt5AYA5pz7ZkvldEnHzGq8RP8lD/SKvjc
+ * K/pwQi1bNkyxClxE7l581eYYARk/XlEYvAskanwGL5nfPK+5vxKEzueFZr54IoZH+9x75BbrorCAA00XUNUu4ENr4LwbheHcDVja
+ * m3hXXtCFLW4noZD7wlSwnm+pzYxm3IqUQHL5KSDcM/tOUEKLqVQ8dgOO/qr7WGeDenSArroILl6qZmTUpSxPAQfz2n2NOW2Y1LEF
+ * nCh2nOcnv/T7inF4Tv3V1kWtZreWO+YYDVlWYK6QK7HDSSNDhaTANmnr+7oJXqvKu77DvNoUp+f7FynDye7Wy/Pi/clOw3nC5MrX
+ * 2ARqzq23uIz9C90s1ll+1NGHkcgupwV+b3VTqxBe2hIYxND2sZTMf5U3R2LTKZ+U1x/U3eE0pqGygKHqQdltdTbE9zI0rw94h/4Q
+ * a+lLuRT/Xn1qvyXUt3adDWXvwN7Y7cVtTffsm2aCU90ffgdtEiOxO8USXz86fV43agupY1GZBwvK+b3i+Bs=
+ * */

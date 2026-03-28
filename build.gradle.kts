@@ -17,6 +17,9 @@ application {
     mainClass.set("com.github.m9w.MainKt")
 }
 
+System.setProperty("owner", System.getProperty("owner", group.toString().split(".").last()) + "/" + application.applicationName)
+apply("sign.gradle.kts")
+
 repositories {
     mavenCentral()
     maven { url = uri("https://jitpack.io") }

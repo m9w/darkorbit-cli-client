@@ -23,7 +23,7 @@ open class ShipImpl(root: EntitiesModule, ship: ShipCreateCommand) : EntityImpl(
 
     constructor(root: EntitiesModule, ship: ShipInitializationCommand)
             : this(root, Factory.build(ShipCreateCommand::class, Factory.getData(ship)).apply {
-        clanDiplomacy = clanDiplomacy.apply { type = Type.NONE }
+        clanDiplomacy.type = Type.NONE
     })
 
     override fun canInvoke() = root.mapModule.frameRect.let { (start, end) ->

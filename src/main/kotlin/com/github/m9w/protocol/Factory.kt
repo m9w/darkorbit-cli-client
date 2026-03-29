@@ -4,6 +4,7 @@ import com.darkorbit.ProtocolPacket
 import java.lang.reflect.Method
 import java.lang.reflect.Proxy
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.collections.set
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.cast
@@ -14,15 +15,13 @@ import kotlin.reflect.jvm.javaSetter
 object Factory {
     private val classLoader = Factory::class.java.classLoader
     private val packetTypes: MutableMap<KClass<*>, Unit> = ConcurrentHashMap()
-    private val getters: MutableMap<Method, String> = ConcurrentHashMap()
-    private val setters: MutableMap<Method, String> = ConcurrentHashMap()
+    private val mapping: MutableMap<Method, (MutableMap<String, Any?>, Array<Any?>?)->Any?> = ConcurrentHashMap()
 
     fun <T : ProtocolPacket> build(packetType: KClass<T>, data: Map<String, Any?> = HashMap()): T {
         if (!packetTypes.containsKey(packetType)) storeMethodMapping(packetType)
         val map = HashMap<String, Any?>(data)
-        return packetType.cast(Proxy.newProxyInstance(classLoader, arrayOf(packetType.java, Metadata::class.java)) { proxy, method, args ->
-            getters[method]?.let { return@newProxyInstance map[it] ?: default(method.returnType) }
-            setters[method]?.let { map[it] = args[0]; return@newProxyInstance null; }
+        return packetType.cast(Proxy.newProxyInstance(classLoader, arrayOf(packetType.java, Metadata::class.java)) { _, method, args ->
+            mapping[method]?.let { return@newProxyInstance it.invoke(map, args) }
             when (method.name) {
                 "cls" -> packetType.simpleName
                 "map" -> map
@@ -35,9 +34,9 @@ object Factory {
     inline fun <reified T : ProtocolPacket> build(block: T.()->Unit) = build(T::class).apply { block() }
 
     private fun storeMethodMapping(packetType: KClass<*>) {
-        packetType.memberProperties.forEach {
-            getters[it.javaGetter!!] = it.name
-            if (it is KMutableProperty<*>) setters[it.javaSetter!!] = it.name
+        packetType.memberProperties.forEach { prop ->
+            mapping[prop.javaGetter!!] = { map, _ -> map.computeIfAbsent(prop.name) { default(prop.javaGetter!!.returnType) } }
+            if (prop is KMutableProperty<*>) mapping[prop.javaSetter!!] = { map, value -> map[prop.name] = value!![0] }
         }
         packetTypes[packetType] = Unit
     }

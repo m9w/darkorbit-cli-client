@@ -201,12 +201,6 @@ class EntitiesDebugUiModule(private val block: (AuthenticationProvider, DynamicM
             buttonI("External login") { InputDialog(frame, "Login") {
                 block(AuthenticationProvider.byLoginExternal(this["Login"]!!).duplicateCheck, innerModule)
             } }
-            buttonI("Login all External") {
-                ExternalAuthenticationProvider.getAccounts().forEach { account -> exec.submit {
-                    runCatching { block(AuthenticationProvider.byLoginExternal(account).duplicateCheck, innerModule) }
-                        .onFailure { println("Authorization fail for $account because ${it.message}") }
-                } }
-            }
             panel.addWithPadding(instanceSelector.center)
             panel.addWithPadding(JButton("Disconnect selected").center.apply { addActionListener { (instanceSelector.selectedItem as? InnerModule)?.apply {
                 scheduler.close()
@@ -226,6 +220,12 @@ class EntitiesDebugUiModule(private val block: (AuthenticationProvider, DynamicM
             buttonI("Set Escaping Mode for All") { instances.forEach { it.use { engine.state = GameEngine.State.ESCAPING } } }
             buttonI("Set Traveling Mode for All") { instances.forEach { it.use { engine.state = GameEngine.State.TRAVELING } } }
             buttonI("Show / Hide entity canvas") { entityCanvas.isVisible = !entityCanvas.isVisible }
+            buttonI("Login all External") {
+                ExternalAuthenticationProvider.getAccounts().forEach { account -> exec.submit {
+                    runCatching { block(AuthenticationProvider.byLoginExternal(account).duplicateCheck, innerModule) }
+                        .onFailure { println("Authorization fail for $account because ${it.message}") }
+                } }
+            }
             panel.add(Box.createRigidArea(Dimension(0, 12000)))
             frame.contentPane = panel
             frame.isVisible = true

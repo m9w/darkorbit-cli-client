@@ -25,7 +25,7 @@ class BasicRepairModule {
         waitMs(1000)
         engine.send<KillScreenRepairRequest> {
             selection = screen.options[0].repairType
-            requestModule = requestModule.apply {
+            requestModule.apply {
                 userID = authentication.userID
                 sessionID = authentication.sessionID
                 instanceId = authentication.instanceId

@@ -158,8 +158,8 @@ class EntitiesModule(private val entities: MutableMap<Long, EntityImpl> = HashMa
             shape = ShapeType.CIRCLE
             inverted = true
             active = true
-            design = design.apply { designValue = POIDesign.NONE }
-            poiType = poiType.apply { typeValue = POIType.FACTION_NO_ACCESS }
+            design.designValue = POIDesign.NONE
+            poiType.typeValue = POIType.FACTION_NO_ACCESS
             poiTypeSpecification = "${event.type} [${event.blackBox}, ${event.redBox}] ${event.captchaTimer}"
             shapeCoordinates = mutableListOf(event.posX, event.posY, event.Radius)
         })

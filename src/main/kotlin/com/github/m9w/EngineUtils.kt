@@ -18,7 +18,7 @@ fun GameEngine.setPetActive(isActive: Boolean) {
 fun GameEngine.setPetGear(gearType: PetGearType, optional: Int) {
     if (state.isNotConnected || gearType == PetGearType.BEHAVIOR || gearType == PetGearType.ADMIN) return
     send<PetGearActivationRequest> {
-        gearTypeToActivate = gearTypeToActivate.apply { typeValue = gearType }
+        gearTypeToActivate.typeValue = gearType
         optParam = optional.toShort()
     }
 }

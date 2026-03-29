@@ -7,7 +7,7 @@ import com.github.m9w.setPetActive
 import com.github.m9w.setPetGear
 
 class HeroPet(root: EntitiesModule, activation: PetHeroActivationCommand) : PetImpl(root, Factory.build<PetActivationCommand> {
-    clanRelationship = clanRelationship.apply { type = Type.ALLIED }
+    clanRelationship.type = Type.ALLIED
     petClanID = activation.clanId
     clanTag = activation.clanTag
     expansionStage = activation.expansionStage

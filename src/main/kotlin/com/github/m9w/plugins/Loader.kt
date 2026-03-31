@@ -1,9 +1,9 @@
 package com.github.m9w.plugins
 
 import com.darkorbit.ProtocolPacket
-import com.github.m9w.config.RwPropA
-import com.github.m9w.config.RwPropC
-import com.github.m9w.config.RwPropS
+import com.github.m9w.config.AccountProp
+import com.github.m9w.config.ConfigSetProp
+import com.github.m9w.config.StaticProp
 import com.github.m9w.context.Context
 import com.github.m9w.feature.Classifier
 import com.github.m9w.feature.annotations.OnEvent
@@ -72,9 +72,9 @@ object Loader {
             .filter { it.isDelegatedBy(Context.Optional::class) }
             .onEach { it.isAccessible = true }
 
-        val configProps = moduleClass.declaredMemberProperties.filter { it.isDelegatedBy(RwPropC::class) }.onEach { it.isAccessible = true }
-        val accountProps = moduleClass.declaredMemberProperties.filter { it.isDelegatedBy(RwPropA::class) }.onEach { it.isAccessible = true }
-        val staticProps = moduleClass.declaredMemberProperties.filter { it.isDelegatedBy(RwPropS::class) }.onEach { it.isAccessible = true }
+        val configProps = moduleClass.declaredMemberProperties.filter { it.isDelegatedBy(ConfigSetProp::class) }.onEach { it.isAccessible = true }
+        val accountProps = moduleClass.declaredMemberProperties.filter { it.isDelegatedBy(AccountProp::class) }.onEach { it.isAccessible = true }
+        val staticProps = moduleClass.declaredMemberProperties.filter { it.isDelegatedBy(StaticProp::class) }.onEach { it.isAccessible = true }
 
         val func = moduleClass.memberFunctions
         val onPackageHandlers = func.mapNotNull { method -> method.annotations.filterIsInstance<OnPackage>().firstOrNull()?.let {
@@ -92,7 +92,7 @@ object Loader {
                 errorMessages.add(ScriptDiagnostic(2, "Unexpected argument count in $method, @OnEvent handlers should have one String parameter.", ScriptDiagnostic.Severity.WARNING)).let { null }
             else OnEventHandler(method.apply { isAccessible = true }, it.event)
         } }
-        if (listOf<List<*>>(dependencies, optionalDependencies, configProps, accountProps, staticProps, onPackageHandlers, repeatableHandlers, onEventHandlers).all { it.isEmpty() }) return null
+        if (abstraction == moduleClass && listOf<List<*>>(dependencies, optionalDependencies, configProps, accountProps, staticProps, onPackageHandlers, repeatableHandlers, onEventHandlers).all { it.isEmpty() }) return null
         return DynamicModule(moduleClass, abstraction, dependencies, optionalDependencies, configProps, accountProps, staticProps, onPackageHandlers, repeatableHandlers, onEventHandlers, block)
     }
 

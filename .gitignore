@@ -3,8 +3,8 @@ build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
-private.signature
-
+**/private.signature
+/config.yaml
 ### IntelliJ IDEA ###
 .idea/modules.xml
 .idea/jarRepositories.xml

@@ -2,17 +2,13 @@ package com.github.m9w.plugins
 
 import com.github.m9w.Scheduler
 import com.github.m9w.client.GameEngine
-import com.github.m9w.config.ConfigModule
-import com.github.m9w.config.PersistYamlConfig
+import com.github.m9w.config.module.PersistYamlConfig
 import com.github.m9w.config.staticConfig
-import com.github.m9w.context.Context
 import com.github.m9w.metaplugins.*
 import com.github.m9w.metaplugins.proxy.EnvProxyPool
 import com.github.m9w.metaplugins.proxy.ProxyModule
 import com.github.m9w.plugins.dao.Plugin
 import com.github.m9w.plugins.dao.PluginDefinition
-import com.github.m9w.plugins.validator.SignatureValidator.cert
-import com.github.m9w.plugins.validator.SignatureValidator.isTrusted
 import java.net.URI
 import java.nio.file.FileSystems
 import java.nio.file.Files

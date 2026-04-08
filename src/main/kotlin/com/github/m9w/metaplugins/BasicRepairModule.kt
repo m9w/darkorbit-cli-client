@@ -9,7 +9,7 @@ import com.github.m9w.context.context
 import com.github.m9w.feature.annotations.OnPackage
 import com.github.m9w.feature.annotations.Repeat
 import com.github.m9w.feature.waitMs
-import com.github.m9w.metaplugins.game.entities.JumpgateImpl
+import com.github.m9w.game.entities.JumpgateImpl
 import kotlin.collections.filter
 
 class BasicRepairModule {

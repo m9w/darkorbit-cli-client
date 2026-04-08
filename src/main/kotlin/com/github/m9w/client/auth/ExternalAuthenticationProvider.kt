@@ -10,7 +10,7 @@ class ExternalAuthenticationProvider(private val externalIdentifier: String) : A
         Http(System.getenv("external_login_endpoint"), "POST")
             .apply { System.getenv("external_auth_value")?.let { setRawHeaders("Authorization" to it) } }
             .setParams("login" to externalIdentifier)
-            .connect.also{ println(it) }.asJson<Map<String, Any>>()
+            .connect.asJson<Map<String, Any>>()
     }
 
     override val host get() = loginParams["host"]?.toString() ?: throw RuntimeException("host is null, $loginParams")

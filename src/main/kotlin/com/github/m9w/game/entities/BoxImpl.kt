@@ -1,7 +1,7 @@
-package com.github.m9w.metaplugins.game.entities
+package com.github.m9w.game.entities
 
 import com.darkorbit.*
-import com.github.m9w.collectRequest
+import com.github.m9w.util.collectRequest
 import com.github.m9w.metaplugins.EntitiesModule
 
 class BoxImpl(root: EntitiesModule, entity: AddMapEntityCommand): EntityImpl(root,entity.hash.toLong(36) + Int.MAX_VALUE, entity.name,entity.x,entity.y) {

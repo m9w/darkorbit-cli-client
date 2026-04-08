@@ -59,6 +59,8 @@ object Loader {
         val rootInstance = value?.scriptInstance
 
         val modules = rootClass?.nestedClasses?.mapNotNull { moduleClass -> dynamicModuleBuilder(moduleClass, errorMessages) } ?: listOf()
+        println("Loading ${plugin.name} :: ${value != null}")
+        if (value == null) errorMessages.forEach { println(it) }
         return PluginDefinition(classLoader, rootClass, rootInstance, errorMessages, rootInstance != null, modules)
     }
 

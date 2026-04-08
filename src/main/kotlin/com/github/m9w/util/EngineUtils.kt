@@ -1,13 +1,13 @@
-package com.github.m9w
+package com.github.m9w.util
 
 import com.darkorbit.*
 import com.github.m9w.client.GameEngine
-import com.github.m9w.metaplugins.game.Point
-import com.github.m9w.metaplugins.game.PositionImpl.Companion.x
-import com.github.m9w.metaplugins.game.PositionImpl.Companion.y
-import com.github.m9w.metaplugins.game.entities.BoxImpl
-import com.github.m9w.metaplugins.game.entities.EntityImpl
-import com.github.m9w.metaplugins.game.entities.HeroShip
+import com.github.m9w.game.Point
+import com.github.m9w.game.PositionImpl.Companion.x
+import com.github.m9w.game.PositionImpl.Companion.y
+import com.github.m9w.game.entities.BoxImpl
+import com.github.m9w.game.entities.EntityImpl
+import com.github.m9w.game.entities.HeroShip
 
 
 fun GameEngine.setPetActive(isActive: Boolean) {

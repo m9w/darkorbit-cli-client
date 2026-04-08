@@ -1,4 +1,4 @@
-package com.github.m9w.metaplugins.game.entities
+package com.github.m9w.game.entities
 
 
 @Suppress("unused", "EnumEntryName", "SpellCheckingInspection", "RemoveRedundantBackticks")

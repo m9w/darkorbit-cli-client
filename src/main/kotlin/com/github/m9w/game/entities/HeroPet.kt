@@ -1,10 +1,11 @@
-package com.github.m9w.metaplugins.game.entities
+package com.github.m9w.game.entities
 
 import com.darkorbit.*
 import com.github.m9w.metaplugins.EntitiesModule
 import com.github.m9w.protocol.Factory
-import com.github.m9w.setPetActive
-import com.github.m9w.setPetGear
+import com.github.m9w.util.setPetActive
+import com.github.m9w.util.setPetGear
+import java.util.EnumMap
 
 class HeroPet(root: EntitiesModule, activation: PetHeroActivationCommand) : PetImpl(root, Factory.build<PetActivationCommand> {
     clanRelationship.type = Type.ALLIED
@@ -26,7 +27,7 @@ class HeroPet(root: EntitiesModule, activation: PetHeroActivationCommand) : PetI
     var heatLevel: Int = 0; private set
     var locatorOptions: List<Int> = emptyList(); private set
     var selectedGear: PetGearType = PetGearType.PASSIVE; private set
-    val gears: MutableMap<PetGearType, PetGearAddCommand> = HashMap()
+    val gears: MutableMap<PetGearType, PetGearAddCommand> = EnumMap(PetGearType::class.java)
 
     fun gearSelect(gearType: PetGearType, optional: Int = 0) {
         if (gears.containsKey(gearType)) gearType.select(optional)
@@ -54,6 +55,7 @@ class HeroPet(root: EntitiesModule, activation: PetHeroActivationCommand) : PetI
         selectedGear = packet.gearType.typeValue
     }
 
+    @Suppress("unused")
     private fun update(packet: PetGearResetCommand) {
         gears.clear()
     }

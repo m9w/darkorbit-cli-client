@@ -51,7 +51,7 @@ abstract class ProxyPool : Classifier<ProxyPool>  {
         Unit
     } ?: Unit
 
-    protected data class Metadata(val pool: ProxyPool, val ip: String, var degradationLevel: Int = 0, var decreaseAfter: Long = 0) {
+    data class Metadata(val pool: ProxyPool, val ip: String, var degradationLevel: Int = 0, var decreaseAfter: Long = 0) {
         val connections: AtomicInteger = pool.connections.computeIfAbsent(ip) { AtomicInteger() }
     }
 

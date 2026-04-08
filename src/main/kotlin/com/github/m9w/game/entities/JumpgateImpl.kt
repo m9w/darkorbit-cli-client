@@ -1,7 +1,7 @@
-package com.github.m9w.metaplugins.game.entities
+package com.github.m9w.game.entities
 
 import com.darkorbit.*
-import com.github.m9w.jumpRequest
+import com.github.m9w.util.jumpRequest
 import com.github.m9w.metaplugins.EntitiesModule
 
 class JumpgateImpl(root: EntitiesModule, jumpgate: JumpgateCreateCommand) : EntityImpl(root, jumpgate.gateId.toLong(), "Jumpgate", jumpgate.x, jumpgate.y, jumpgate.isVisibleOnMinimap) {

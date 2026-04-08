@@ -1,32 +1,29 @@
-package com.github.m9w
+package com.github.m9w.feature
 
 import com.darkorbit.ProtocolPacket
 import com.github.m9w.client.GameEngine
 import com.github.m9w.context.Context
 import com.github.m9w.context.Context.Companion.enterToContext
 import com.github.m9w.context.context
-import com.github.m9w.feature.Classifier
-import com.github.m9w.feature.Future
-import com.github.m9w.feature.SchedulerEntity
 import com.github.m9w.feature.suspend.ExceptPacketException
 import com.github.m9w.plugins.dao.DynamicModuleInstance
 import com.github.m9w.protocol.Factory.className
 import java.io.Closeable
 import java.lang.RuntimeException
-import java.util.*
+import java.util.HashMap
+import java.util.TreeMap
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.callSuspend
 import kotlin.reflect.jvm.isAccessible
 
-
 class Scheduler : Runnable, Closeable, Classifier<Scheduler> {
     private val eventPacketQueue = ConcurrentLinkedQueue<ProtocolPacket>()
     private val eventQueue = ConcurrentLinkedQueue<Pair<String, String>>()
     private val eventHandlers: MutableMap<String, MutableSet<PendingFuture>> = HashMap()
     private val timerQueue = TreeMap<Long, MutableList<() -> Unit>>()
-    private val timerCancellationKeys = HashMap<String, MutableList<((()->Exception)?)->Unit>>()
+    private val timerCancellationKeys = HashMap<String, MutableList<((() -> Exception)?) -> Unit>>()
     private val lock = Object()
     private val hasEvents get() = !eventPacketQueue.isEmpty() || !eventQueue.isEmpty()
     private val engine: GameEngine by context
@@ -66,7 +63,7 @@ class Scheduler : Runnable, Closeable, Classifier<Scheduler> {
     }
 
     fun resumeIn(future: Future<*>, ms: Long, interruptKey: String) {
-        val resume: AtomicReference<()->Unit> = AtomicReference()
+        val resume: AtomicReference<() -> Unit> = AtomicReference()
         val interrupt: ((()->Exception)?)->Unit = {
             timerQueue[ms]?.remove (resume.get())
             future.interrupt { it?.invoke() ?: RuntimeException("External interrupt") }
@@ -101,7 +98,11 @@ class Scheduler : Runnable, Closeable, Classifier<Scheduler> {
     }
 
     fun addPendingFuture(future: Future<*>, waitFor: Set<String>, exceptOn: Set<String> = emptySet()) : PendingFuture {
-        val pendingFuture = PendingFuture( waitFor::contains, future::resume, { future.interrupt { ExceptPacketException(it) } })
+        val pendingFuture = PendingFuture( waitFor::contains, future::resume, { future.interrupt {
+            ExceptPacketException(
+                it
+            )
+        } })
         (waitFor + exceptOn).forEach { addHandler(it, pendingFuture) }
         return pendingFuture
     }

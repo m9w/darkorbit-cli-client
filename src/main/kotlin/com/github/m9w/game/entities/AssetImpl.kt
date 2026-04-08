@@ -1,10 +1,10 @@
-package com.github.m9w.metaplugins.game.entities
+package com.github.m9w.game.entities
 
 import com.darkorbit.*
-import com.github.m9w.assetActivate
-import com.github.m9w.instantRepairActivate
+import com.github.m9w.util.assetActivate
+import com.github.m9w.util.instantRepairActivate
 import com.github.m9w.metaplugins.EntitiesModule
-import com.github.m9w.questGiverActivate
+import com.github.m9w.util.questGiverActivate
 
 class AssetImpl(root: EntitiesModule, asset: AssetCreateCommand) : EntityImpl(root, asset.assetId.toLong(), asset.userName, asset.posX, asset.posY, !asset.invisible) {
     override val diplomacy: Type = asset.clanRelation.type

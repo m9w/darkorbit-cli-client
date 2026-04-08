@@ -1,4 +1,4 @@
-package com.github.m9w.metaplugins.game.entities
+package com.github.m9w.game.entities
 
 import com.darkorbit.Faction
 import com.darkorbit.LegacyModule
@@ -7,8 +7,8 @@ import com.darkorbit.ShipSelectionCommand
 import com.darkorbit.Type
 import com.darkorbit.VisualModifierCommand
 import com.github.m9w.metaplugins.EntitiesModule
-import com.github.m9w.metaplugins.game.HealthHolder
-import com.github.m9w.metaplugins.game.PositionImpl
+import com.github.m9w.game.HealthHolder
+import com.github.m9w.game.PositionImpl
 
 sealed class EntityImpl(protected val root: EntitiesModule, val id: Long, val name: String, x: Int, y: Int, var isVisible: Boolean = true): PositionImpl(x,y) {
     val health: HealthHolder = HealthHolder()

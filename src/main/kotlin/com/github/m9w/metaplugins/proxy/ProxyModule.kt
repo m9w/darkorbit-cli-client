@@ -24,5 +24,5 @@ class ProxyModule(private var proxy: Proxy? = null) : Classifier<ProxyModule> {
 
     fun ipRestricted() = pool?.ipRestricted(proxy)?.also { proxy = null }
 
-    override fun toString(): String = proxy?.run { "$type://$host:$port" } ?: "DIRECT"
+    override fun toString(): String = proxy?.run { "$type://$host:$port" } ?: "DIRECT:pr"
 }

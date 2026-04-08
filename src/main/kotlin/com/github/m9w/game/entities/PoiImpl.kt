@@ -1,8 +1,8 @@
-package com.github.m9w.metaplugins.game.entities
+package com.github.m9w.game.entities
 
 import com.darkorbit.*
 import com.github.m9w.metaplugins.EntitiesModule
-import com.github.m9w.metaplugins.game.Point
+import com.github.m9w.game.Point
 import kotlin.collections.chunked
 import kotlin.math.*
 

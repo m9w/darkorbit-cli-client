@@ -1,6 +1,6 @@
 package com.github.m9w.plugins
 
-import com.github.m9w.Scheduler
+import com.github.m9w.feature.Scheduler
 import com.github.m9w.client.GameEngine
 import com.github.m9w.config.module.PersistYamlConfig
 import com.github.m9w.config.staticConfig
@@ -25,7 +25,7 @@ object PluginRepo {
 
     var plugins: MutableList<String> by staticConfig(mutableListOf())
 
-    val coreClasses = listOf(Scheduler::class, AuthModule::class, GameEngine::class, LoginModule::class, ProxyModule::class, EnvProxyPool::class, BasicRepairModule::class, PingModule::class, EntitiesModule::class, MapModule::class, PathTracerModule::class, PersistYamlConfig::class, MoveModule::class)
+    val coreClasses = listOf(Scheduler::class, AuthModule::class, GameEngine::class, LoginModule::class, ProxyModule::class, EnvProxyPool::class, BasicRepairModule::class, EntitiesModule::class, MapModule::class, PathTracerModule::class, PersistYamlConfig::class, MoveModule::class)
 
     inline fun <reified T>getCoreModule() = corePlugin.definition!!.modules.first { it.abstraction == T::class }
 

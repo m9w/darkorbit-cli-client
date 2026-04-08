@@ -1,10 +1,10 @@
-package com.github.m9w.metaplugins.game.entities
+package com.github.m9w.game.entities
 
 import com.darkorbit.*
-import com.github.m9w.changeConfig
+import com.github.m9w.util.changeConfig
 import com.github.m9w.metaplugins.EntitiesModule
-import com.github.m9w.metaplugins.game.Point
-import com.github.m9w.setPetActive
+import com.github.m9w.game.Point
+import com.github.m9w.util.setPetActive
 
 class HeroShip(root: EntitiesModule, ship: ShipInitializationCommand) : ShipImpl(root, ship) {
     private val cargoOres = listOf(OreType.PROMETIUM, OreType.ENDURIUM, OreType.TERBIUM, OreType.PROMETID, OreType.DURANIUM, OreType.PROMERIUM, OreType.SEPROM, OreType.PALLADIUM, OreType.OSMIUM)

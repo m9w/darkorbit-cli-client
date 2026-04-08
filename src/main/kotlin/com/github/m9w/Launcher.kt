@@ -1,6 +1,7 @@
 package com.github.m9w
 
 import com.github.m9w.client.auth.AuthenticationProvider
+import com.github.m9w.feature.Scheduler
 import com.github.m9w.feature.annotations.SystemEvents
 import com.github.m9w.plugins.dao.DynamicModule
 

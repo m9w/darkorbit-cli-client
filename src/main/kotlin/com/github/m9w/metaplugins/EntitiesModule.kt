@@ -4,7 +4,14 @@ import com.darkorbit.*
 import com.github.m9w.context.context
 import com.github.m9w.client.GameEngine
 import com.github.m9w.feature.annotations.OnPackage
-import com.github.m9w.metaplugins.game.entities.*
+import com.github.m9w.game.entities.AssetImpl
+import com.github.m9w.game.entities.BoxImpl
+import com.github.m9w.game.entities.EntityImpl
+import com.github.m9w.game.entities.HeroPet
+import com.github.m9w.game.entities.HeroShip
+import com.github.m9w.game.entities.JumpgateImpl
+import com.github.m9w.game.entities.PoiImpl
+import com.github.m9w.game.entities.ShipImpl
 import com.github.m9w.protocol.Factory
 
 @Suppress("unused")
@@ -27,7 +34,8 @@ class EntitiesModule(private val entities: MutableMap<Long, EntityImpl> = HashMa
     private fun onMineCreate(mine: AddMineCommand) { BoxImpl(this, mine).let { entities[it.id] = it } }
 
     @OnPackage
-    private fun onShipCreate(ship: ShipCreateCommand) { this[ship.userId] = ShipImpl(this, ship) }
+    private fun onShipCreate(ship: ShipCreateCommand) { this[ship.userId] = ShipImpl(this, ship)
+    }
 
     @OnPackage
     private fun onPoiCreate(poi: MapAddPOICommand) {
@@ -36,7 +44,9 @@ class EntitiesModule(private val entities: MutableMap<Long, EntityImpl> = HashMa
     }
 
     @OnPackage
-    private fun onPoiCreate(poi: MapAddControlPOIZoneCommand) { entities[poi.poiId.id]  = PoiImpl(this, poi.poiId.id, poi) }
+    private fun onPoiCreate(poi: MapAddControlPOIZoneCommand) { entities[poi.poiId.id]  =
+        PoiImpl(this, poi.poiId.id, poi)
+    }
 
     @OnPackage
     private fun onMoveCommand(move: MoveCommand) = this[move.userId]?.update(move)
@@ -51,19 +61,25 @@ class EntitiesModule(private val entities: MutableMap<Long, EntityImpl> = HashMa
     private fun onLaserAttackAbort(laser: AttackAbortLaserCommand) = this.getLong<ShipImpl>(laser.uid)?.update(laser)
 
     @OnPackage
-    private fun onJumpgateCreate(jumpgate: JumpgateCreateCommand) { this[jumpgate.gateId] = JumpgateImpl(this, jumpgate) }
+    private fun onJumpgateCreate(jumpgate: JumpgateCreateCommand) { this[jumpgate.gateId] = JumpgateImpl(this, jumpgate)
+    }
 
     @OnPackage
     private fun onJumpgateInitiation(jumpgate: JumpInitiatedCommand) { this[jumpgate.gateId]?.update(jumpgate) }
 
     @OnPackage
-    private fun onHeroInit(init: ShipInitializationCommand) { entities.clear(); pathTracer.onChange(); this[init.userId] = HeroShip(this, init).also { hero = it } }
+    private fun onHeroInit(init: ShipInitializationCommand) { entities.clear(); pathTracer.onChange(); this[init.userId] = HeroShip(
+        this,
+        init
+    ).also { hero = it } }
 
     @OnPackage
     private fun onHeroInit(speedUpdate: AttributeShipSpeedUpdateCommand) { hero.update(speedUpdate) }
 
     @OnPackage
-    private fun onAssetCreate(createAsset: AssetCreateCommand) { this[createAsset.assetId] = AssetImpl(this, createAsset) }
+    private fun onAssetCreate(createAsset: AssetCreateCommand) { this[createAsset.assetId] =
+        AssetImpl(this, createAsset)
+    }
 
     @OnPackage
     private fun onAssetActivation(assetActivation: MapAssetActionAvailableCommand) { this[assetActivation.mapAssetId]?.update(assetActivation) }
@@ -128,7 +144,10 @@ class EntitiesModule(private val entities: MutableMap<Long, EntityImpl> = HashMa
     @OnPackage
     private fun onHeatUpdate(heat: PetHeatUpdateCommand) { hero.pet?.update(heat) }
     @OnPackage
-    private fun onPetActivation(activation: PetHeroActivationCommand) { this[activation.petId] = HeroPet(this, activation).also { hero.pet = it } }
+    private fun onPetActivation(activation: PetHeroActivationCommand) { this[activation.petId] = HeroPet(
+        this,
+        activation
+    ).also { hero.pet = it } }
     @OnPackage
     private fun onPetDeactivation(deactivation: PetDeactivationCommand) { if (this::hero.isInitialized && hero.pet?.id?.toInt() == deactivation.petId) hero.pet = null; remove(deactivation.petId) }
     @OnPackage

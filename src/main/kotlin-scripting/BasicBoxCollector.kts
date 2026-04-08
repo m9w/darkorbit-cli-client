@@ -1,16 +1,16 @@
 import com.darkorbit.*
 import com.github.m9w.client.GameEngine
-import com.github.m9w.collectRequest
+import com.github.m9w.util.collectRequest
 import com.github.m9w.config.config
 import com.github.m9w.context.context
 import com.github.m9w.feature.annotations.OnPackage
 import com.github.m9w.feature.annotations.Repeat
 import com.github.m9w.metaplugins.EntitiesModule
-import com.github.m9w.metaplugins.game.Point
-import com.github.m9w.metaplugins.game.PositionImpl.Companion.distanceTo
-import com.github.m9w.metaplugins.game.entities.BoxImpl
-import com.github.m9w.metaplugins.game.entities.BoxImpl.Companion.name
-import com.github.m9w.metaplugins.game.entities.HeroShip
+import com.github.m9w.game.Point
+import com.github.m9w.game.PositionImpl.Companion.distanceTo
+import com.github.m9w.game.entities.BoxImpl
+import com.github.m9w.game.entities.BoxImpl.Companion.name
+import com.github.m9w.game.entities.HeroShip
 import io.ktor.util.date.getTimeMillis
 import java.util.concurrent.ConcurrentHashMap
 
@@ -99,11 +99,11 @@ class BasicBoxCollector {
     }
 }
 /** @m9w/darkorbit-cli-client
- * K+i6dWlj/ZZ7mEEDbz5oF2gU1xuGsZM4rLDEVt9alscCuS43UxsURHIAmyOMaANFbUpV3wDHoAoSW07r4lEACX1+L6y3MHNuGLvV
- * 7aGqzr7/mhm9X6eR70kvy3fgnKfn5dkz1rtub/al8UI23+afTIl+J4qvEMhtTU7mhEjge0FODj2TURrxIe48WDT/2kFE9IV7glS4
- * 1ycqKIhwgFpmJSGqNhT2XSRr9iGxOmdeAyCLzI7I37cTY5z+jRG5vC+g85+0Bqglwg9/OCSJ8q9/HUCh+PiBaRsw3L9YpOoUg7z1
- * qpZ5EyMOqZHPJhVQcdgdAtI5INd5EP30UjsycJjj1Gv7yAATUCtEf+NOB51dfUarY/+v3xukLEJq1Yd5kWUpAT03Jaw141VEyBox
- * gB2OQMfn37yNvdmksZu2gkV9MtcDSS5EvUqR9bxb4kK9CVo3D2ETeUZSd5umjPjT7LdziiPsIGmA8qx89gJ+31IsHRwlyxUfcdD7
- * rT0i3vftZgFsHRPUZJL2WNEc+GtTc3cEqYB1DMrh11+d5VQM0FqGl3NBI+kwiUP32YBwLEpeRXYJr+5Q24qbU7FIzda1mno2EMU9
- * ns9D/m9GmRMo73+TBNSk76cokdAciqenOz7nznjBY3R4FRd4nqR4xlPvZ8PnORCg7lHUsiwO6aCHBcVTJ5Y=
+ * AyZC9t8pVFsxq0ElvuaTxxSqIOYzm648NlqfAR4AjL7Fwcjd7wGtJGL0JVpHdRKQYF6TniDkzNi1QhBFD4pmKOwcA0iIz65ioOjS
+ * /x+9Oenymenrfpv+AhY1AoVVS8Wm09MJ2rgahrMxPBo4GaiP9hrAIMdue8sNNLb+4TppViYt++ecUlNA9hT1xW7rqxW4L0WRxc6g
+ * /MTmjKV91AueQGxUKKJgcnIfhNQM7/UDsYBEXsP0S13Q8TA+0XBAR9SJt1TvHTgMuT/PCekovh74ah38qUQMeQeQH6UJhsnXLjdn
+ * 26VCuVSXWI7JnLYQXHQ6x/BtVII/75JlXctDSYknuaTAyPmhXZPeNNzipFmKsAQr19SUC3OuGn9zmN8Rb2YO5J11ODOgaqOZbwMJ
+ * Kz2gThSYmmvJkKIrsSAtJ3SeorGCBKHgn06gLjZnAYAkIoGDkYHJUkn6bmyB3RUg6PcKB1WEiA3H3K8wPXMzT8LQVwsT9++33X7H
+ * BpXbcowXgPJr1vp4x758M9d0KlYhwBuNBxS66m8v0h99I2u5aQv270xHtc3toNnG8eJo93gGeuc6riDcEtNcfN3R07DYapWyE40z
+ * Ho1FkHkV2Bt9aSucVvifkpw7QvU14X3ZlnjvBQWSSNxUFNqMnUETq3Chkrzk72f8Bgu3dYZwcPYnKouF9Ds=
  * */

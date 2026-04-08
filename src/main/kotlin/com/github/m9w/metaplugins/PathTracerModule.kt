@@ -2,9 +2,9 @@ package com.github.m9w.metaplugins
 
 import com.darkorbit.POIType
 import com.github.m9w.context.context
-import com.github.m9w.metaplugins.game.Point
-import com.github.m9w.metaplugins.game.PositionImpl.Companion.distanceTo
-import com.github.m9w.metaplugins.game.entities.PoiImpl
+import com.github.m9w.game.Point
+import com.github.m9w.game.PositionImpl.Companion.distanceTo
+import com.github.m9w.game.entities.PoiImpl
 import java.util.ArrayList
 import java.util.HashSet
 import java.util.LinkedList

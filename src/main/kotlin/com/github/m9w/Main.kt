@@ -8,7 +8,9 @@ import com.github.m9w.util.ProcessIdentifier
 fun main() {
     ProcessIdentifier.check()
     PluginRepo.builtinPlugins.forEach { it.load() }
-    val modules = PluginRepo.allPlugins.mapNotNull { it.definition?.modules }.flatten()
+    val modules = PluginRepo.run{ builtinPlugins + corePlugin }
+        .mapNotNull { it.definition?.modules }
+        .flatten()
         .filter { !listOf(EnvProxyPool::class).contains(it.moduleClass) }
     EntitiesDebugUiModule { auth, debug -> Launcher.run(modules + debug, auth) }
 }

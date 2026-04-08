@@ -3,7 +3,7 @@ package com.github.m9w.metaplugins
 import com.darkorbit.POIType
 import com.darkorbit.ShapeType
 import com.darkorbit.ShipInitializationCommand
-import com.github.m9w.Scheduler
+import com.github.m9w.feature.Scheduler
 import com.github.m9w.client.GameEngine
 import com.github.m9w.client.auth.AuthenticationProvider
 import com.github.m9w.client.auth.ClientType
@@ -12,10 +12,18 @@ import com.github.m9w.client.network.NetworkLayer
 import com.github.m9w.context.context
 import com.github.m9w.feature.annotations.OnPackage
 import com.github.m9w.feature.waitMs
-import com.github.m9w.metaplugins.game.PositionImpl
-import com.github.m9w.metaplugins.game.PositionImpl.Companion.x
-import com.github.m9w.metaplugins.game.PositionImpl.Companion.y
-import com.github.m9w.metaplugins.game.entities.*
+import com.github.m9w.game.PositionImpl
+import com.github.m9w.game.PositionImpl.Companion.x
+import com.github.m9w.game.PositionImpl.Companion.y
+import com.github.m9w.game.entities.AssetImpl
+import com.github.m9w.game.entities.BoxImpl
+import com.github.m9w.game.entities.EntityImpl
+import com.github.m9w.game.entities.HeroPet
+import com.github.m9w.game.entities.HeroShip
+import com.github.m9w.game.entities.JumpgateImpl
+import com.github.m9w.game.entities.PetImpl
+import com.github.m9w.game.entities.PoiImpl
+import com.github.m9w.game.entities.ShipImpl
 import com.github.m9w.plugins.Loader
 import com.github.m9w.plugins.dao.DynamicModule
 import java.awt.*
@@ -107,7 +115,7 @@ class EntitiesDebugUiModule(private val block: (AuthenticationProvider, DynamicM
         }
     }
 
-    private fun Graphics.drawGate(gate: JumpgateImpl) = color(Color.gray) { gate.windowPosition.also { oval(it, 11) } }.let {pos -> color(if(gate.initiated) Color.cyan else Color.yellow) { if (gate.canInvoke()) oval(pos, 9, gate.initiated) } }
+    private fun Graphics.drawGate(gate: JumpgateImpl) = color(Color.gray) { gate.windowPosition.also { oval(it, 11) } }.let { pos -> color(if(gate.initiated) Color.cyan else Color.yellow) { if (gate.canInvoke()) oval(pos, 9, gate.initiated) } }
 
     private fun Graphics.drawAsset(asset: AssetImpl) = color(if (asset.isSafe) Color.green else Color.red) {
         val pos = asset.windowPosition.also { oval(it, 7, true) }

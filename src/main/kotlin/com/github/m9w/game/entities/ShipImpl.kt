@@ -1,11 +1,11 @@
-package com.github.m9w.metaplugins.game.entities
+package com.github.m9w.game.entities
 
 import com.darkorbit.*
-import com.github.m9w.abortAttackRequest
-import com.github.m9w.attackRequest
+import com.github.m9w.util.abortAttackRequest
+import com.github.m9w.util.attackRequest
 import com.github.m9w.metaplugins.EntitiesModule
 import com.github.m9w.protocol.Factory
-import com.github.m9w.selectRequest
+import com.github.m9w.util.selectRequest
 
 open class ShipImpl(root: EntitiesModule, ship: ShipCreateCommand) : EntityImpl(root, ship.userId.toLong(), ship.userName, ship.x, ship.y, !ship.cloaked) {
     val isNpc: Boolean = ship.npc

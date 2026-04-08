@@ -4,15 +4,15 @@ import com.darkorbit.BeaconCommand
 import com.darkorbit.JumpInitiatedCommand
 import com.darkorbit.ShipInitializationCommand
 import com.github.m9w.feature.annotations.OnPackage
-import com.github.m9w.metaplugins.game.GameMap
-import com.github.m9w.metaplugins.game.entities.JumpgateImpl
+import com.github.m9w.game.GameMap
+import com.github.m9w.game.entities.JumpgateImpl
 import com.github.m9w.util.Http
 import com.github.m9w.util.Http.Companion.content
 import com.github.m9w.context.context
-import com.github.m9w.metaplugins.game.Point
-import com.github.m9w.metaplugins.game.PositionImpl.Companion.x
-import com.github.m9w.metaplugins.game.PositionImpl.Companion.y
-import com.github.m9w.metaplugins.game.entities.EntityImpl
+import com.github.m9w.game.Point
+import com.github.m9w.game.PositionImpl.Companion.x
+import com.github.m9w.game.PositionImpl.Companion.y
+import com.github.m9w.game.entities.EntityImpl
 
 class MapModule {
     var map: GameMap = UNKNOWN; private set

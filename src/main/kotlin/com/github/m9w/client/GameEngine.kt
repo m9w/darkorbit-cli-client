@@ -1,7 +1,7 @@
 package com.github.m9w.client
 
 import com.darkorbit.ProtocolPacket
-import com.github.m9w.Scheduler
+import com.github.m9w.feature.Scheduler
 import com.github.m9w.client.auth.AuthenticationProvider
 import com.github.m9w.client.network.NetworkLayer
 import com.github.m9w.config.accountConfig

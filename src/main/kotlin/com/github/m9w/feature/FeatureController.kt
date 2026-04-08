@@ -1,6 +1,5 @@
 package com.github.m9w.feature
 
-import com.github.m9w.Scheduler
 import com.github.m9w.feature.suspend.SuspendFlow
 import java.io.InterruptedIOException
 import kotlin.coroutines.*

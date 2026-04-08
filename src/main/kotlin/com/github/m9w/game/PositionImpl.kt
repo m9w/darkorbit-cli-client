@@ -1,4 +1,4 @@
-package com.github.m9w.metaplugins.game
+package com.github.m9w.game
 
 import com.darkorbit.AttributeShipSpeedUpdateCommand
 import com.darkorbit.MoveCommand

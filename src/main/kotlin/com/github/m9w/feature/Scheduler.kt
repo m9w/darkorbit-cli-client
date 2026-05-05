@@ -12,6 +12,7 @@ import java.io.Closeable
 import java.lang.RuntimeException
 import java.util.HashMap
 import java.util.TreeMap
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.reflect.KFunction
@@ -47,11 +48,9 @@ class Scheduler : Runnable, Closeable, Classifier<Scheduler> {
         while (true) {
             val packet = eventPacketQueue.poll() ?: break
             eventHandlers[packet.className]?.let { handlerSet ->
-                synchronized(handlerSet) {
-                    handlerSet.removeIf { handler ->
-                        handler.perform(packet)
-                        !handler.persist
-                    }
+                handlerSet.removeIf { handler ->
+                    handler.perform(packet)
+                    !handler.persist
                 }
             }
         }
@@ -98,28 +97,17 @@ class Scheduler : Runnable, Closeable, Classifier<Scheduler> {
     }
 
     fun addPendingFuture(future: Future<*>, waitFor: Set<String>, exceptOn: Set<String> = emptySet()) : PendingFuture {
-        val pendingFuture = PendingFuture( waitFor::contains, future::resume, { future.interrupt {
-            ExceptPacketException(
-                it
-            )
-        } })
+        val pendingFuture = PendingFuture(waitFor::contains, future::resume, { future.interrupt { ExceptPacketException(it) } })
         (waitFor + exceptOn).forEach { addHandler(it, pendingFuture) }
         return pendingFuture
     }
 
     private fun addHandler(key: String, handler: PendingFuture) {
-        val handlers = eventHandlers[key]
-        if (handlers != null) synchronized(handlers) {
-            handlers.add(handler)
-        } else {
-            eventHandlers[key] = mutableSetOf(handler)
-        }
+        eventHandlers.computeIfAbsent(key) { ConcurrentHashMap.newKeySet() }.add(handler)
     }
 
     fun remove(pendingFuture: PendingFuture) {
-        eventHandlers.values
-            .filter { it.contains(pendingFuture) }
-            .forEach { synchronized(it) { it.remove(pendingFuture) } }
+        eventHandlers.values.forEach { it.remove(pendingFuture) }
     }
 
     private fun DynamicModuleInstance.scheduleHandlers() {

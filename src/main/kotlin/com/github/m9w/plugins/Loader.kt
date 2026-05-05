@@ -35,6 +35,7 @@ import kotlin.script.experimental.host.StringScriptSource
 import kotlin.script.experimental.jvm.baseClassLoader
 import kotlin.script.experimental.jvm.dependenciesFromClassloader
 import kotlin.script.experimental.jvm.jvm
+import kotlin.script.experimental.jvm.jvmTarget
 import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
 
 object Loader {
@@ -44,7 +45,7 @@ object Loader {
         val classLoader = URLClassLoader(arrayOf())
         val compilationConfiguration = ScriptCompilationConfiguration { jvm {
             dependenciesFromClassloader(wholeClasspath = true)
-            compilerOptions.append("-jvm-target", "17")
+            jvmTarget("17")
         } }
         val evaluationConfiguration = ScriptEvaluationConfiguration { jvm { baseClassLoader(classLoader) } }
 

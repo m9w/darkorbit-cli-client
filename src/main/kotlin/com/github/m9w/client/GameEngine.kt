@@ -57,7 +57,7 @@ class GameEngine {
         state = State.STOPPED
     }
 
-    suspend fun reconnect(reconnectInMs: Long = 0, keepProxy: Boolean = false) {
+    suspend fun reconnect(reconnectInMs: Long = 0, keepProxy: Boolean = true) {
         network.close()
         if (reconnectInMs > 0) {
             if (!keepProxy) proxy?.releaseProxy()

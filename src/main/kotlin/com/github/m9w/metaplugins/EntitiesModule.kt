@@ -21,6 +21,7 @@ class EntitiesModule(private val entities: MutableMap<Long, EntityImpl> = HashMa
     val moveModule: MoveModule by context
     private val pathTracer: PathTracerModule by context
     lateinit var hero: HeroShip; private set
+    val heroOrNull: HeroShip? get() = if (::hero.isInitialized) hero else null
 
     inline fun <reified R : EntityImpl> get() = values.filterIsInstance<R>()
 

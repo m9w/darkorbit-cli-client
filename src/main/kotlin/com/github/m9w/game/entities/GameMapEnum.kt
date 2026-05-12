@@ -2,7 +2,7 @@ package com.github.m9w.game.entities
 
 
 @Suppress("unused", "EnumEntryName", "SpellCheckingInspection", "RemoveRedundantBackticks")
-enum class GameMapEnum(mapId: Int, exitType: Int? = null) {
+enum class GameMapEnum(private val mapId: Int, exitType: Int? = null) {
     `1-1`(1),  `1-2`(2),  `1-3`(3),  `1-4`(4),
     `2-1`(5),  `2-2`(6),  `2-3`(7),  `2-4`(8),
     `3-1`(9),  `3-2`(10), `3-3`(11), `3-4`(12),
@@ -198,4 +198,14 @@ enum class GameMapEnum(mapId: Int, exitType: Int? = null) {
     `Escort EIC 8`(1457, 1),
     `Escort EIC 9`(1458, 1),
     `Escort EIC 10`(1459, 1),
+
+    ;
+
+    companion object {
+        fun findById(mapId: Int) : GameMapEnum? {
+            for (value in entries)
+                if (value.mapId == mapId) return value
+            return null
+        }
+    }
 }

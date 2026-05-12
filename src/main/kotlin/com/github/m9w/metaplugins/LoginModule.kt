@@ -35,7 +35,7 @@ class LoginModule {
                 gameLogin()
             } catch (e: InterruptedIOException) {
                 proxy?.degradationReport()
-                gameEngine.reconnect(5000)
+                gameEngine.reconnect(5000, false)
             }
             if (unsuccessfulLoginCount > 0) println("Connection error: $status")
         } else {
@@ -68,7 +68,7 @@ class LoginModule {
             LoginResponseStatus.PlayerIsLoggedOut,
             LoginResponseStatus.InvalidSessionId -> gameEngine.reconnect()
             LoginResponseStatus.InvalidData -> return gameLogin(1000)
-            LoginResponseStatus.IPRestricted -> { proxy?.ipRestricted(); gameEngine.reconnect() }
+            LoginResponseStatus.IPRestricted -> { proxy?.ipRestricted(); gameEngine.reconnect(keepProxy = false) }
             LoginResponseStatus.WrongInstanceId -> gameEngine.disconnect()
         }
         return loginResponse.status
@@ -103,6 +103,6 @@ class LoginModule {
     suspend fun onRelogin(l: ReloginCommand) {
         authentication.mapId = l.mapID
         gameEngine.send<ChannelCloseRequest> { close = true }
-        gameEngine.reconnect(l.delayInMillis.toLong(), true)
+        gameEngine.reconnect(l.delayInMillis.toLong())
     }
 }
